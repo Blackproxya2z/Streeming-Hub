@@ -31,10 +31,10 @@ export function ProductCatalog() {
   const products = data?.products || []
 
   return (
-    <section className="py-8 px-4">
+    <section className="py-6 sm:py-8 px-4">
       <div className="container mx-auto">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold mb-2">
             {currentCategory ? currentCategory.name : 'All Products'}
           </h1>
@@ -49,7 +49,7 @@ export function ProductCatalog() {
         </div>
 
         {/* Search bar - mobile inline */}
-        <div className="flex gap-3 mb-6 lg:hidden">
+        <div className="flex gap-3 mb-4 sm:mb-6 lg:hidden">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -71,7 +71,7 @@ export function ProductCatalog() {
         </div>
 
         {/* Category chips */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 no-scrollbar">
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 sm:mb-6 scrollbar-none">
           <Badge
             variant={!categorySlug ? 'default' : 'outline'}
             className="cursor-pointer whitespace-nowrap shrink-0"
@@ -96,12 +96,12 @@ export function ProductCatalog() {
           <ProductFilters />
 
           {/* Product Grid */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {Array.from({ length: 9 }).map((_, i) => (
                   <div key={i} className="space-y-3">
-                    <Skeleton className="h-40 w-full rounded-xl" />
+                    <Skeleton className="h-44 rounded-2xl" />
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
                     <Skeleton className="h-8 w-full" />
@@ -127,7 +127,7 @@ export function ProductCatalog() {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {products.map(product => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -135,7 +135,7 @@ export function ProductCatalog() {
             )}
 
             {!isLoading && products.length > 0 && (
-              <p className="text-center text-sm text-muted-foreground mt-8">
+              <p className="text-center text-sm text-muted-foreground mt-6 sm:mt-8">
                 Showing {products.length} product{products.length !== 1 ? 's' : ''}
               </p>
             )}

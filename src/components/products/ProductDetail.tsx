@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useProduct, useProducts, useSettings } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
 import { formatPriceBDT, formatPriceRMB, getWhatsAppOrderURL, isNumericPrice } from '@/lib/price'
@@ -99,28 +100,40 @@ export function ProductDetail() {
   const features: string[] = product.features ? JSON.parse(product.features) : []
   const priceOptions: { label: string; priceBDT: string; priceRMB?: string }[] =
     product.priceOptions ? JSON.parse(product.priceOptions) : []
+  const hasImage = !!product.image
 
   return (
-    <section className="py-8 px-4">
+    <section className="py-6 sm:py-8 px-4">
       <div className="container mx-auto max-w-4xl">
         {/* Back button */}
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate('products')}
-          className="mb-6"
+          className="mb-4 sm:mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Products
         </Button>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
           {/* Image */}
-          <div className={`rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center h-64 md:h-80`}>
-            <span className="text-7xl font-bold text-white/60">{initials}</span>
+          <div className={`relative rounded-2xl overflow-hidden ${hasImage ? 'h-64 sm:h-80 md:h-96' : `bg-gradient-to-br ${gradient} h-64 sm:h-80 md:h-96`} flex items-center justify-center`}>
+            {hasImage ? (
+              <Image
+                src={product.image!}
+                alt={product.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+            ) : (
+              <span className="text-7xl font-bold text-white/60">{initials}</span>
+            )}
           </div>
 
           {/* Details */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{product.category?.name}</Badge>
               {product.isBestSeller && (
@@ -136,14 +149,14 @@ export function ProductDetail() {
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-bold">{product.name}</h1>
-            <p className="text-muted-foreground">{product.description}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
 
             <Badge className={stockClass}>{product.stockStatus}</Badge>
 
             {/* Price */}
-            <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl p-4">
-              <div className="flex items-baseline gap-3">
-                <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+            <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl p-3 sm:p-4">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <span className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
                 <span className="text-sm text-muted-foreground">
@@ -178,33 +191,33 @@ export function ProductDetail() {
             )}
 
             {/* Meta */}
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
               {product.duration && (
-                <div className="flex items-center gap-2">
-                  <Timer className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-1.5">
+                  <Timer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span>Duration: <strong>{product.duration}</strong></span>
                 </div>
               )}
               {product.accountType && (
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span>Type: <strong>{product.accountType}</strong></span>
                 </div>
               )}
               {product.region && (
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span>Region: <strong>{product.region}</strong></span>
                 </div>
               )}
               {product.warranty && (
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-emerald-500" />
+                <div className="flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                   <span>Warranty: <strong>{product.warranty}</strong></span>
                 </div>
               )}
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-amber-500" />
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
                 <span>Delivery: <strong>{product.deliveryTime}</strong></span>
               </div>
             </div>
@@ -219,14 +232,14 @@ export function ProductDetail() {
                 rel="noopener noreferrer"
                 className="flex-1"
               >
-                <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 font-semibold">
+                <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 font-semibold rounded-xl">
                   <MessageCircle className="h-5 w-5 mr-2" /> Order on WhatsApp
                 </Button>
               </a>
               <Button
                 size="lg"
                 variant="outline"
-                className="flex-1 font-semibold"
+                className="flex-1 font-semibold rounded-xl"
                 onClick={() => navigate('order', { productId: product.id, productName: product.name })}
               >
                 <ShoppingCart className="h-5 w-5 mr-2" /> Order Form
@@ -237,9 +250,9 @@ export function ProductDetail() {
 
         {/* Features */}
         {features.length > 0 && (
-          <div className="mt-10">
+          <div className="mt-8 sm:mt-10">
             <h2 className="text-xl font-bold mb-4">Features</h2>
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
               {features.map((feature, i) => (
                 <div key={i} className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
@@ -251,31 +264,31 @@ export function ProductDetail() {
         )}
 
         {/* How to Order */}
-        <div className="mt-10">
+        <div className="mt-8 sm:mt-10">
           <h2 className="text-xl font-bold mb-4">How to Order</h2>
           <Card className="border-0 shadow-sm">
-            <CardContent className="p-6">
-              <div className="grid sm:grid-cols-3 gap-6">
-                <div className="text-center space-y-2">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto">
-                    <CreditCard className="h-6 w-6 text-white" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-3 gap-4 sm:gap-6">
+                <div className="text-center space-y-1.5 sm:space-y-2">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto">
+                    <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-sm">1. Make Payment</h3>
-                  <p className="text-xs text-muted-foreground">Pay via bKash/Nagad</p>
+                  <h3 className="font-semibold text-xs sm:text-sm">1. Make Payment</h3>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Pay via bKash/Nagad</p>
                 </div>
-                <div className="text-center space-y-2">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto">
-                    <Phone className="h-6 w-6 text-white" />
+                <div className="text-center space-y-1.5 sm:space-y-2">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto">
+                    <Phone className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-sm">2. Send Details</h3>
-                  <p className="text-xs text-muted-foreground">WhatsApp with transaction ID</p>
+                  <h3 className="font-semibold text-xs sm:text-sm">2. Send Details</h3>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">WhatsApp with ID</p>
                 </div>
-                <div className="text-center space-y-2">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center mx-auto">
-                    <Truck className="h-6 w-6 text-white" />
+                <div className="text-center space-y-1.5 sm:space-y-2">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center mx-auto">
+                    <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-sm">3. Get Delivered</h3>
-                  <p className="text-xs text-muted-foreground">5-20 minutes delivery</p>
+                  <h3 className="font-semibold text-xs sm:text-sm">3. Get Delivered</h3>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">5-20 min delivery</p>
                 </div>
               </div>
             </CardContent>
@@ -283,7 +296,7 @@ export function ProductDetail() {
         </div>
 
         {/* FAQ */}
-        <div className="mt-10">
+        <div className="mt-8 sm:mt-10">
           <h2 className="text-xl font-bold mb-4">FAQ</h2>
           <Accordion type="single" collapsible className="space-y-2">
             <AccordionItem value="faq-1" className="bg-background border rounded-xl px-4">
@@ -315,9 +328,9 @@ export function ProductDetail() {
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <div className="mt-10">
+          <div className="mt-8 sm:mt-10">
             <h2 className="text-xl font-bold mb-4">Related Products</h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {relatedProducts.map(p => (
                 <ProductCard key={p.id} product={p} />
               ))}

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useAppStore } from '@/lib/store'
 import { useCategories } from '@/lib/hooks'
 import { Card, CardContent } from '@/components/ui/card'
@@ -38,6 +39,21 @@ const categoryGradients: Record<string, string> = {
   'adult-18': 'from-orange-500 to-red-600',
 }
 
+// Map category slugs to their image paths
+const categoryImages: Record<string, string> = {
+  'streaming': '/images/categories/streaming.png',
+  'ai-tools': '/images/categories/ai-tools.png',
+  'educational': '/images/categories/educational.png',
+  'design-creative': '/images/categories/design-creative.png',
+  'productivity': '/images/categories/productivity.png',
+  'cloud-storage': '/images/categories/cloud-storage.png',
+  'vpn': '/images/categories/vpn.png',
+  'gift-cards': '/images/categories/gift-cards.png',
+  'gaming-topup': '/images/categories/gaming-topup.png',
+  'multi-collection': '/images/categories/multi-collection.png',
+  'adult': '/images/categories/adult.png',
+}
+
 function getCategoryIcon(category: Category) {
   if (category.icon && categoryIconMap[category.icon]) {
     return categoryIconMap[category.icon]
@@ -73,11 +89,11 @@ export function CategoryCards() {
 
   if (isLoading) {
     return (
-      <section className="py-16 px-4">
+      <section className="py-12 sm:py-16 px-4">
         <div className="container mx-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="h-32 rounded-xl bg-muted animate-pulse" />
+              <div key={i} className="h-36 rounded-2xl bg-muted animate-pulse" />
             ))}
           </div>
         </div>
@@ -86,18 +102,21 @@ export function CategoryCards() {
   }
 
   return (
-    <section className="py-16 px-4">
+    <section className="py-12 sm:py-16 px-4">
       <div className="container mx-auto">
-        <div className="text-center mb-10">
+        <div className="text-center mb-8 sm:mb-10">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">Browse by Category</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
             Find the perfect subscription for your needs from our wide range of categories
           </p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
           {(categories || []).map((cat, index) => {
             const Icon = getCategoryIcon(cat)
             const gradient = getCategoryGradient(cat)
+            const imagePath = categoryImages[cat.slug]
+            const hasImage = !!imagePath
+
             return (
               <motion.div
                 key={cat.id}
@@ -106,23 +125,40 @@ export function CategoryCards() {
                 transition={{ duration: 0.4, delay: index * 0.05 }}
               >
                 <Card
-                  className="cursor-pointer group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-0 overflow-hidden"
+                  className="cursor-pointer group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 overflow-hidden rounded-2xl shadow-sm"
                   onClick={() => handleClick(cat)}
                 >
-                  <CardContent className="p-4 text-center space-y-3">
-                    <div className={`mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                      <Icon className="h-7 w-7 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-sm flex items-center justify-center gap-1">
-                        {cat.name}
-                        {cat.isAdult && <Lock className="h-3 w-3 text-orange-500" />}
-                      </h3>
-                      {cat._count && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {cat._count.products} products
-                        </p>
+                  <CardContent className="p-0 relative">
+                    {/* Background image */}
+                    <div className="relative h-28 sm:h-32 overflow-hidden">
+                      {hasImage ? (
+                        <>
+                          <Image
+                            src={imagePath}
+                            alt={cat.name}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+                        </>
+                      ) : (
+                        <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
                       )}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-3">
+                        <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                          <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                        </div>
+                        <h3 className="font-semibold text-xs sm:text-sm mt-2 flex items-center gap-1 text-center drop-shadow-md">
+                          {cat.name}
+                          {cat.isAdult && <Lock className="h-3 w-3 text-amber-300" />}
+                        </h3>
+                        {cat._count && (
+                          <p className="text-[10px] text-white/80 mt-0.5">
+                            {cat._count.products} products
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

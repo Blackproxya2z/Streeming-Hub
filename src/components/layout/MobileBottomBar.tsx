@@ -10,11 +10,11 @@ export function MobileBottomBar() {
   const whatsappNumber = settings?.whatsappNumber || '+8801647236359'
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-background/95 backdrop-blur border-t">
-      <div className="grid grid-cols-4 h-16">
+    <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-background/95 backdrop-blur-md border-t shadow-[0_-1px_3px_rgba(0,0,0,0.05)]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="grid grid-cols-4 h-14">
         <button
           onClick={() => navigate('home')}
-          className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+          className={`flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 ${
             currentPage === 'home' ? 'text-emerald-600' : 'text-muted-foreground'
           }`}
         >
@@ -26,7 +26,7 @@ export function MobileBottomBar() {
             setSearchQuery('')
             navigate('products')
           }}
-          className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+          className={`flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 ${
             currentPage === 'products' || currentPage === 'category' ? 'text-emerald-600' : 'text-muted-foreground'
           }`}
         >
@@ -35,7 +35,7 @@ export function MobileBottomBar() {
         </button>
         <button
           onClick={() => navigate('products')}
-          className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+          className={`flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 ${
             currentPage === 'products' ? 'text-emerald-600' : 'text-muted-foreground'
           }`}
         >
@@ -46,7 +46,7 @@ export function MobileBottomBar() {
           href={`https://wa.me/${whatsappNumber.replace('+', '')}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-col items-center justify-center gap-1 text-green-600"
+          className="flex flex-col items-center justify-center gap-0.5 text-green-600 active:scale-95"
         >
           <MessageCircle className="h-5 w-5" />
           <span className="text-[10px] font-medium">WhatsApp</span>

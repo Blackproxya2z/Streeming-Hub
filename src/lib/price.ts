@@ -1,7 +1,22 @@
 const EXCHANGE_RATE = 0.056
 
+// Non-numeric price labels that should display as "Inbox Price" / "Ask for RMB price"
+const NON_NUMERIC_LABELS = [
+  'Inbox Price', 'Inbox', 'Cheap', 'Market Challenge',
+  'Market Lowest', 'Lowest', 'Low Price', 'Custom',
+] as const
+
+function isNonNumericLabel(price: string): boolean {
+  return NON_NUMERIC_LABELS.includes(price as any)
+}
+
+/**
+ * Format BDT price for display
+ * - Numeric prices: "৳1,200"
+ * - Non-numeric labels: "Inbox Price"
+ */
 export function formatPriceBDT(price: string): string {
-  if (!price || price === 'Inbox Price' || price === 'Inbox' || price === 'Cheap' || price === 'Market Challenge' || price === 'Market Lowest' || price === 'Lowest' || price === 'Low Price' || price === 'Custom') {
+  if (!price || isNonNumericLabel(price)) {
     return 'Inbox Price'
   }
   const num = parseFloat(price)
@@ -9,8 +24,13 @@ export function formatPriceBDT(price: string): string {
   return `৳${num.toLocaleString()}`
 }
 
+/**
+ * Format RMB price for display (converted from BDT)
+ * - Numeric prices: "≈ ¥67.20"
+ * - Non-numeric labels: "Ask for RMB price"
+ */
 export function formatPriceRMB(priceBDT: string): string {
-  if (!priceBDT || priceBDT === 'Inbox Price' || priceBDT === 'Inbox' || priceBDT === 'Cheap' || priceBDT === 'Market Challenge' || priceBDT === 'Market Lowest' || priceBDT === 'Lowest' || priceBDT === 'Low Price' || priceBDT === 'Custom') {
+  if (!priceBDT || isNonNumericLabel(priceBDT)) {
     return 'Ask for RMB price'
   }
   const num = parseFloat(priceBDT)
@@ -18,12 +38,67 @@ export function formatPriceRMB(priceBDT: string): string {
   return `≈ ¥${(num * EXCHANGE_RATE).toFixed(2)}`
 }
 
+/**
+ * Convert BDT price to RMB number
+ */
+export function bdtToRMB(priceBDT: string): number {
+  const num = parseFloat(priceBDT)
+  if (isNaN(num)) return 0
+  return parseFloat((num * EXCHANGE_RATE).toFixed(2))
+}
+
+/**
+ * Check if a price string is a numeric value (not a label like "Inbox Price")
+ */
 export function isNumericPrice(price: string): boolean {
-  if (!price) return false
-  if (['Inbox Price', 'Inbox', 'Cheap', 'Market Challenge', 'Market Lowest', 'Lowest', 'Low Price', 'Custom'].includes(price)) return false
+  if (!price || isNonNumericLabel(price)) return false
   return !isNaN(parseFloat(price))
 }
 
+/**
+ * Parse priceOptions JSON string into an array
+ */
+export interface PriceOption {
+  label: string
+  priceBDT: string
+  priceRMB: string
+}
+
+export function parsePriceOptions(priceOptionsJson: string): PriceOption[] {
+  try {
+    const parsed = JSON.parse(priceOptionsJson)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((opt: any) => opt && opt.label)
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Get the display price range from price options
+ * Returns formatted string like "৳200 - ৳600" or single price "৳200"
+ */
+export function getPriceRangeDisplay(priceOptionsJson: string, basePriceBDT: string): string {
+  const options = parsePriceOptions(priceOptionsJson)
+  const numericOptions = options.filter(opt => isNumericPrice(opt.priceBDT))
+
+  if (numericOptions.length === 0) {
+    return formatPriceBDT(basePriceBDT)
+  }
+
+  const prices = numericOptions.map(opt => parseFloat(opt.priceBDT)).filter(p => !isNaN(p))
+  if (prices.length === 0) return formatPriceBDT(basePriceBDT)
+
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+
+  if (min === max) return `৳${min.toLocaleString()}`
+  return `৳${min.toLocaleString()} - ৳${max.toLocaleString()}`
+}
+
+/**
+ * Generate WhatsApp order URL with product and price info
+ */
 export function getWhatsAppOrderURL(productName: string, priceBDT: string, whatsappNumber: string): string {
   const bdtDisplay = formatPriceBDT(priceBDT)
   const rmbDisplay = formatPriceRMB(priceBDT)
