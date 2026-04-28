@@ -330,7 +330,7 @@ export function ProductDetail() {
         {relatedProducts.length > 0 && (
           <div className="mt-8 sm:mt-10">
             <h2 className="text-xl font-bold mb-4">Related Products</h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-start">
               {relatedProducts.map(p => (
                 <ProductCard key={p.id} product={p} />
               ))}

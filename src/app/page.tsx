@@ -77,7 +77,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <AnnouncementBar />
       <Header />
-      <main className="flex-1 pb-20 lg:pb-0">
+      <main className="flex-1 pb-24 lg:pb-0">
         <PageRouter />
       </main>
       <Footer />

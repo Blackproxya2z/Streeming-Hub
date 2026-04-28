@@ -98,10 +98,10 @@ export function ProductCatalog() {
           {/* Product Grid */}
           <div className="flex-1 min-w-0">
             {isLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 items-start">
                 {Array.from({ length: 9 }).map((_, i) => (
                   <div key={i} className="space-y-3">
-                    <Skeleton className="h-44 rounded-2xl" />
+                    <Skeleton className="h-36 sm:h-44 rounded-2xl" />
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
                     <Skeleton className="h-8 w-full" />
@@ -127,7 +127,7 @@ export function ProductCatalog() {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 items-start">
                 {products.map(product => (
                   <ProductCard key={product.id} product={product} />
                 ))}
