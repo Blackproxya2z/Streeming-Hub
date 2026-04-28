@@ -167,7 +167,7 @@ function FilterContent({ filters, setFilter, resetFilters, searchQuery, setSearc
   )
 }
 
-export function ProductFilters() {
+export function ProductFiltersDesktop() {
   const { filters, setFilter, resetFilters, searchQuery, setSearchQuery } = useAppStore()
   const { data: cats } = useCategories()
 
@@ -177,45 +177,64 @@ export function ProductFilters() {
   const filterProps = { filters, setFilter, resetFilters, searchQuery, setSearchQuery, cats: cats || [] }
 
   return (
-    <>
-      {/* Desktop */}
-      <div className="hidden lg:block w-64 shrink-0">
-        <div className="sticky top-20 bg-background border rounded-xl p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-sm">Filters</h3>
-            {activeFilterCount > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {activeFilterCount} active
-              </Badge>
-            )}
-          </div>
+    <div className="w-64 shrink-0">
+      <div className="sticky top-20 bg-background border rounded-xl p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-sm">Filters</h3>
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="text-xs">
+              {activeFilterCount} active
+            </Badge>
+          )}
+        </div>
+        <FilterContent {...filterProps} />
+      </div>
+    </div>
+  )
+}
+
+export function ProductFiltersMobile() {
+  const { filters, setFilter, resetFilters, searchQuery, setSearchQuery } = useAppStore()
+  const { data: cats } = useCategories()
+
+  const activeFilterCount = Object.values(filters).filter(v => v && v !== 'popular').length +
+    (searchQuery ? 1 : 0)
+
+  const filterProps = { filters, setFilter, resetFilters, searchQuery, setSearchQuery, cats: cats || [] }
+
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2">
+          <SlidersHorizontal className="h-4 w-4" />
+          Filters
+          {activeFilterCount > 0 && (
+            <Badge variant="default" className="h-5 w-5 p-0 text-[10px] flex items-center justify-center">
+              {activeFilterCount}
+            </Badge>
+          )}
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-80">
+        <SheetHeader>
+          <SheetTitle>Filters</SheetTitle>
+        </SheetHeader>
+        <div className="mt-6 overflow-y-auto max-h-[calc(100vh-100px)]">
           <FilterContent {...filterProps} />
         </div>
-      </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
 
-      {/* Mobile */}
+export function ProductFilters() {
+  return (
+    <>
+      <div className="hidden lg:block">
+        <ProductFiltersDesktop />
+      </div>
       <div className="lg:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
-              {activeFilterCount > 0 && (
-                <Badge variant="default" className="h-5 w-5 p-0 text-[10px] flex items-center justify-center">
-                  {activeFilterCount}
-                </Badge>
-              )}
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-80">
-            <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
-            </SheetHeader>
-            <div className="mt-6 overflow-y-auto max-h-[calc(100vh-100px)]">
-              <FilterContent {...filterProps} />
-            </div>
-          </SheetContent>
-        </Sheet>
+        <ProductFiltersMobile />
       </div>
     </>
   )

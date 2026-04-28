@@ -3,7 +3,7 @@
 import { useProducts, useCategories } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
 import { ProductCard } from './ProductCard'
-import { ProductFilters } from './ProductFilters'
+import { ProductFiltersDesktop, ProductFiltersMobile } from './ProductFilters'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -67,7 +67,7 @@ export function ProductCatalog() {
               </button>
             )}
           </div>
-          <ProductFilters />
+          <ProductFiltersMobile />
         </div>
 
         {/* Category chips */}
@@ -93,7 +93,9 @@ export function ProductCatalog() {
 
         <div className="flex gap-6">
           {/* Desktop Filters */}
-          <ProductFilters />
+          <div className="hidden lg:block">
+            <ProductFiltersDesktop />
+          </div>
 
           {/* Product Grid */}
           <div className="flex-1 min-w-0">
