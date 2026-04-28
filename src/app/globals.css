@@ -145,3 +145,49 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: oklch(0.6 0 0 / 50%);
 }
+
+/* Marquee animation for announcement bar */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Card shine effect on hover */
+.card-shine {
+  position: relative;
+  overflow: hidden;
+}
+.card-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    transparent 40%,
+    oklch(1 0 0 / 3%) 50%,
+    transparent 60%
+  );
+  transform: rotate(45deg) translateY(-100%);
+  transition: transform 0.6s ease;
+}
+.card-shine:hover::after {
+  transform: rotate(45deg) translateY(0%);
+}

@@ -10,6 +10,20 @@ import { Button } from '@/components/ui/button'
 import { MessageCircle, Eye, Star, Clock, Shield, Zap, Globe, Timer } from 'lucide-react'
 import type { Product } from '@/lib/hooks'
 
+const categoryImages: Record<string, string> = {
+  'streaming': '/images/categories/streaming.png',
+  'ai-tools': '/images/categories/ai-tools.png',
+  'educational': '/images/categories/educational.png',
+  'design-creative': '/images/categories/design-creative.png',
+  'productivity': '/images/categories/productivity.png',
+  'cloud-storage': '/images/categories/cloud-storage.png',
+  'vpn': '/images/categories/vpn.png',
+  'gift-cards': '/images/categories/gift-cards.png',
+  'gaming-topup': '/images/categories/gaming-topup.png',
+  'multi-collection': '/images/categories/multi-collection.png',
+  'adult': '/images/categories/adult.png',
+}
+
 const stockColors: Record<string, string> = {
   'Available': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400',
   'Limited Stock': 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400',
@@ -47,12 +61,14 @@ export function ProductCard({ product }: ProductCardProps) {
   const gradient = getGradient(product.name)
   const stockClass = stockColors[product.stockStatus] || stockColors['Available']
   const hasImage = product.image && !product.image.startsWith('/images/categories/')
+  const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
+  const showCategoryImage = !hasImage && categoryImage
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full flex flex-col rounded-2xl border-0 shadow-sm">
+    <Card className="card-shine group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full flex flex-col rounded-2xl border-0 shadow-sm">
       <CardContent className="p-0 flex flex-col h-full overflow-hidden">
         {/* Image area */}
-        <div className={`relative h-36 sm:h-44 shrink-0 ${hasImage ? '' : `bg-gradient-to-br ${gradient}`} flex items-center justify-center overflow-hidden`}>
+        <div className={`relative h-36 sm:h-44 shrink-0 ${hasImage || showCategoryImage ? '' : `bg-gradient-to-br ${gradient}`} flex items-center justify-center overflow-hidden`}>
           {hasImage ? (
             <Image
               src={product.image!}
@@ -61,6 +77,12 @@ export function ProductCard({ product }: ProductCardProps) {
               className="object-cover transition-transform duration-500 group-hover:scale-110"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
+          ) : showCategoryImage ? (
+            <>
+              <Image src={categoryImage} alt={product.category?.name || ''} fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+              <span className="absolute bottom-2 left-3 text-white font-bold text-sm drop-shadow-lg">{product.name}</span>
+            </>
           ) : (
             <span className="text-4xl font-bold text-white/70">{initials}</span>
           )}

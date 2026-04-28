@@ -86,3 +86,47 @@ Stage Summary:
 - Responsive alignment fixed: 2-col grid on mobile, proper gaps, consistent card heights
 - All products display dual currency (BDT ৳ + RMB ¥)
 - Professional polish: image hover zoom, gradient overlays, proper spacing hierarchy
+
+---
+Task ID: 2
+Agent: general-purpose
+Task: Add category image fallback to ProductCard
+
+Work Log:
+- Added `categoryImages` mapping object (11 category slugs → `/images/categories/*.png` paths) to three files:
+  - `/src/components/products/ProductCard.tsx`
+  - `/src/components/home/FeaturedProducts.tsx`
+  - `/src/components/products/ProductDetail.tsx`
+- In each component, added `categoryImage` and `showCategoryImage` computed variables after `hasImage`
+- Updated image area rendering logic: when `hasImage` is false but `showCategoryImage` is true, shows the category image with gradient overlay and product name label instead of plain initials
+- Updated gradient background condition: `${hasImage || showCategoryImage ? '' : ...}` so category image cards don't get a gradient behind them
+- Category image fallback includes: the category image with object-cover, a dark gradient overlay (from-black/50 via-black/20 to-transparent), and the product name as a white label at the bottom
+- ProductDetail uses larger label (text-xl, bottom-4, left-4) vs ProductCard/ProductCardMini (text-sm, bottom-2, left-3)
+- TypeScript type check passes with no errors in edited files
+
+Stage Summary:
+- Products without dedicated images now show their category's image as a beautiful fallback instead of plain gradient+initials
+- Three components updated: ProductCard, ProductCardMini (FeaturedProducts), ProductDetail
+- Fallback chain: product image → category image with overlay+name → gradient+initials
+
+---
+Task ID: 5
+Agent: general-purpose
+Task: Update seed.ts with image paths for all products with existing images
+
+Work Log:
+- Read current seed.ts to identify products needing image fields
+- Found 14 of 18 products already had image paths from prior Task 4 work
+- Added image paths for 4 remaining products:
+  - figma-professional → /images/products/figma-professional.png
+  - canva-pro → /images/products/canva-pro.png
+  - microsoft-office-365 → /images/products/microsoft-office-365.png
+  - chatgpt-plus → /images/products/chatgpt-plus.png (in aiCollectionProducts loop)
+- For chatgpt-plus: added `image` property to the aiCollectionProducts array entry and passed `image: p.image` in the loop's createProduct call
+- Ran `bun prisma/seed.ts` successfully (129 products, 11 categories, 8 reviews)
+- Verified all 18 target products have correct image paths in database (0 missing)
+
+Stage Summary:
+- All 18 products with existing images now have image paths in both seed.ts and database
+- No other data (prices, descriptions, etc.) was modified
+- Seed script runs cleanly with exit code 0

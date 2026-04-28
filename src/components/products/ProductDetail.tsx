@@ -31,6 +31,20 @@ import {
 } from 'lucide-react'
 import { ProductCard } from './ProductCard'
 
+const categoryImages: Record<string, string> = {
+  'streaming': '/images/categories/streaming.png',
+  'ai-tools': '/images/categories/ai-tools.png',
+  'educational': '/images/categories/educational.png',
+  'design-creative': '/images/categories/design-creative.png',
+  'productivity': '/images/categories/productivity.png',
+  'cloud-storage': '/images/categories/cloud-storage.png',
+  'vpn': '/images/categories/vpn.png',
+  'gift-cards': '/images/categories/gift-cards.png',
+  'gaming-topup': '/images/categories/gaming-topup.png',
+  'multi-collection': '/images/categories/multi-collection.png',
+  'adult': '/images/categories/adult.png',
+}
+
 const stockColors: Record<string, string> = {
   'Available': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400',
   'Limited Stock': 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400',
@@ -101,6 +115,8 @@ export function ProductDetail() {
   const priceOptions: { label: string; priceBDT: string; priceRMB?: string }[] =
     product.priceOptions ? JSON.parse(product.priceOptions) : []
   const hasImage = !!product.image
+  const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
+  const showCategoryImage = !hasImage && categoryImage
 
   return (
     <section className="py-6 sm:py-8 px-4">
@@ -117,7 +133,7 @@ export function ProductDetail() {
 
         <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
           {/* Image */}
-          <div className={`relative rounded-2xl overflow-hidden ${hasImage ? 'h-64 sm:h-80 md:h-96' : `bg-gradient-to-br ${gradient} h-64 sm:h-80 md:h-96`} flex items-center justify-center`}>
+          <div className={`relative rounded-2xl overflow-hidden h-64 sm:h-80 md:h-96 ${hasImage || showCategoryImage ? '' : `bg-gradient-to-br ${gradient}`} flex items-center justify-center`}>
             {hasImage ? (
               <Image
                 src={product.image!}
@@ -127,6 +143,12 @@ export function ProductDetail() {
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority
               />
+            ) : showCategoryImage ? (
+              <>
+                <Image src={categoryImage} alt={product.category?.name || ''} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" priority />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+                <span className="absolute bottom-4 left-4 text-white font-bold text-xl drop-shadow-lg">{product.name}</span>
+              </>
             ) : (
               <span className="text-7xl font-bold text-white/60">{initials}</span>
             )}

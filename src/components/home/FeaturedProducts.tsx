@@ -10,6 +10,20 @@ import { Button } from '@/components/ui/button'
 import { MessageCircle, Eye, Star, Clock, Shield, Zap, Timer, Globe } from 'lucide-react'
 import { motion } from 'framer-motion'
 
+const categoryImages: Record<string, string> = {
+  'streaming': '/images/categories/streaming.png',
+  'ai-tools': '/images/categories/ai-tools.png',
+  'educational': '/images/categories/educational.png',
+  'design-creative': '/images/categories/design-creative.png',
+  'productivity': '/images/categories/productivity.png',
+  'cloud-storage': '/images/categories/cloud-storage.png',
+  'vpn': '/images/categories/vpn.png',
+  'gift-cards': '/images/categories/gift-cards.png',
+  'gaming-topup': '/images/categories/gaming-topup.png',
+  'multi-collection': '/images/categories/multi-collection.png',
+  'adult': '/images/categories/adult.png',
+}
+
 const gradients = [
   'from-emerald-400 to-teal-500',
   'from-amber-400 to-orange-500',
@@ -39,6 +53,8 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
     product.stockStatus === 'Limited Stock' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400' :
     'text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400'
   const hasImage = product.image && !product.image.startsWith('/images/categories/')
+  const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
+  const showCategoryImage = !hasImage && categoryImage
 
   return (
     <motion.div
@@ -46,10 +62,10 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
     >
-      <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full flex flex-col rounded-2xl border-0 shadow-sm">
+      <Card className="card-shine group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full flex flex-col rounded-2xl border-0 shadow-sm">
         <CardContent className="p-0 flex flex-col h-full overflow-hidden">
           {/* Image */}
-          <div className={`relative h-36 sm:h-44 shrink-0 ${hasImage ? '' : `bg-gradient-to-br ${gradient}`} flex items-center justify-center overflow-hidden`}>
+          <div className={`relative h-36 sm:h-44 shrink-0 ${hasImage || showCategoryImage ? '' : `bg-gradient-to-br ${gradient}`} flex items-center justify-center overflow-hidden`}>
             {hasImage ? (
               <Image
                 src={product.image}
@@ -58,6 +74,12 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               />
+            ) : showCategoryImage ? (
+              <>
+                <Image src={categoryImage} alt={product.category?.name || ''} fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+                <span className="absolute bottom-2 left-3 text-white font-bold text-sm drop-shadow-lg">{product.name}</span>
+              </>
             ) : (
               <span className="text-4xl font-bold text-white/80">{initials}</span>
             )}

@@ -106,6 +106,7 @@ async function main() {
     slug: 'netflix',
     description: 'Netflix subscription purchase. Personal profile, PIN lock, 1 month to 12 months available. Watch unlimited movies, TV shows, and web series on all devices.',
     categoryId: streaming.id,
+    image: '/images/products/netflix.png',
     basePriceBDT: '280',
     priceOptions: [
       { label: '1 Month', priceBDT: '280', priceRMB: toRMB(280) },
@@ -128,6 +129,7 @@ async function main() {
     slug: 'youtube-premium',
     description: 'Bangladesh account, no VPN needed, full account on your mail. Enjoy ad-free videos, background play, and YouTube Music Premium.',
     categoryId: streaming.id,
+    image: '/images/products/youtube-premium.png',
     basePriceBDT: '150',
     priceOptions: [
       { label: '1 Month', priceBDT: '150', priceRMB: toRMB(150) },
@@ -148,6 +150,7 @@ async function main() {
     slug: 'amazon-prime-video',
     description: '1 month full personal account, mail/number ছাড়াও নিতে পারবেন, stable account, unlimited stock. Stream movies, TV shows, and Amazon Originals.',
     categoryId: streaming.id,
+    image: '/images/products/amazon-prime-video.png',
     basePriceBDT: '150',
     priceOptions: [
       { label: '1 Month', priceBDT: '150', priceRMB: toRMB(150) },
@@ -181,6 +184,7 @@ async function main() {
     slug: 'hotstar',
     description: 'HOTSTAR 4K 1–12 Month, personal profile, OTP login, iOS/Android/PC/TV, live sports and movies.',
     categoryId: streaming.id,
+    image: '/images/products/hotstar.png',
     basePriceBDT: '190',
     priceOptions: [
       { label: '1 Month', priceBDT: '190', priceRMB: toRMB(190) },
@@ -198,6 +202,7 @@ async function main() {
     slug: 'crunchyroll',
     description: 'Crunchyroll Mega Fan Plan, monthly, other packs possible. Watch anime with simulcast and ad-free viewing.',
     categoryId: streaming.id,
+    image: '/images/products/crunchyroll.png',
     basePriceBDT: '200',
     priceOptions: [
       { label: '1 Month Mega Fan', priceBDT: '200', priceRMB: toRMB(200) },
@@ -276,6 +281,7 @@ async function main() {
     slug: 'disney-plus',
     description: 'Shared account, includes free VPN. Watch Disney, Pixar, Marvel, Star Wars, and Nat Geo.',
     categoryId: streaming.id,
+    image: '/images/products/disney-plus.png',
     basePriceBDT: 'Cheap',
     duration: '1-12 Months',
     accountType: 'Shared',
@@ -434,6 +440,7 @@ async function main() {
     slug: 'google-gemini-ai',
     description: 'Gemini AI + 2TB Google One storage, personal email account. Access to Google\'s most advanced AI model with massive cloud storage.',
     categoryId: aiTools.id,
+    image: '/images/products/google-gemini-ai.png',
     basePriceBDT: '600',
     priceOptions: [
       { label: '2 Months', priceBDT: '600', priceRMB: toRMB(600) },
@@ -452,6 +459,7 @@ async function main() {
     slug: 'perplexity-ai-pro',
     description: 'Perplexity AI Pro 1 month / 1 year. Advanced AI-powered search and research assistant.',
     categoryId: aiTools.id,
+    image: '/images/products/perplexity-ai-pro.png',
     basePriceBDT: '2500',
     priceOptions: [
       { label: '1 Month', priceBDT: '2500', priceRMB: toRMB(2500) },
@@ -488,6 +496,7 @@ async function main() {
     slug: 'midjourney',
     description: 'Midjourney Pro Plan, original account, warranty available, full account with mail access. Create stunning AI-generated artwork.',
     categoryId: aiTools.id,
+    image: '/images/products/midjourney.png',
     basePriceBDT: 'Inbox Price',
     duration: '1 Month',
     accountType: 'Personal / Mail Access',
@@ -521,6 +530,7 @@ async function main() {
     slug: 'cursor-ai',
     description: 'Personal account, warranty full. AI-powered code editor for faster development.',
     categoryId: aiTools.id,
+    image: '/images/products/cursor-ai.png',
     basePriceBDT: '2100',
     priceOptions: [
       { label: '1 Month', priceBDT: '2100', priceRMB: toRMB(2100) },
@@ -621,7 +631,7 @@ async function main() {
   // AI Collection products
   const aiCollectionProducts = [
     { name: 'Remini AI', slug: 'remini-ai' },
-    { name: 'ChatGPT Plus', slug: 'chatgpt-plus' },
+    { name: 'ChatGPT Plus', slug: 'chatgpt-plus', image: '/images/products/chatgpt-plus.png' },
     { name: 'NinjaChat AI', slug: 'ninjachatai' },
     { name: 'Jenni AI', slug: 'jenni-ai' },
     { name: 'Fliki AI', slug: 'fliki-ai' },
@@ -645,6 +655,7 @@ async function main() {
       slug: p.slug,
       description: `${p.name} subscription. AI-powered tool for various use cases. Contact for pricing and availability.`,
       categoryId: aiTools.id,
+      image: p.image,
       basePriceBDT: 'Inbox Price',
       duration: '1 Month',
       accountType: 'Personal',
@@ -661,6 +672,7 @@ async function main() {
     slug: 'coursera-plus',
     description: 'Professional plan / 12 months / own mail / warranty. Access to 7,000+ courses from top universities and companies.',
     categoryId: educational.id,
+    image: '/images/products/coursera-plus.png',
     basePriceBDT: '800',
     priceOptions: [
       { label: 'Professional Plan', priceBDT: '800', priceRMB: toRMB(800) },
@@ -694,6 +706,7 @@ async function main() {
     slug: 'grammarly-premium',
     description: 'Grammarly Premium writing assistant. Improve your writing with AI-powered grammar, spelling, and style suggestions.',
     categoryId: educational.id,
+    image: '/images/products/grammarly-premium.png',
     basePriceBDT: '350',
     priceOptions: [
       { label: '1 Month', priceBDT: '350', priceRMB: toRMB(350) },
@@ -849,6 +862,7 @@ async function main() {
     slug: 'adobe-creative-cloud',
     description: 'Design, illustration, video, motion, photography, web & UX design, document management, 3D & AR, social media tools. The complete creative suite.',
     categoryId: designCreative.id,
+    image: '/images/products/adobe-creative-cloud.png',
     basePriceBDT: '1200',
     priceOptions: [
       { label: 'Standard', priceBDT: '1200', priceRMB: toRMB(1200) },
@@ -882,6 +896,7 @@ async function main() {
     slug: 'capcut-pro',
     description: '1 month CapCut Pro subscription. Professional video editing with AI-powered features.',
     categoryId: designCreative.id,
+    image: '/images/products/capcut-pro.png',
     basePriceBDT: '500',
     priceOptions: [
       { label: '1 Month', priceBDT: '500', priceRMB: toRMB(500) },
@@ -899,6 +914,7 @@ async function main() {
     slug: 'figma-professional',
     description: 'Professional plan, personal own email, full warranty. Collaborative design tool for teams.',
     categoryId: designCreative.id,
+    image: '/images/products/figma-professional.png',
     basePriceBDT: '900',
     priceOptions: [
       { label: '1 Month', priceBDT: '900', priceRMB: toRMB(900) },
@@ -935,6 +951,7 @@ async function main() {
     slug: 'canva-pro',
     description: '1 year+, stock unlimited, on your email, full warranty. Design anything with premium templates and features.',
     categoryId: designCreative.id,
+    image: '/images/products/canva-pro.png',
     basePriceBDT: 'Inbox Price',
     duration: '1 Year+',
     accountType: 'Personal / Own Email',
@@ -1080,6 +1097,7 @@ async function main() {
     slug: 'microsoft-office-365',
     description: 'Personal/Family + 1TB OneDrive, personal mail, 1 to 6 users, 1 year+ subscription, full account.',
     categoryId: productivity.id,
+    image: '/images/products/microsoft-office-365.png',
     basePriceBDT: 'Inbox Price',
     duration: '1 Year+',
     accountType: 'Personal / Family',
