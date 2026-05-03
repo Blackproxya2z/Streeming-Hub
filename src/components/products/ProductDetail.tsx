@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useProduct, useProducts, useSettings } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
-import { formatPriceBDT, formatPriceRMB, getWhatsAppOrderURL } from '@/lib/price'
+import { formatPriceBDT, formatPriceRMB } from '@/lib/price'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,9 +16,6 @@ import {
   Star,
   Zap,
   ArrowLeft,
-  CreditCard,
-  Phone,
-  Truck,
 } from 'lucide-react'
 import { ProductCard } from './ProductCard'
 
@@ -217,12 +214,11 @@ export function ProductDetail() {
                 <h3 className="font-semibold text-sm mb-2">Choose Your Plan</h3>
                 <div className="grid gap-2">
                   {priceOptions.map((opt, i) => (
-                    <a
+                    <button
                       key={i}
-                      href={getWhatsAppOrderURL(`${product.name} (${opt.label})`, opt.priceBDT, whatsappNumber)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between bg-background border rounded-xl px-4 py-3 hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-colors group"
+                      type="button"
+                      onClick={() => navigate('order', { productId: product.id, productName: `${product.name} (${opt.label})` })}
+                      className="flex items-center justify-between bg-background border rounded-xl px-4 py-3 hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-colors group text-left"
                     >
                       <div className="flex items-center gap-3">
                         <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
@@ -237,25 +233,21 @@ export function ProductDetail() {
                         <span className="text-[10px] text-muted-foreground hidden sm:inline">
                           {formatPriceRMB(opt.priceBDT)}
                         </span>
-                        <MessageCircle className="h-4 w-4 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                    </a>
+                    </button>
                   ))}
                 </div>
               </div>
             )}
 
             {/* Order Button — Prominent */}
-            <a
-              href={getWhatsAppOrderURL(product.name, product.basePriceBDT, whatsappNumber)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
+            <Button
+              size="lg"
+              onClick={() => navigate('order', { productId: product.id, productName: product.name })}
+              className="w-full bg-green-600 hover:bg-green-700 font-semibold rounded-xl h-12 text-base shadow-lg shadow-green-600/20"
             >
-              <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 font-semibold rounded-xl h-12 text-base shadow-lg shadow-green-600/20">
-                <MessageCircle className="h-5 w-5 mr-2" /> Order on WhatsApp
-              </Button>
-            </a>
+              <MessageCircle className="h-5 w-5 mr-2" /> Order Now
+            </Button>
 
             {/* Features — compact */}
             {features.length > 0 && (

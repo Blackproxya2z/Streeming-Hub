@@ -1,9 +1,9 @@
 'use client'
 
 import Image from 'next/image'
-import { useProducts, useSettings } from '@/lib/hooks'
+import { useProducts } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
-import { formatPriceBDT, formatPriceRMB, getWhatsAppOrderURL } from '@/lib/price'
+import { formatPriceBDT, formatPriceRMB } from '@/lib/price'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -43,8 +43,6 @@ function getGradient(name: string) {
 
 function ProductCardMini({ product, index }: { product: any; index: number }) {
   const { navigate } = useAppStore()
-  const { data: settings } = useSettings()
-  const whatsappNumber = settings?.whatsappNumber || '+8801647236359'
 
   const initials = product.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
   const gradient = getGradient(product.name)
@@ -136,16 +134,13 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
             </div>
 
             <div className="flex gap-1.5 sm:gap-2 mt-2">
-              <a
-                href={getWhatsAppOrderURL(product.name, product.basePriceBDT, whatsappNumber)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1"
+              <Button
+                size="sm"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-[11px] sm:text-xs h-7 sm:h-8 rounded-lg"
+                onClick={() => navigate('order', { productId: product.id, productName: product.name })}
               >
-                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-[11px] sm:text-xs h-7 sm:h-8 rounded-lg">
-                  <MessageCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5" /> Order
-                </Button>
-              </a>
+                <MessageCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5" /> Order
+              </Button>
               <Button
                 size="sm"
                 variant="outline"

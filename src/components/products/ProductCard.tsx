@@ -2,8 +2,7 @@
 
 import Image from 'next/image'
 import { useAppStore } from '@/lib/store'
-import { useSettings } from '@/lib/hooks'
-import { formatPriceBDT, formatPriceRMB, getWhatsAppOrderURL } from '@/lib/price'
+import { formatPriceBDT, formatPriceRMB } from '@/lib/price'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -48,8 +47,6 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { navigate } = useAppStore()
-  const { data: settings } = useSettings()
-  const whatsappNumber = settings?.whatsappNumber || '+8801647236359'
 
   const initials = product.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const gradient = getGradient(product.name)
@@ -122,18 +119,19 @@ export function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
 
-          {/* Single Order Button */}
-          <a
-            href={getWhatsAppOrderURL(product.name, product.basePriceBDT, whatsappNumber)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2"
-            onClick={e => e.stopPropagation()}
-          >
-            <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-xs h-8 rounded-lg font-medium">
+          {/* Single Order Button — goes to order form */}
+          <div className="mt-2">
+            <Button
+              size="sm"
+              className="w-full bg-green-600 hover:bg-green-700 text-xs h-8 rounded-lg font-medium"
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate('order', { productId: product.id, productName: product.name })
+              }}
+            >
               <MessageCircle className="h-3.5 w-3.5 mr-1.5" /> Order Now
             </Button>
-          </a>
+          </div>
         </div>
       </CardContent>
     </Card>
