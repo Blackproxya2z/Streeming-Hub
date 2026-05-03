@@ -218,3 +218,51 @@ Stage Summary:
 - Full Twitter SEO: summary_large_image card with all metadata
 - Product pages now have dynamic product-specific SEO schema
 - OG image and favicon generated for social sharing
+
+---
+Task ID: 8
+Agent: Main Agent
+Task: Fix AI assistant button positioning (desktop/mobile), add live typewriter animation, and transform into Zara persona
+
+Work Log:
+- Read and analyzed all floating components: AIChatWidget (bottom-36 right-4), FloatingWhatsApp (bottom-20 right-4), MobileBottomBar (h-14 fixed bottom-0), BackToTop (bottom-20 left-4)
+- Identified overlap issues: AI button was too high on mobile (bottom-36) and overlapped with WhatsApp on desktop
+- Redesigned AI button positioning: Mobile bottom-[96px] (above bottom bar + safe area), Desktop bottom-[88px] right-6 (above WhatsApp)
+- Hidden FloatingWhatsApp on mobile (already in mobile bottom bar) — only shows on lg screens
+- Added live typewriter animation: rotating messages with realistic char-by-char typing effect
+- Added typewriter bubble (desktop/tablet): speech bubble next to AI button with typing text, blinking cursor, and arrow pointer
+- Added mobile typing indicator: 3 animated bouncing dots below the AI circle button
+- Added pulsing glow ring animation behind the button (2.5s interval)
+- Added amber notification badge with inner pulse
+- Completely rewrote /api/chat/route.ts with Zara persona system prompt:
+  - Full identity: "Zara" — smart, friendly AI sales assistant
+  - Greeting behavior: Assalamu Alaikum greeting with personal introduction
+  - Product response format: structured with features, price, stock, soft CTA
+  - Automated 6-step order system: confirm product → collect name → address → phone → show summary → final confirmation
+  - Smart sales behavior: upsell suggestions, urgency (limited stock), follow-up on quiet users
+  - Memory & context rules: remember user's name, track products discussed, never re-ask given info
+  - Error handling: gentle redirects, no technical messages, phone validation
+  - Added address extraction to WhatsApp URL builder
+- Updated AIChatWidget UI:
+  - Rebranded from "SH Assistant" to "Zara" with Sparkles icon
+  - New Zara greeting message matching the spec
+  - Updated quick actions: 🛍️ Products দেখুন, 💰 Offers, 📦 Order করুন, ❓ Help, 🎬 Netflix দাম, 🔒 VPN প্ল্যান
+  - Capability cards now clickable — send messages directly
+  - Quick action buttons send messages directly (not just fill input)
+  - Chat window wider on desktop (420px)
+  - Input font size set to 16px to prevent iOS auto-zoom
+  - Input height increased to 44px for touch-friendly targets
+  - Send button enlarged to 44px for accessibility
+  - Zara branding: header shows "Zara" + "AI Assistant" badge + Sparkles icon
+  - Chat avatar changed from Bot to Sparkles icon
+- All lint checks pass, dev server compiles successfully
+
+Stage Summary:
+- AI button properly positioned: mobile bottom-[96px] right-3, desktop bottom-[88px] right-6
+- WhatsApp hidden on mobile (redundant with bottom bar), shown only on desktop
+- Live typewriter animation with rotating messages on floating bubble
+- Pulsing glow ring + notification badge for eye-catching attention
+- Complete Zara persona: warm, smart, trilingual sales assistant
+- 6-step automated order system in system prompt
+- Smart sales: upsell, urgency, memory, follow-up
+- Mobile UX: 16px font (no iOS zoom), 44px touch targets, clickable capability cards & quick actions
