@@ -45,6 +45,18 @@ const capabilities = [
   { icon: HelpCircle, label: 'সাহায্য নিন', desc: 'Get help' },
 ]
 
+// Rotating messages for the typewriter bubble
+const typewriterMessages = [
+  '👋 Need help? Ask me!',
+  '🎬 Netflix কত টাকা?',
+  '🤖 AI Assistant — Online',
+  '💎 Best prices in BD!',
+  '🛒 Order করতে চান?',
+  '🔒 VPN প্ল্যান দেখুন',
+  '⚡ 5-20 min delivery!',
+  '💳 bKash/Nagad পেমেন্ট',
+]
+
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -58,9 +70,43 @@ export function AIChatWidget() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [cooldown, setCooldown] = useState(false)
+  const [currentMsgIndex, setCurrentMsgIndex] = useState(0)
+  const [displayedText, setDisplayedText] = useState('')
+  const [isTyping, setIsTyping] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastSentRef = useRef<number>(0)
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Typewriter effect for the floating bubble
+  useEffect(() => {
+    if (isOpen) return
+
+    const currentMessage = typewriterMessages[currentMsgIndex]
+    let charIndex = 0
+    setDisplayedText('')
+    setIsTyping(true)
+
+    const typeChar = () => {
+      if (charIndex < currentMessage.length) {
+        setDisplayedText(currentMessage.slice(0, charIndex + 1))
+        charIndex++
+        typingTimerRef.current = setTimeout(typeChar, 45 + Math.random() * 35)
+      } else {
+        setIsTyping(false)
+        // Pause after typing complete, then move to next message
+        typingTimerRef.current = setTimeout(() => {
+          setCurrentMsgIndex(prev => (prev + 1) % typewriterMessages.length)
+        }, 2500)
+      }
+    }
+
+    typingTimerRef.current = setTimeout(typeChar, 200)
+
+    return () => {
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
+    }
+  }, [currentMsgIndex, isOpen])
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -190,27 +236,90 @@ export function AIChatWidget() {
 
   return (
     <>
-      {/* Floating Button — positioned ABOVE the WhatsApp button */}
+      {/* ===== Floating AI Button with Typewriter Bubble ===== */}
       <AnimatePresence>
         {!isOpen && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
+          <motion.div
+            className="fixed z-[55] flex items-center gap-2 sm:gap-3
+              bottom-[96px] right-3
+              lg:bottom-[88px] lg:right-6"
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-36 right-4 z-50 lg:bottom-20 lg:right-6 flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 group"
-            aria-label="Open AI Assistant"
           >
-            <Sparkles className="h-5 w-5 group-hover:rotate-12 transition-transform" />
-            <span className="text-sm font-semibold hidden sm:inline">AI Assistant</span>
-            {/* Notification dot */}
-            <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-400 border-2 border-background animate-pulse" />
-          </motion.button>
+            {/* Typewriter Message Bubble — visible on sm+ screens */}
+            <motion.div
+              initial={{ opacity: 0, x: 10, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-xl px-4 py-2.5 max-w-[240px] cursor-pointer hover:shadow-xl hover:border-emerald-300/50 transition-all group/bubble"
+              onClick={() => setIsOpen(true)}
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground leading-snug">
+                  {displayedText}
+                  {isTyping && (
+                    <span className="inline-block w-[2px] h-4 bg-emerald-500 ml-0.5 align-middle animate-pulse" />
+                  )}
+                </p>
+              </div>
+              {/* Live typing indicator dots */}
+              {isTyping && (
+                <div className="flex items-center gap-[3px] shrink-0">
+                  <span className="h-1 w-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
+                  <span className="h-1 w-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
+                  <span className="h-1 w-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
+                </div>
+              )}
+              {/* Speech bubble arrow pointing right toward the button */}
+              <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-0 h-0 
+                border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent border-l-[9px] border-l-border/60" />
+              <div className="absolute -right-[5px] top-1/2 -translate-y-1/2 w-0 h-0 
+                border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[7px] border-l-background" />
+            </motion.div>
+
+            {/* The Main AI Button */}
+            <motion.button
+              onClick={() => setIsOpen(true)}
+              className="relative flex items-center justify-center
+                w-14 h-14 rounded-full
+                sm:w-auto sm:h-auto sm:px-5 sm:py-3 sm:rounded-full
+                bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 
+                hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600
+                text-white shadow-lg hover:shadow-2xl
+                transition-all active:scale-90 group
+                ring-2 ring-emerald-400/20"
+              aria-label="Open AI Assistant"
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              {/* Pulsing glow ring behind the button */}
+              <span className="absolute inset-0 rounded-full bg-emerald-400/25 animate-ping [animation-duration:2.5s]" />
+
+              {/* Inner content */}
+              <span className="relative flex items-center gap-2 z-10">
+                <Sparkles className="h-6 w-6 sm:h-5 sm:w-5 group-hover:rotate-12 transition-transform drop-shadow-sm" />
+                <span className="hidden sm:inline text-sm font-bold tracking-wide drop-shadow-sm">AI Assistant</span>
+              </span>
+
+              {/* Notification badge — top right */}
+              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-amber-400 border-[2.5px] border-background shadow-sm flex items-center justify-center">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-800 animate-pulse" />
+              </span>
+
+              {/* Mobile: small live typing indicator below the circle */}
+              <span className="sm:hidden absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-[2px] bg-emerald-800/90 rounded-full px-2 py-0.5 shadow-md">
+                <span className="h-[3px] w-[3px] rounded-full bg-emerald-300 animate-bounce [animation-delay:0ms]" />
+                <span className="h-[3px] w-[3px] rounded-full bg-emerald-300 animate-bounce [animation-delay:150ms]" />
+                <span className="h-[3px] w-[3px] rounded-full bg-emerald-300 animate-bounce [animation-delay:300ms]" />
+              </span>
+            </motion.button>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Chat Window */}
+      {/* ===== Chat Window ===== */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -218,11 +327,13 @@ export function AIChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed bottom-4 right-4 z-[60] w-[calc(100%-2rem)] sm:w-[400px] max-h-[85vh] flex flex-col bg-background border border-border/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm"
+            className="fixed z-[60] flex flex-col bg-background border border-border/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm
+              bottom-[96px] right-3 w-[calc(100%-24px)]
+              sm:bottom-6 sm:right-6 sm:w-[400px]
+              max-h-[80vh] sm:max-h-[75vh]"
           >
             {/* Header */}
             <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white p-4 flex items-center justify-between shrink-0 overflow-hidden">
-              {/* Decorative circles */}
               <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/5" />
               <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white/5" />
 
@@ -231,7 +342,6 @@ export function AIChatWidget() {
                   <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/20">
                     <Bot className="h-5 w-5" />
                   </div>
-                  {/* Verified badge */}
                   <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-sky-500 flex items-center justify-center ring-2 ring-emerald-500">
                     <BadgeCheck className="h-2.5 w-2.5 text-white" />
                   </div>
@@ -316,7 +426,7 @@ export function AIChatWidget() {
             <div
               ref={scrollRef}
               className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 overscroll-contain scroll-smooth custom-scrollbar"
-              style={{ maxHeight: 'calc(85vh - 300px)' }}
+              style={{ maxHeight: 'calc(75vh - 300px)' }}
             >
               {messages.map((msg, i) => (
                 <motion.div
