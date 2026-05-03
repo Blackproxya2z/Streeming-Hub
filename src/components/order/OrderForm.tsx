@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useAppStore } from '@/lib/store'
 import { useProduct, useSettings } from '@/lib/hooks'
-import { formatPriceBDT, formatPriceRMB } from '@/lib/price'
+import { formatPriceBDT } from '@/lib/price'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -68,7 +68,7 @@ export function OrderForm() {
     const message = `🛒 *New Order — Streaming Hub*
 
 📦 Product: ${product?.name || pageParams.productName}${planInfo}${typeInfo}
-💰 Price: ${formatPriceBDT(product?.basePriceBDT || '')} / ${formatPriceRMB(product?.basePriceBDT || '')}${payInfo}${txnInfo}
+💰 Price: ${formatPriceBDT(product?.basePriceBDT || '')}${payInfo}${txnInfo}
 
 👤 Name: ${form.customerName || 'N/A'}
 📱 WhatsApp: ${form.customerWhatsApp || 'N/A'}

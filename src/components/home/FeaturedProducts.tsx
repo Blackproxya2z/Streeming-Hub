@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useProducts } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
-import { formatPriceBDT, formatPriceRMB } from '@/lib/price'
+import { formatPriceBDT } from '@/lib/price'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -131,9 +131,6 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
               <div className="flex items-baseline gap-1.5 flex-wrap">
                 <span className="font-bold text-sm sm:text-base text-emerald-600 dark:text-emerald-400">
                   {formatPriceBDT(product.basePriceBDT)}
-                </span>
-                <span className="text-[10px] sm:text-[11px] text-muted-foreground">
-                  {formatPriceRMB(product.basePriceBDT)}
                 </span>
               </div>
               <Badge className={`text-[10px] mt-1 mr-1 ${stockColor}`}>

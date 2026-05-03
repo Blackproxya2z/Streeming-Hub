@@ -3,7 +3,7 @@
 import { useState, memo } from 'react'
 import Image from 'next/image'
 import { useAppStore } from '@/lib/store'
-import { formatPriceBDT, formatPriceRMB } from '@/lib/price'
+import { formatPriceBDT } from '@/lib/price'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -129,9 +129,6 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
               <div className="flex items-baseline gap-1.5">
                 <span className="font-bold text-base text-emerald-600 dark:text-emerald-400">
                   {formatPriceBDT(product.basePriceBDT)}
-                </span>
-                <span className="text-[10px] text-muted-foreground">
-                  {formatPriceRMB(product.basePriceBDT)}
                 </span>
               </div>
               {product.duration && (

@@ -101,7 +101,6 @@ export function getPriceRangeDisplay(priceOptionsJson: string, basePriceBDT: str
  */
 export function getWhatsAppOrderURL(productName: string, priceBDT: string, whatsappNumber: string): string {
   const bdtDisplay = formatPriceBDT(priceBDT)
-  const rmbDisplay = formatPriceRMB(priceBDT)
-  const message = `Hello, I want to order ${productName}. Price: ${bdtDisplay} / ${rmbDisplay}. Please confirm availability.`
+  const message = `Hello, I want to order ${productName}. Price: ${bdtDisplay}. Please confirm availability.`
   return `https://wa.me/${whatsappNumber.replace('+', '')}?text=${encodeURIComponent(message)}`
 }

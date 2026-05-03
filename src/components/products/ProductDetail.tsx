@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { useProduct, useProducts, useSettings } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
-import { formatPriceBDT, formatPriceRMB } from '@/lib/price'
+import { formatPriceBDT } from '@/lib/price'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -81,7 +81,7 @@ export function ProductDetail() {
   const initials = product.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const gradient = getGradient(product.name)
   const features: string[] = product.features ? JSON.parse(product.features) : []
-  const priceOptions: { label: string; priceBDT: string; priceRMB?: string }[] =
+  const priceOptions: { label: string; priceBDT: string }[] =
     product.priceOptions ? JSON.parse(product.priceOptions) : []
   const hasImage = !!product.image
   const isExternalImage = hasImage && product.image!.startsWith('http')
@@ -204,9 +204,6 @@ export function ProductDetail() {
                 <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
-                <span className="text-sm text-muted-foreground">
-                  {formatPriceRMB(product.basePriceBDT)}
-                </span>
               </div>
             </div>
 
@@ -231,9 +228,6 @@ export function ProductDetail() {
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-emerald-600 dark:text-emerald-400">
                           {formatPriceBDT(opt.priceBDT)}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground hidden sm:inline">
-                          {formatPriceRMB(opt.priceBDT)}
                         </span>
                       </div>
                     </button>

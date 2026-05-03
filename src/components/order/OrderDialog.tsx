@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { useSettings } from '@/lib/hooks'
-import { formatPriceBDT, formatPriceRMB } from '@/lib/price'
+import { formatPriceBDT } from '@/lib/price'
 import {
   Dialog,
   DialogContent,
@@ -64,7 +64,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
     const message = `🛒 *New Order — Streaming Hub*
 
 📦 Product: ${product.name}${planInfo}
-💰 Price: ${formatPriceBDT(selectedPrice)} / ${formatPriceRMB(selectedPrice)}
+💰 Price: ${formatPriceBDT(selectedPrice)}
 ${product.warranty ? `🛡️ Warranty: ${product.warranty}` : ''}
 ⚡ Delivery: ${product.deliveryTime}
 
@@ -119,9 +119,6 @@ ${product.warranty ? `🛡️ Warranty: ${product.warranty}` : ''}
               <div className="flex items-center gap-2">
                 <span className="font-bold text-emerald-600 text-sm">
                   {formatPriceBDT(selectedPrice)}
-                </span>
-                <span className="text-[10px] text-muted-foreground">
-                  {formatPriceRMB(selectedPrice)}
                 </span>
               </div>
               {selectedPlan && (
