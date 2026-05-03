@@ -50,10 +50,25 @@ export interface Settings {
   [key: string]: string
 }
 
-async function fetchAPI<T>(url: string): Promise<T> {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error('Failed to fetch')
-  return res.json()
+async function fetchAPI<T>(url: string, retries = 3): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url)
+      if (res.status === 412 || res.status === 503) {
+        // Function pending / service unavailable — retry after delay
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+          continue
+        }
+      }
+      if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`)
+      return res.json()
+    } catch (error) {
+      if (attempt === retries) throw error
+      await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+    }
+  }
+  throw new Error('Max retries exceeded')
 }
 
 export function useProducts(params: Record<string, string> = {}) {
@@ -64,6 +79,8 @@ export function useProducts(params: Record<string, string> = {}) {
   return useQuery({
     queryKey: ['products', params],
     queryFn: () => fetchAPI<{ products: Product[]; total: number; page: number; totalPages: number }>(url),
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
   })
 }
 
@@ -72,6 +89,8 @@ export function useProduct(id: string) {
     queryKey: ['product', id],
     queryFn: () => fetchAPI<Product>(`/api/products/${id}`),
     enabled: !!id,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
   })
 }
 
@@ -79,6 +98,8 @@ export function useCategories() {
   return useQuery({
     queryKey: ['categories'],
     queryFn: () => fetchAPI<Category[]>('/api/categories'),
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
   })
 }
 
@@ -86,6 +107,8 @@ export function useReviews() {
   return useQuery({
     queryKey: ['reviews'],
     queryFn: () => fetchAPI<Review[]>('/api/reviews'),
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
   })
 }
 
@@ -93,6 +116,8 @@ export function useSettings() {
   return useQuery({
     queryKey: ['settings'],
     queryFn: () => fetchAPI<Settings>('/api/settings'),
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
   })
 }
 
@@ -100,5 +125,7 @@ export function useBanners() {
   return useQuery({
     queryKey: ['banners'],
     queryFn: () => fetchAPI<{ id: string; text: string; isActive: boolean }[]>('/api/banners'),
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
   })
 }

@@ -9,6 +9,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       queries: {
         staleTime: 60 * 1000,
         refetchOnWindowFocus: false,
+        retry: 3,
+        retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
       },
     },
   }))

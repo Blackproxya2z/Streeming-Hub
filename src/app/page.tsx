@@ -8,6 +8,7 @@ import { MobileBottomBar } from '@/components/layout/MobileBottomBar'
 import { FloatingWhatsApp } from '@/components/shared/FloatingWhatsApp'
 import { BackToTop } from '@/components/shared/BackToTop'
 import { AgeGate } from '@/components/shared/AgeGate'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { HeroSection } from '@/components/home/HeroSection'
 import { CategoryCards } from '@/components/home/CategoryCards'
 import { FeaturedProducts } from '@/components/home/FeaturedProducts'
@@ -74,17 +75,19 @@ function PageRouter() {
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <AnnouncementBar />
-      <Header />
-      <main className="flex-1 pb-24 lg:pb-0">
-        <PageRouter />
-      </main>
-      <Footer />
-      <MobileBottomBar />
-      <FloatingWhatsApp />
-      <BackToTop />
-      <AgeGate />
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen flex flex-col">
+        <AnnouncementBar />
+        <Header />
+        <main className="flex-1 pb-24 lg:pb-0">
+          <PageRouter />
+        </main>
+        <Footer />
+        <MobileBottomBar />
+        <FloatingWhatsApp />
+        <BackToTop />
+        <AgeGate />
+      </div>
+    </ErrorBoundary>
   )
 }
