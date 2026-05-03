@@ -28,7 +28,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 
-const AVATAR_SRC = '/images/assistant-avatar.jpg'
+const AVATAR_SRC = '/images/assistant-avatar.png'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
