@@ -8,6 +8,7 @@ import { useCategories } from '@/lib/hooks'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
+import Image from 'next/image'
 import {
   Search,
   Sun,
@@ -92,12 +93,17 @@ export function Header() {
           {/* Logo */}
           <button
             onClick={() => navigate('home')}
-            className="flex items-center gap-2 shrink-0"
+            className="flex items-center gap-2.5 shrink-0"
             aria-label="Streaming Hub — Go to homepage"
           >
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-              <ShoppingBag className="h-5 w-5 text-white" />
-            </div>
+            <Image
+              src="/logo.jpg"
+              alt="Streaming Hub Logo"
+              width={44}
+              height={44}
+              className="h-10 w-10 sm:h-11 sm:w-11 rounded-full object-cover ring-2 ring-emerald-500/30 shadow-md shadow-emerald-500/10"
+              priority
+            />
             <div className="hidden sm:flex flex-col">
               <div className="flex items-center gap-1">
                 <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent leading-tight">
@@ -246,9 +252,13 @@ export function Header() {
                 <div className="flex flex-col h-full">
                   <div className="p-4 border-b bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                        <ShoppingBag className="h-4 w-4 text-white" />
-                      </div>
+                      <Image
+                        src="/logo.jpg"
+                        alt="Streaming Hub Logo"
+                        width={36}
+                        height={36}
+                        className="h-9 w-9 rounded-full object-cover ring-2 ring-emerald-500/30"
+                      />
                       <div>
                         <div className="flex items-center gap-1">
                           <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
