@@ -47,11 +47,11 @@ const capabilities = [
   { icon: HelpCircle, label: 'সাহায্য নিন', desc: 'Get help' },
 ]
 
-// Rotating messages for the typewriter bubble — Zara style
+// Rotating messages for the typewriter bubble
 const typewriterMessages = [
-  '👋 Hi! I am Zara — ask me!',
+  '👋 আমি কর্মচারী — ask me!',
   '🎬 Netflix কত টাকা?',
-  '🤖 Zara — Your AI Assistant',
+  '🤖 কর্মচারী — AI Assistant',
   '💎 Best prices in BD!',
   '🛒 Order করতে চান?',
   '🔒 VPN প্ল্যান দেখুন',
@@ -59,7 +59,7 @@ const typewriterMessages = [
   '💳 bKash/Nagad পেমেন্ট',
 ]
 
-const ZARA_GREETING = `আসসালামু আলাইকুম! 👋 আমি Zara, আপনার personal assistant।
+const KORMOCHARY_GREETING = `আসসালামু আলাইকুম! 👋 আমি কর্মচারী, আপনার personal assistant।
 আমি product খুঁজে পেতে, দাম জানতে, এবং order করতে সাহায্য করতে পারবো।
 
 কীভাবে সাহায্য করতে পারি আপনাকে? 😊`
@@ -69,7 +69,7 @@ export function AIChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: ZARA_GREETING,
+      content: KORMOCHARY_GREETING,
       timestamp: Date.now(),
     },
   ])
@@ -224,7 +224,7 @@ export function AIChatWidget() {
     setMessages([
       {
         role: 'assistant',
-        content: ZARA_GREETING,
+        content: KORMOCHARY_GREETING,
         timestamp: Date.now(),
       },
     ])
@@ -296,7 +296,7 @@ export function AIChatWidget() {
                 text-white shadow-lg hover:shadow-2xl
                 transition-all active:scale-90 group
                 ring-2 ring-emerald-400/20"
-              aria-label="Chat with Zara — AI Assistant"
+              aria-label="Chat with কর্মচারী — AI Assistant"
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.9 }}
             >
@@ -306,7 +306,7 @@ export function AIChatWidget() {
               {/* Inner content */}
               <span className="relative flex items-center gap-2 z-10">
                 <Sparkles className="h-6 w-6 sm:h-5 sm:w-5 group-hover:rotate-12 transition-transform drop-shadow-sm" />
-                <span className="hidden sm:inline text-sm font-bold tracking-wide drop-shadow-sm">Zara AI</span>
+                <span className="hidden sm:inline text-sm font-bold tracking-wide drop-shadow-sm">কর্মচারী</span>
               </span>
 
               {/* Notification badge — top right */}
@@ -338,7 +338,7 @@ export function AIChatWidget() {
               sm:bottom-6 sm:right-6 sm:w-[420px]
               max-h-[80vh] sm:max-h-[75vh]"
           >
-            {/* Header — Zara Branding */}
+            {/* Header — কর্মচারী Branding */}
             <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white p-4 flex items-center justify-between shrink-0 overflow-hidden">
               <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/5" />
               <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white/5" />
@@ -354,7 +354,7 @@ export function AIChatWidget() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-base tracking-tight">Zara</h3>
+                    <h3 className="font-bold text-base tracking-tight">কর্মচারী</h3>
                     <BadgeCheck className="h-4 w-4 text-sky-300" />
                     <span className="text-[10px] font-medium bg-white/15 rounded-full px-2 py-0.5">AI Assistant</span>
                   </div>
@@ -517,7 +517,7 @@ export function AIChatWidget() {
               )}
             </div>
 
-            {/* Quick Actions — Zara style option buttons */}
+            {/* Quick Actions */}
             <div className="px-4 py-2 flex gap-2 overflow-x-auto shrink-0 border-t border-border/30 scrollbar-none">
               {quickActions.map(q => (
                 <button
