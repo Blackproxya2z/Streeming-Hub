@@ -3,15 +3,15 @@
 import { useProducts, useCategories } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
 import { ProductCard } from './ProductCard'
-import { ProductFiltersDesktop, ProductFiltersMobile } from './ProductFilters'
+import { ProductFiltersMobile } from './ProductFilters'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Search, ShoppingBag, X } from 'lucide-react'
+import { Search, ShoppingBag, X, SlidersHorizontal } from 'lucide-react'
 
 export function ProductCatalog() {
-  const { filters, searchQuery, setSearchQuery, pageParams, setFilter } = useAppStore()
+  const { filters, searchQuery, setSearchQuery, pageParams, setFilter, navigate } = useAppStore()
   const categorySlug = pageParams.categorySlug || filters.categorySlug || ''
 
   const { data: categories } = useCategories()
@@ -20,36 +20,38 @@ export function ProductCatalog() {
   const queryParams: Record<string, string> = {}
   if (searchQuery) queryParams.search = searchQuery
   if (categorySlug) queryParams.categorySlug = categorySlug
-  if (filters.minPrice) queryParams.minPrice = filters.minPrice
-  if (filters.maxPrice) queryParams.maxPrice = filters.maxPrice
-  if (filters.duration) queryParams.duration = filters.duration
-  if (filters.accountType) queryParams.accountType = filters.accountType
   if (filters.sort) queryParams.sort = filters.sort
   if (currentCategory?.isAdult) queryParams.isAdult = 'true'
 
   const { data, isLoading } = useProducts(queryParams)
   const products = data?.products || []
 
+  const handleCategoryClick = (slug: string) => {
+    setFilter('categorySlug', slug)
+    if (slug) {
+      navigate('category', { categorySlug: slug })
+    } else {
+      navigate('products')
+    }
+  }
+
   return (
-    <section className="py-6 sm:py-8 px-4">
+    <section className="py-4 sm:py-6 px-4">
       <div className="container mx-auto">
         {/* Header */}
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+        <div className="mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold">
             {currentCategory ? currentCategory.name : 'All Products'}
           </h1>
-          {currentCategory?.description && (
-            <p className="text-muted-foreground text-sm">{currentCategory.description}</p>
-          )}
           {!currentCategory && (
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-sm mt-1">
               Browse our complete collection of digital subscriptions
             </p>
           )}
         </div>
 
-        {/* Search bar - mobile inline */}
-        <div className="flex gap-3 mb-4 sm:mb-6 lg:hidden">
+        {/* Search + Filter bar */}
+        <div className="flex gap-2 mb-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -71,78 +73,67 @@ export function ProductCatalog() {
         </div>
 
         {/* Category chips */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 sm:mb-6 scrollbar-none">
+        <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
           <Badge
             variant={!categorySlug ? 'default' : 'outline'}
             className="cursor-pointer whitespace-nowrap shrink-0"
-            onClick={() => setFilter('categorySlug', '')}
+            onClick={() => handleCategoryClick('')}
           >
             All
           </Badge>
-          {(categories || []).filter(c => !c.isAdult).map(cat => (
-            <Badge
-              key={cat.id}
-              variant={categorySlug === cat.slug ? 'default' : 'outline'}
-              className="cursor-pointer whitespace-nowrap shrink-0"
-              onClick={() => setFilter('categorySlug', cat.slug)}
-            >
-              {cat.name}
-            </Badge>
-          ))}
+          {(categories || []).map(cat => {
+            if (cat.isAdult && categorySlug !== cat.slug) return null
+            return (
+              <Badge
+                key={cat.id}
+                variant={categorySlug === cat.slug ? 'default' : 'outline'}
+                className={`cursor-pointer whitespace-nowrap shrink-0 ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
+                onClick={() => handleCategoryClick(cat.slug)}
+              >
+                {cat.name}
+              </Badge>
+            )
+          })}
         </div>
 
-        <div className="flex gap-6">
-          {/* Desktop Filters */}
-          <div className="hidden lg:block">
-            <ProductFiltersDesktop />
+        {/* Product Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 items-start">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-32 sm:h-40 rounded-xl" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))}
           </div>
-
-          {/* Product Grid */}
-          <div className="flex-1 min-w-0">
-            {isLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 items-start">
-                {Array.from({ length: 9 }).map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="h-36 sm:h-44 rounded-2xl" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-8 w-full" />
-                  </div>
-                ))}
-              </div>
-            ) : products.length === 0 ? (
-              <div className="text-center py-16">
-                <ShoppingBag className="h-16 w-16 text-muted mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Try adjusting your filters or search terms
-                </p>
-                <Button variant="outline" onClick={() => {
-                  setSearchQuery('')
-                  setFilter('categorySlug', '')
-                  setFilter('minPrice', '')
-                  setFilter('maxPrice', '')
-                  setFilter('duration', '')
-                  setFilter('accountType', '')
-                }}>
-                  Clear All Filters
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 items-start">
-                {products.map(product => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            )}
-
-            {!isLoading && products.length > 0 && (
-              <p className="text-center text-sm text-muted-foreground mt-6 sm:mt-8">
-                Showing {products.length} product{products.length !== 1 ? 's' : ''}
-              </p>
-            )}
+        ) : products.length === 0 ? (
+          <div className="text-center py-16">
+            <ShoppingBag className="h-14 w-14 text-muted mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Try adjusting your search or filters
+            </p>
+            <Button variant="outline" onClick={() => {
+              setSearchQuery('')
+              setFilter('categorySlug', '')
+            }}>
+              Clear Filters
+            </Button>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 items-start">
+            {products.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && products.length > 0 && (
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            Showing {products.length} product{products.length !== 1 ? 's' : ''}
+          </p>
+        )}
       </div>
     </section>
   )

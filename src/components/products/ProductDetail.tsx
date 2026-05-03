@@ -3,17 +3,9 @@
 import Image from 'next/image'
 import { useProduct, useProducts, useSettings } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
-import { formatPriceBDT, formatPriceRMB, getWhatsAppOrderURL, isNumericPrice } from '@/lib/price'
-import { Card, CardContent } from '@/components/ui/card'
+import { formatPriceBDT, formatPriceRMB, getWhatsAppOrderURL } from '@/lib/price'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
 import {
   MessageCircle,
   Clock,
@@ -24,7 +16,6 @@ import {
   Star,
   Zap,
   ArrowLeft,
-  ShoppingCart,
   CreditCard,
   Phone,
   Truck,
@@ -43,12 +34,6 @@ const categoryImages: Record<string, string> = {
   'gaming-topup': '/images/categories/gaming-topup.png',
   'multi-collection': '/images/categories/multi-collection.png',
   'adult': '/images/categories/adult.png',
-}
-
-const stockColors: Record<string, string> = {
-  'Available': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400',
-  'Limited Stock': 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400',
-  'Out of Stock': 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400',
 }
 
 const gradients = [
@@ -83,15 +68,15 @@ export function ProductDetail() {
 
   if (isLoading) {
     return (
-      <section className="py-8 px-4">
+      <section className="py-6 px-4">
         <div className="container mx-auto max-w-4xl">
-          <div className="h-8 w-24 bg-muted rounded mb-6 animate-pulse" />
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="h-64 bg-muted rounded-xl animate-pulse" />
-            <div className="space-y-4">
-              <div className="h-8 bg-muted rounded w-3/4 animate-pulse" />
-              <div className="h-4 bg-muted rounded w-1/2 animate-pulse" />
-              <div className="h-10 bg-muted rounded w-1/3 animate-pulse" />
+          <div className="h-8 w-28 bg-muted rounded-lg mb-6 animate-pulse" />
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="h-56 bg-muted rounded-2xl animate-pulse" />
+            <div className="space-y-3">
+              <div className="h-6 bg-muted rounded w-3/4 animate-pulse" />
+              <div className="h-4 bg-muted rounded w-full animate-pulse" />
+              <div className="h-10 bg-muted rounded-xl w-1/2 animate-pulse" />
             </div>
           </div>
         </div>
@@ -110,7 +95,6 @@ export function ProductDetail() {
 
   const initials = product.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const gradient = getGradient(product.name)
-  const stockClass = stockColors[product.stockStatus] || stockColors['Available']
   const features: string[] = product.features ? JSON.parse(product.features) : []
   const priceOptions: { label: string; priceBDT: string; priceRMB?: string }[] =
     product.priceOptions ? JSON.parse(product.priceOptions) : []
@@ -120,67 +104,105 @@ export function ProductDetail() {
   const showCategoryImage = !hasImage && categoryImage
 
   return (
-    <section className="py-6 sm:py-8 px-4">
+    <section className="py-4 sm:py-6 px-4">
       <div className="container mx-auto max-w-4xl">
-        {/* Back button */}
+        {/* Back */}
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate('products')}
-          className="mb-4 sm:mb-6"
+          className="mb-4 -ml-2 text-muted-foreground"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Products
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
 
-        <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
-          {/* Image */}
-          <div className={`relative rounded-2xl overflow-hidden h-64 sm:h-80 md:h-96 ${hasImage || showCategoryImage ? '' : `bg-gradient-to-br ${gradient}`} flex items-center justify-center`}>
-            {hasImage ? (
-              <Image
-                src={product.image!}
-                alt={product.name}
-                fill
-                unoptimized={isExternalImage}
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-              />
-            ) : showCategoryImage ? (
-              <>
-                <Image src={categoryImage} alt={product.category?.name || ''} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" priority />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
-                <span className="absolute bottom-4 left-4 text-white font-bold text-xl drop-shadow-lg">{product.name}</span>
-              </>
-            ) : (
-              <span className="text-7xl font-bold text-white/60">{initials}</span>
-            )}
-          </div>
-
-          {/* Details */}
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{product.category?.name}</Badge>
-              {product.isBestSeller && (
-                <Badge className="bg-amber-500 text-white border-0">
-                  <Star className="h-3 w-3 mr-0.5" /> Best Seller
-                </Badge>
-              )}
-              {product.isNewArrival && (
-                <Badge className="bg-emerald-500 text-white border-0">
-                  <Zap className="h-3 w-3 mr-0.5" /> New
-                </Badge>
+        {/* Main Content */}
+        <div className="grid md:grid-cols-5 gap-6">
+          {/* Image — 2 cols */}
+          <div className="md:col-span-2">
+            <div className={`relative rounded-2xl overflow-hidden h-52 sm:h-64 md:h-80 ${hasImage || showCategoryImage ? '' : `bg-gradient-to-br ${gradient}`} flex items-center justify-center sticky top-20`}>
+              {hasImage ? (
+                <Image
+                  src={product.image!}
+                  alt={product.name}
+                  fill
+                  unoptimized={isExternalImage}
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                  priority
+                />
+              ) : showCategoryImage ? (
+                <Image src={categoryImage!} alt={product.category?.name || ''} fill className="object-cover" sizes="(max-width: 768px) 100vw, 40vw" priority />
+              ) : (
+                <span className="text-6xl font-bold text-white/60">{initials}</span>
               )}
             </div>
+          </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold">{product.name}</h1>
-            <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
+          {/* Details — 3 cols */}
+          <div className="md:col-span-3 space-y-4">
+            {/* Title + Badges */}
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <Badge variant="secondary" className="text-xs">{product.category?.name}</Badge>
+                {product.isBestSeller && (
+                  <Badge className="bg-amber-500 text-white border-0 text-xs">
+                    <Star className="h-3 w-3 mr-0.5" /> Best Seller
+                  </Badge>
+                )}
+                {product.isNewArrival && (
+                  <Badge className="bg-emerald-500 text-white border-0 text-xs">
+                    <Zap className="h-3 w-3 mr-0.5" /> New
+                  </Badge>
+                )}
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold">{product.name}</h1>
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{product.description}</p>
+            </div>
 
-            <Badge className={stockClass}>{product.stockStatus}</Badge>
+            {/* Quick Info Grid */}
+            <div className="grid grid-cols-2 gap-2">
+              {product.duration && (
+                <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
+                  <Timer className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">Duration</p>
+                    <p className="text-sm font-medium">{product.duration}</p>
+                  </div>
+                </div>
+              )}
+              {product.accountType && (
+                <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
+                  <Globe className="h-4 w-4 text-blue-500 shrink-0" />
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">Account Type</p>
+                    <p className="text-sm font-medium">{product.accountType}</p>
+                  </div>
+                </div>
+              )}
+              {product.warranty && (
+                <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
+                  <Shield className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">Warranty</p>
+                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{product.warranty}</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
+                <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Delivery</p>
+                  <p className="text-sm font-medium">{product.deliveryTime}</p>
+                </div>
+              </div>
+            </div>
 
-            {/* Price */}
-            <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl p-3 sm:p-4">
-              <div className="flex items-baseline gap-3 flex-wrap">
-                <span className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+            {/* Price Section */}
+            <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl p-4">
+              <p className="text-xs text-muted-foreground mb-1">Starting from</p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
                 <span className="text-sm text-muted-foreground">
@@ -191,170 +213,97 @@ export function ProductDetail() {
 
             {/* Price Options */}
             {priceOptions.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-sm">Price Options</h3>
+              <div>
+                <h3 className="font-semibold text-sm mb-2">Choose Your Plan</h3>
                 <div className="grid gap-2">
                   {priceOptions.map((opt, i) => (
-                    <div
+                    <a
                       key={i}
-                      className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2 text-sm"
+                      href={getWhatsAppOrderURL(`${product.name} (${opt.label})`, opt.priceBDT, whatsappNumber)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between bg-background border rounded-xl px-4 py-3 hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-colors group"
                     >
-                      <span className="text-muted-foreground">{opt.label}</span>
+                      <div className="flex items-center gap-3">
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                          {i + 1}
+                        </div>
+                        <span className="text-sm font-medium">{opt.label}</span>
+                      </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
                           {formatPriceBDT(opt.priceBDT)}
                         </span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[10px] text-muted-foreground hidden sm:inline">
                           {formatPriceRMB(opt.priceBDT)}
                         </span>
+                        <MessageCircle className="h-4 w-4 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Meta */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
-              {product.duration && (
-                <div className="flex items-center gap-1.5">
-                  <Timer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span>Duration: <strong>{product.duration}</strong></span>
-                </div>
-              )}
-              {product.accountType && (
-                <div className="flex items-center gap-1.5">
-                  <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span>Type: <strong>{product.accountType}</strong></span>
-                </div>
-              )}
-              {product.region && (
-                <div className="flex items-center gap-1.5">
-                  <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span>Region: <strong>{product.region}</strong></span>
-                </div>
-              )}
-              {product.warranty && (
-                <div className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                  <span>Warranty: <strong>{product.warranty}</strong></span>
-                </div>
-              )}
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                <span>Delivery: <strong>{product.deliveryTime}</strong></span>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <a
-                href={getWhatsAppOrderURL(product.name, product.basePriceBDT, whatsappNumber)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1"
-              >
-                <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 font-semibold rounded-xl">
-                  <MessageCircle className="h-5 w-5 mr-2" /> Order on WhatsApp
-                </Button>
-              </a>
-              <Button
-                size="lg"
-                variant="outline"
-                className="flex-1 font-semibold rounded-xl"
-                onClick={() => navigate('order', { productId: product.id, productName: product.name })}
-              >
-                <ShoppingCart className="h-5 w-5 mr-2" /> Order Form
+            {/* Order Button — Prominent */}
+            <a
+              href={getWhatsAppOrderURL(product.name, product.basePriceBDT, whatsappNumber)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 font-semibold rounded-xl h-12 text-base shadow-lg shadow-green-600/20">
+                <MessageCircle className="h-5 w-5 mr-2" /> Order on WhatsApp
               </Button>
-            </div>
-          </div>
-        </div>
+            </a>
 
-        {/* Features */}
-        {features.length > 0 && (
-          <div className="mt-8 sm:mt-10">
-            <h2 className="text-xl font-bold mb-4">Features</h2>
-            <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
-              {features.map((feature, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
-                  <span className="text-sm">{feature}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* How to Order */}
-        <div className="mt-8 sm:mt-10">
-          <h2 className="text-xl font-bold mb-4">How to Order</h2>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4 sm:p-6">
-              <div className="grid grid-cols-3 gap-4 sm:gap-6">
-                <div className="text-center space-y-1.5 sm:space-y-2">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto">
-                    <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-xs sm:text-sm">1. Make Payment</h3>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Pay via bKash/Nagad</p>
-                </div>
-                <div className="text-center space-y-1.5 sm:space-y-2">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto">
-                    <Phone className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-xs sm:text-sm">2. Send Details</h3>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">WhatsApp with ID</p>
-                </div>
-                <div className="text-center space-y-1.5 sm:space-y-2">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center mx-auto">
-                    <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-xs sm:text-sm">3. Get Delivered</h3>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">5-20 min delivery</p>
-                </div>
+            {/* Features — compact */}
+            {features.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {features.map((feature, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 text-xs bg-muted/70 rounded-full px-2.5 py-1">
+                    <CheckCircle className="h-3 w-3 text-emerald-500" />
+                    {feature}
+                  </span>
+                ))}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </div>
 
-        {/* FAQ */}
-        <div className="mt-8 sm:mt-10">
-          <h2 className="text-xl font-bold mb-4">FAQ</h2>
-          <Accordion type="single" collapsible className="space-y-2">
-            <AccordionItem value="faq-1" className="bg-background border rounded-xl px-4">
-              <AccordionTrigger className="text-sm font-semibold hover:no-underline">
-                How do I get my subscription after payment?
-              </AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground">
-                After confirming your payment, we will send your account details via WhatsApp within 5-20 minutes.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="faq-2" className="bg-background border rounded-xl px-4">
-              <AccordionTrigger className="text-sm font-semibold hover:no-underline">
-                Is there a warranty?
-              </AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground">
-                Yes! All our subscriptions come with warranty. If any issue occurs during the warranty period, we will fix or replace your account for free.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="faq-3" className="bg-background border rounded-xl px-4">
-              <AccordionTrigger className="text-sm font-semibold hover:no-underline">
-                Can I use my own email?
-              </AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground">
-                Yes, for products with &quot;Own Mail&quot; option, you can use your personal email address for full control.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+        {/* How to Order — Simple 3 Steps */}
+        <div className="mt-8 bg-muted/40 rounded-2xl p-5">
+          <h2 className="font-bold text-base mb-4">How to Order</h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-600 font-bold text-sm">1</div>
+              <div>
+                <p className="text-sm font-medium">Pay</p>
+                <p className="text-[11px] text-muted-foreground">bKash / Nagad</p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-600 font-bold text-sm">2</div>
+              <div>
+                <p className="text-sm font-medium">Message</p>
+                <p className="text-[11px] text-muted-foreground">WhatsApp us</p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-purple-600 font-bold text-sm">3</div>
+              <div>
+                <p className="text-sm font-medium">Receive</p>
+                <p className="text-[11px] text-muted-foreground">5-20 min delivery</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <div className="mt-8 sm:mt-10">
-            <h2 className="text-xl font-bold mb-4">Related Products</h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-start">
+          <div className="mt-8">
+            <h2 className="font-bold text-base mb-4">You may also like</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 items-start">
               {relatedProducts.map(p => (
                 <ProductCard key={p.id} product={p} />
               ))}

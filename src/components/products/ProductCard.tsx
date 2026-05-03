@@ -7,7 +7,7 @@ import { formatPriceBDT, formatPriceRMB, getWhatsAppOrderURL } from '@/lib/price
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MessageCircle, Eye, Star, Clock, Shield, Zap, Globe, Timer } from 'lucide-react'
+import { MessageCircle, Shield, Zap, Star } from 'lucide-react'
 import type { Product } from '@/lib/hooks'
 
 const categoryImages: Record<string, string> = {
@@ -22,12 +22,6 @@ const categoryImages: Record<string, string> = {
   'gaming-topup': '/images/categories/gaming-topup.png',
   'multi-collection': '/images/categories/multi-collection.png',
   'adult': '/images/categories/adult.png',
-}
-
-const stockColors: Record<string, string> = {
-  'Available': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400',
-  'Limited Stock': 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400',
-  'Out of Stock': 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400',
 }
 
 const gradients = [
@@ -59,121 +53,87 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const initials = product.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const gradient = getGradient(product.name)
-  const stockClass = stockColors[product.stockStatus] || stockColors['Available']
   const hasImage = product.image && !product.image.startsWith('/images/categories/')
   const isExternalImage = hasImage && product.image!.startsWith('http')
   const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
   const showCategoryImage = !hasImage && categoryImage
 
   return (
-    <Card className="card-shine group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full flex flex-col rounded-2xl border-0 shadow-sm">
+    <Card
+      className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 overflow-hidden h-full flex flex-col rounded-xl border shadow-sm cursor-pointer"
+      onClick={() => navigate('product', { productId: product.id })}
+    >
       <CardContent className="p-0 flex flex-col h-full overflow-hidden">
-        {/* Image area */}
-        <div className={`relative h-36 sm:h-44 shrink-0 ${hasImage || showCategoryImage ? '' : `bg-gradient-to-br ${gradient}`} flex items-center justify-center overflow-hidden`}>
+        {/* Image */}
+        <div className={`relative h-32 sm:h-40 shrink-0 ${hasImage || showCategoryImage ? '' : `bg-gradient-to-br ${gradient}`} flex items-center justify-center overflow-hidden`}>
           {hasImage ? (
             <Image
               src={product.image!}
               alt={product.name}
               fill
               unoptimized={isExternalImage}
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : showCategoryImage ? (
-            <>
-              <Image src={categoryImage} alt={product.category?.name || ''} fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
-              <span className="absolute bottom-2 left-3 text-white font-bold text-sm drop-shadow-lg">{product.name}</span>
-            </>
+            <Image src={categoryImage} alt={product.category?.name || ''} fill className="object-cover" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
           ) : (
-            <span className="text-4xl font-bold text-white/70">{initials}</span>
+            <span className="text-3xl font-bold text-white/70">{initials}</span>
           )}
-          {/* Gradient overlay for text readability */}
-          {hasImage && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          {/* Badges */}
+          {(product.isBestSeller || product.isNewArrival) && (
+            <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+              {product.isBestSeller && (
+                <Badge className="bg-amber-500 text-white border-0 text-[10px] px-1.5 py-0.5">
+                  <Star className="h-2.5 w-2.5 mr-0.5" /> Best
+                </Badge>
+              )}
+              {product.isNewArrival && (
+                <Badge className="bg-emerald-500 text-white border-0 text-[10px] px-1.5 py-0.5">
+                  <Zap className="h-2.5 w-2.5 mr-0.5" /> New
+                </Badge>
+              )}
+            </div>
           )}
-          <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-            {product.isBestSeller && (
-              <Badge className="bg-amber-500 text-white border-0 text-[10px] px-2 py-0.5 shadow-sm">
-                <Star className="h-3 w-3 mr-0.5" /> Best Seller
-              </Badge>
-            )}
-            {product.isNewArrival && (
-              <Badge className="bg-emerald-500 text-white border-0 text-[10px] px-2 py-0.5 shadow-sm">
-                <Zap className="h-3 w-3 mr-0.5" /> New
-              </Badge>
-            )}
-          </div>
-          <Badge className={`absolute top-2 right-2 text-[10px] px-2 py-0.5 z-10 shadow-sm ${stockClass}`}>
-            {product.stockStatus}
-          </Badge>
         </div>
 
-        {/* Content */}
-        <div className="p-3 sm:p-4 flex flex-col flex-1 min-h-0 gap-1.5">
-          <Badge variant="secondary" className="text-[10px] w-fit">
-            {product.category?.name}
-          </Badge>
+        {/* Content — Simple & Clean */}
+        <div className="p-3 flex flex-col flex-1 min-h-0 gap-1">
           <h3 className="font-semibold text-sm line-clamp-1">{product.name}</h3>
-          <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
-
-          {/* Meta info */}
-          <div className="flex flex-wrap gap-1 text-[10px] sm:text-[11px] text-muted-foreground">
-            {product.duration && (
-              <span className="flex items-center gap-0.5 bg-muted rounded-md px-1.5 py-0.5">
-                <Timer className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> {product.duration}
-              </span>
-            )}
-            {product.accountType && (
-              <span className="flex items-center gap-0.5 bg-muted rounded-md px-1.5 py-0.5">
-                <Globe className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> {product.accountType}
-              </span>
-            )}
-          </div>
 
           {product.warranty && (
-            <div className="flex items-center gap-0.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400">
-              <Shield className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> {product.warranty}
+            <div className="flex items-center gap-0.5 text-[10px] text-emerald-600 dark:text-emerald-400">
+              <Shield className="h-3 w-3" /> {product.warranty}
             </div>
           )}
 
-          {/* Price - pushed to bottom */}
-          <div className="mt-auto pt-1.5 sm:pt-2 border-t border-border/50">
-            <div className="flex items-baseline gap-1.5 flex-wrap">
-              <span className="font-bold text-sm sm:text-base text-emerald-600 dark:text-emerald-400">
+          {/* Price */}
+          <div className="mt-auto pt-2">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-bold text-base text-emerald-600 dark:text-emerald-400">
                 {formatPriceBDT(product.basePriceBDT)}
               </span>
-              <span className="text-[10px] sm:text-[11px] text-muted-foreground">
+              <span className="text-[10px] text-muted-foreground">
                 {formatPriceRMB(product.basePriceBDT)}
               </span>
             </div>
-            <div className="flex items-center gap-0.5 text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">
-              <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> {product.deliveryTime}
-            </div>
+            {product.duration && (
+              <p className="text-[10px] text-muted-foreground mt-0.5">{product.duration}</p>
+            )}
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-1.5 sm:gap-2 mt-2">
-            <a
-              href={getWhatsAppOrderURL(product.name, product.basePriceBDT, whatsappNumber)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1"
-              onClick={e => e.stopPropagation()}
-            >
-              <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-[11px] sm:text-xs h-7 sm:h-8 rounded-lg">
-                <MessageCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5" /> Order
-              </Button>
-            </a>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1 text-[11px] sm:text-xs h-7 sm:h-8 rounded-lg"
-              onClick={() => navigate('product', { productId: product.id })}
-            >
-              <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5" /> Details
+          {/* Single Order Button */}
+          <a
+            href={getWhatsAppOrderURL(product.name, product.basePriceBDT, whatsappNumber)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2"
+            onClick={e => e.stopPropagation()}
+          >
+            <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-xs h-8 rounded-lg font-medium">
+              <MessageCircle className="h-3.5 w-3.5 mr-1.5" /> Order Now
             </Button>
-          </div>
+          </a>
         </div>
       </CardContent>
     </Card>

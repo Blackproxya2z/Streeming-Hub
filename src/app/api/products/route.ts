@@ -11,13 +11,7 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get('maxPrice') || ''
     const duration = searchParams.get('duration') || ''
     const accountType = searchParams.get('accountType') || ''
-    const stockStatus = searchParams.get('stockStatus') || ''
-    const isFeatured = searchParams.get('isFeatured') === 'true' ? true : undefined
-    const isBestSeller = searchParams.get('isBestSeller') === 'true' ? true : undefined
-    const isNewArrival = searchParams.get('isNewArrival') === 'true' ? true : undefined
     const sort = searchParams.get('sort') || 'order'
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '100')
     const isAdult = searchParams.get('isAdult') === 'true' ? true : searchParams.get('isAdult') === 'false' ? false : undefined
 
     const where: any = {}
@@ -43,22 +37,6 @@ export async function GET(request: NextRequest) {
       where.category = { isAdult: false }
     }
 
-    if (stockStatus) {
-      where.stockStatus = stockStatus
-    }
-
-    if (isFeatured !== undefined) {
-      where.isFeatured = isFeatured
-    }
-
-    if (isBestSeller !== undefined) {
-      where.isBestSeller = isBestSeller
-    }
-
-    if (isNewArrival !== undefined) {
-      where.isNewArrival = isNewArrival
-    }
-
     if (duration) {
       where.duration = { contains: duration }
     }
@@ -78,13 +56,12 @@ export async function GET(request: NextRequest) {
       orderBy.order = 'asc'
     }
 
-    const total = await db.product.count({ where })
+    // Single query — no separate count
     const products = await db.product.findMany({
       where,
       include: { category: true },
       orderBy,
-      skip: (page - 1) * limit,
-      take: limit,
+      take: 100,
     })
 
     // Price filtering in JS since basePriceBDT can be text
@@ -92,7 +69,7 @@ export async function GET(request: NextRequest) {
     if (minPrice || maxPrice) {
       filtered = products.filter(p => {
         const price = parseFloat(p.basePriceBDT)
-        if (isNaN(price)) return true // Include non-numeric prices
+        if (isNaN(price)) return true
         if (minPrice && price < parseFloat(minPrice)) return false
         if (maxPrice && price > parseFloat(maxPrice)) return false
         return true
@@ -101,10 +78,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       products: filtered,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      total: filtered.length,
     })
   } catch (error) {
     console.error('Error fetching products:', error)
