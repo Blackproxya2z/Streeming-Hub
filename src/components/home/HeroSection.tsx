@@ -62,7 +62,7 @@ export function HeroSection() {
             className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6"
           >
             Premium Subscriptions
-            <span className="block text-emerald-200">at Best Price</span>
+            <span className="block text-emerald-200">at the Best Price in BD</span>
           </motion.h1>
 
           <motion.p
@@ -71,7 +71,7 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg sm:text-xl text-emerald-100 mb-10 max-w-2xl mx-auto"
           >
-            OTT, AI tools, education, VPN, software, gaming top-up and more — all in one trusted store.
+            OTT, AI tools, education, VPN, software, gaming top-up & more — delivered in 5-20 minutes with full warranty.
           </motion.p>
 
           <motion.div

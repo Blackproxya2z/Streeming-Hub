@@ -21,11 +21,11 @@ export function Footer() {
                 <ShoppingBag className="h-5 w-5 text-white" />
               </div>
               <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                Subscription Lagbe
+                Streaming Hub
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Your go-to solution for hassle-free digital subscriptions. OTT, AI tools, education, VPN and more at affordable prices in Bangladesh.
+              Your trusted store for premium digital subscriptions in Bangladesh. OTT, AI tools, education, VPN & more — fast delivery with full warranty.
             </p>
           </div>
 
@@ -95,7 +95,7 @@ export function Footer() {
         <div className="mt-8 pt-6 border-t">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Subscription Lagbe. All rights reserved.
+              © {new Date().getFullYear()} Streaming Hub. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
               <button

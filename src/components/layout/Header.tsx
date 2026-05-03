@@ -43,6 +43,7 @@ const categoryIconMap: Record<string, React.ElementType> = {
   'gaming-topup': Gamepad2,
   'multi-collection': Layers,
   'adult-18': AlertTriangle,
+  'adult': AlertTriangle,
 }
 
 function getCategoryIcon(category: Category) {
@@ -95,10 +96,10 @@ export function Header() {
               <ShoppingBag className="h-5 w-5 text-white" />
             </div>
             <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent hidden sm:block">
-              Subscription Lagbe
+              Streaming Hub
             </span>
             <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent sm:hidden">
-              SL
+              SH
             </span>
           </button>
 
@@ -212,7 +213,7 @@ export function Header() {
                         <ShoppingBag className="h-4 w-4 text-white" />
                       </div>
                       <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                        Subscription Lagbe
+                        Streaming Hub
                       </span>
                     </div>
                   </div>
