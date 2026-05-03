@@ -115,6 +115,7 @@ export function ProductDetail() {
   const priceOptions: { label: string; priceBDT: string; priceRMB?: string }[] =
     product.priceOptions ? JSON.parse(product.priceOptions) : []
   const hasImage = !!product.image
+  const isExternalImage = hasImage && product.image!.startsWith('http')
   const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
   const showCategoryImage = !hasImage && categoryImage
 
@@ -139,6 +140,7 @@ export function ProductDetail() {
                 src={product.image!}
                 alt={product.name}
                 fill
+                unoptimized={isExternalImage}
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority

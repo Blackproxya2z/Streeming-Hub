@@ -53,6 +53,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
     product.stockStatus === 'Limited Stock' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400' :
     'text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400'
   const hasImage = product.image && !product.image.startsWith('/images/categories/')
+  const isExternalImage = hasImage && product.image.startsWith('http')
   const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
   const showCategoryImage = !hasImage && categoryImage
 
@@ -71,6 +72,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
                 src={product.image}
                 alt={product.name}
                 fill
+                unoptimized={isExternalImage}
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               />

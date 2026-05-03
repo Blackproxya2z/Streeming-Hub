@@ -61,6 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const gradient = getGradient(product.name)
   const stockClass = stockColors[product.stockStatus] || stockColors['Available']
   const hasImage = product.image && !product.image.startsWith('/images/categories/')
+  const isExternalImage = hasImage && product.image!.startsWith('http')
   const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
   const showCategoryImage = !hasImage && categoryImage
 
@@ -74,6 +75,7 @@ export function ProductCard({ product }: ProductCardProps) {
               src={product.image!}
               alt={product.name}
               fill
+              unoptimized={isExternalImage}
               className="object-cover transition-transform duration-500 group-hover:scale-110"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
