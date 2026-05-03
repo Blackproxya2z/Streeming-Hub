@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import {
   MessageCircle,
@@ -14,6 +13,7 @@ import {
   Sparkles,
   Loader2,
   ExternalLink,
+  Trash2,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -30,19 +30,30 @@ interface ChatResponse {
   error?: string
 }
 
+// Simple debounce helper
+function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number) {
+  let timer: ReturnType<typeof setTimeout>
+  return (...args: Parameters<T>) => {
+    clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), ms)
+  }
+}
+
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: '👋 Hi! I\'m SH Assistant — your AI helper at Streaming Hub. How can I help you today?\n\n🔍 Search products\n📦 Order info\n💳 Payment help\n❓ Any questions',
+      content: "👋 Hi! I'm SH Assistant — your AI helper at Streaming Hub. How can I help you today?\n\n🔍 Search products\n📦 Order info\n💳 Payment help\n❓ Any questions",
       timestamp: Date.now(),
     },
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [cooldown, setCooldown] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const lastSentRef = useRef<number>(0)
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -60,7 +71,17 @@ export function AIChatWidget() {
 
   const sendMessage = useCallback(async () => {
     const trimmed = input.trim()
-    if (!trimmed || isLoading) return
+    if (!trimmed || isLoading || cooldown) return
+
+    // Rate limit: minimum 1.5s between messages
+    const now = Date.now()
+    const elapsed = now - lastSentRef.current
+    if (elapsed < 1500) {
+      setCooldown(true)
+      setTimeout(() => setCooldown(false), 1500 - elapsed)
+      return
+    }
+    lastSentRef.current = now
 
     const userMessage: ChatMessage = {
       role: 'user',
@@ -87,13 +108,26 @@ export function AIChatWidget() {
         }),
       })
 
+      // Handle rate limiting
+      if (res.status === 429) {
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: "⏳ I'm a bit busy right now. Please wait a moment and try again, or contact us directly on WhatsApp: +8801647236359 💬",
+          whatsappUrl: 'https://wa.me/8801647236359?text=' + encodeURIComponent('Hi, I need help from Streaming Hub support'),
+          timestamp: Date.now(),
+        }
+        setMessages(prev => [...prev, assistantMessage])
+        setIsLoading(false)
+        return
+      }
+
       if (!res.ok) throw new Error('Failed to get response')
 
       const data: ChatResponse = await res.json()
 
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: data.response || 'Sorry, I couldn\'t process that. Please try again.',
+        content: data.response || "Sorry, I couldn't process that. Please try again.",
         whatsappUrl: data.whatsappUrl,
         timestamp: Date.now(),
       }
@@ -102,13 +136,14 @@ export function AIChatWidget() {
       const errorMessage: ChatMessage = {
         role: 'assistant',
         content: '❌ Connection error. Please try again or contact us on WhatsApp: +8801647236359',
+        whatsappUrl: 'https://wa.me/8801647236359?text=' + encodeURIComponent('Hi, I need help from Streaming Hub support'),
         timestamp: Date.now(),
       }
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
-  }, [input, isLoading, messages])
+  }, [input, isLoading, cooldown, messages])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -127,17 +162,25 @@ export function AIChatWidget() {
     ])
   }
 
+  const quickActions = [
+    { label: 'Netflix price', icon: '🎬' },
+    { label: 'VPN plans', icon: '🔒' },
+    { label: 'How to order?', icon: '📦' },
+    { label: 'bKash number', icon: '💳' },
+  ]
+
   return (
     <>
-      {/* Floating Button */}
+      {/* Floating Button — positioned ABOVE the WhatsApp button */}
       <AnimatePresence>
         {!isOpen && (
           <motion.button
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-24 right-4 z-50 lg:bottom-6 lg:right-6 flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all"
+            className="fixed bottom-36 right-4 z-50 lg:bottom-20 lg:right-6 flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95"
             aria-label="Open AI Assistant"
           >
             <Sparkles className="h-5 w-5" />
@@ -153,8 +196,8 @@ export function AIChatWidget() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="fixed bottom-4 right-4 z-50 w-[calc(100%-2rem)] sm:w-96 max-h-[80vh] flex flex-col bg-background border rounded-2xl shadow-2xl overflow-hidden"
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed bottom-4 right-4 z-[60] w-[calc(100%-2rem)] sm:w-96 max-h-[80vh] flex flex-col bg-background border rounded-2xl shadow-2xl overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-3 flex items-center justify-between shrink-0">
@@ -174,6 +217,7 @@ export function AIChatWidget() {
                   className="text-white hover:bg-white/10 h-7 px-2 text-xs"
                   onClick={clearChat}
                 >
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />
                   Clear
                 </Button>
                 <Button
@@ -190,12 +234,12 @@ export function AIChatWidget() {
             {/* Messages */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0"
+              className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0 overscroll-contain"
               style={{ maxHeight: 'calc(80vh - 130px)' }}
             >
               {messages.map((msg, i) => (
                 <div
-                  key={i}
+                  key={`${msg.timestamp}-${i}`}
                   className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {msg.role === 'assistant' && (
@@ -244,18 +288,18 @@ export function AIChatWidget() {
             </div>
 
             {/* Quick Actions */}
-            <div className="px-3 py-1 flex gap-1 overflow-x-auto shrink-0 border-t">
-              {['Netflix price', 'VPN plans', 'How to order?', 'bKash number'].map(q => (
+            <div className="px-3 py-1.5 flex gap-1.5 overflow-x-auto shrink-0 border-t scrollbar-none">
+              {quickActions.map(q => (
                 <Badge
-                  key={q}
+                  key={q.label}
                   variant="outline"
-                  className="cursor-pointer whitespace-nowrap text-[10px] shrink-0 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+                  className="cursor-pointer whitespace-nowrap text-[10px] shrink-0 hover:bg-emerald-50 dark:hover:bg-emerald-950 transition-colors active:scale-95"
                   onClick={() => {
-                    setInput(q)
+                    setInput(q.label)
                     inputRef.current?.focus()
                   }}
                 >
-                  {q}
+                  {q.icon} {q.label}
                 </Badge>
               ))}
             </div>
@@ -270,17 +314,24 @@ export function AIChatWidget() {
                   onKeyDown={handleKeyDown}
                   placeholder="Ask me anything..."
                   className="h-9 text-sm"
-                  disabled={isLoading}
+                  disabled={isLoading || cooldown}
                 />
                 <Button
                   size="sm"
                   onClick={sendMessage}
-                  disabled={!input.trim() || isLoading}
+                  disabled={!input.trim() || isLoading || cooldown}
                   className="bg-emerald-600 hover:bg-emerald-700 h-9 px-3"
                 >
-                  <Send className="h-4 w-4" />
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
+              {cooldown && (
+                <p className="text-[10px] text-muted-foreground mt-1 text-center">Please wait a moment...</p>
+              )}
             </div>
           </motion.div>
         )}
