@@ -26,6 +26,9 @@ import {
   Package,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
+
+const AVATAR_SRC = '/images/assistant-avatar.png'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -289,8 +292,8 @@ export function AIChatWidget() {
             <motion.button
               onClick={() => setIsOpen(true)}
               className="relative flex items-center justify-center
-                w-14 h-14 rounded-full
-                sm:w-auto sm:h-auto sm:px-5 sm:py-3 sm:rounded-full
+                w-16 h-16 rounded-full p-1
+                sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 sm:rounded-full sm:gap-2.5
                 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 
                 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600
                 text-white shadow-lg hover:shadow-2xl
@@ -303,9 +306,15 @@ export function AIChatWidget() {
               {/* Pulsing glow ring behind the button */}
               <span className="absolute inset-0 rounded-full bg-emerald-400/25 animate-ping [animation-duration:2.5s]" />
 
-              {/* Inner content */}
+              {/* Inner content — avatar image */}
               <span className="relative flex items-center gap-2 z-10">
-                <Sparkles className="h-6 w-6 sm:h-5 sm:w-5 group-hover:rotate-12 transition-transform drop-shadow-sm" />
+                <Image
+                  src={AVATAR_SRC}
+                  alt="কর্মচারী"
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 sm:h-9 sm:w-9 rounded-full object-cover ring-2 ring-white/30"
+                />
                 <span className="hidden sm:inline text-sm font-bold tracking-wide drop-shadow-sm">কর্মচারী</span>
               </span>
 
@@ -345,9 +354,13 @@ export function AIChatWidget() {
 
               <div className="flex items-center gap-3 relative z-10">
                 <div className="relative">
-                  <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/20">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
+                  <Image
+                    src={AVATAR_SRC}
+                    alt="কর্মচারী"
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 rounded-full object-cover ring-2 ring-white/30"
+                  />
                   <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-sky-500 flex items-center justify-center ring-2 ring-emerald-500">
                     <BadgeCheck className="h-2.5 w-2.5 text-white" />
                   </div>
@@ -456,9 +469,13 @@ export function AIChatWidget() {
                 >
                   {msg.role === 'assistant' && (
                     <div className="relative shrink-0 mt-0.5">
-                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900 dark:to-teal-900 flex items-center justify-center ring-1 ring-emerald-200/50 dark:ring-emerald-800/50">
-                        <Sparkles className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                      </div>
+                      <Image
+                        src={AVATAR_SRC}
+                        alt="কর্মচারী"
+                        width={28}
+                        height={28}
+                        className="h-7 w-7 rounded-full object-cover ring-1 ring-emerald-200/50 dark:ring-emerald-800/50"
+                      />
                       <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-sky-500 flex items-center justify-center ring-1 ring-background">
                         <BadgeCheck className="h-2 w-2 text-white" />
                       </div>
@@ -499,9 +516,13 @@ export function AIChatWidget() {
                   className="flex gap-2.5 justify-start"
                 >
                   <div className="relative shrink-0">
-                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900 dark:to-teal-900 flex items-center justify-center ring-1 ring-emerald-200/50 dark:ring-emerald-800/50">
-                      <Sparkles className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                    </div>
+                    <Image
+                      src={AVATAR_SRC}
+                      alt="কর্মচারী"
+                      width={28}
+                      height={28}
+                      className="h-7 w-7 rounded-full object-cover ring-1 ring-emerald-200/50 dark:ring-emerald-800/50"
+                    />
                     <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-sky-500 flex items-center justify-center ring-1 ring-background">
                       <BadgeCheck className="h-2 w-2 text-white" />
                     </div>
