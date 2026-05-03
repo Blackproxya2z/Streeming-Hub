@@ -1,6 +1,4 @@
-import { MetadataRoute } from 'next'
-
-const SITE_URL = 'https://streaminghub.com.bd'
+import type { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -10,21 +8,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: ['/api/', '/admin'],
       },
-      {
-        userAgent: 'Googlebot',
-        allow: '/',
-        disallow: ['/api/', '/admin'],
-      },
-      {
-        userAgent: 'Googlebot-Image',
-        allow: ['/products/', '/images/'],
-      },
-      {
-        userAgent: 'facebookexternalhit',
-        allow: '/',
-      },
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
-    host: SITE_URL,
+    sitemap: 'https://streaminghub.com.bd/sitemap.xml',
   }
 }

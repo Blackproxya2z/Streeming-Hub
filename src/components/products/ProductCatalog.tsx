@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Search, ShoppingBag, X, SlidersHorizontal } from 'lucide-react'
+import { SEOHead } from '@/components/shared/SEOHead'
 
 export function ProductCatalog() {
   const { filters, searchQuery, setSearchQuery, pageParams, setFilter, navigate } = useAppStore()
@@ -77,6 +78,12 @@ export function ProductCatalog() {
   return (
     <section className="py-4 sm:py-6 px-4">
       <div className="container mx-auto">
+        {/* SEO for catalog/category page */}
+        <SEOHead
+          title={currentCategory ? `${currentCategory.name} — Buy Online in Bangladesh` : 'All Products — 120+ Digital Subscriptions'}
+          description={currentCategory ? `Buy ${currentCategory.name} at best prices in Bangladesh. bKash/Nagad payment, 5-20 min delivery, full warranty.` : 'Browse 120+ premium digital subscriptions: Netflix, Spotify, YouTube Premium, ChatGPT, VPN & more at best prices in Bangladesh.'}
+          keywords={currentCategory ? [currentCategory.name, `${currentCategory.name} Bangladesh`, `buy ${currentCategory.name} BD`] : ['buy subscription online', 'digital subscription catalog', 'Netflix price Bangladesh', 'Spotify premium BD']}
+        />
         {/* Header */}
         <div className="mb-4">
           <h1 className="text-2xl sm:text-3xl font-bold">

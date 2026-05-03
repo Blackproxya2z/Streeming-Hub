@@ -28,6 +28,8 @@ import {
   Lock,
   ShoppingBag,
   Home,
+  BadgeCheck,
+  MessageCircle,
 } from 'lucide-react'
 import type { Category } from '@/lib/hooks'
 
@@ -96,11 +98,18 @@ export function Header() {
             <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
               <ShoppingBag className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent hidden sm:block">
-              Streaming Hub
-            </span>
-            <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent sm:hidden">
+            <div className="hidden sm:flex flex-col">
+              <div className="flex items-center gap-1">
+                <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent leading-tight">
+                  Streaming Hub
+                </span>
+                <BadgeCheck className="h-4 w-4 text-sky-500 shrink-0" />
+              </div>
+              <span className="text-[9px] text-muted-foreground font-medium -mt-0.5">BD&apos;s #1 Subscription Store</span>
+            </div>
+            <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent sm:hidden flex items-center gap-1">
               SH
+              <BadgeCheck className="h-3.5 w-3.5 text-sky-500" />
             </span>
           </button>
 
@@ -152,7 +161,34 @@ export function Header() {
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Payment Methods - Desktop only */}
+            <div className="hidden xl:flex items-center gap-1.5 mr-2">
+              <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-rose-50 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-800/30">
+                <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400">bKash</span>
+              </div>
+              <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-orange-50 dark:bg-orange-950/30 border border-orange-200/50 dark:border-orange-800/30">
+                <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">Nagad</span>
+              </div>
+            </div>
+
+            {/* WhatsApp Quick Link - Desktop */}
+            <a
+              href="https://wa.me/8801647236359"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex"
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30 text-xs h-8 px-2"
+              >
+                <MessageCircle className="h-3.5 w-3.5 mr-1" />
+                WhatsApp
+              </Button>
+            </a>
+
             {/* Search */}
             {searchOpen ? (
               <form onSubmit={handleSearch} className="flex items-center gap-2">
@@ -213,9 +249,28 @@ export function Header() {
                       <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                         <ShoppingBag className="h-4 w-4 text-white" />
                       </div>
-                      <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                        Streaming Hub
-                      </span>
+                      <div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                            Streaming Hub
+                          </span>
+                          <BadgeCheck className="h-4 w-4 text-sky-500" />
+                        </div>
+                        <p className="text-[9px] text-muted-foreground">BD&apos;s #1 Subscription Store</p>
+                      </div>
+                    </div>
+                    {/* Payment methods in mobile menu */}
+                    <div className="flex items-center gap-2 mt-3">
+                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/60 dark:bg-black/20 border border-border/50">
+                        <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400">bKash</span>
+                      </div>
+                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/60 dark:bg-black/20 border border-border/50">
+                        <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">Nagad</span>
+                      </div>
+                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/60 dark:bg-black/20 border border-border/50">
+                        <MessageCircle className="h-3 w-3 text-green-500" />
+                        <span className="text-[10px] font-bold text-green-600 dark:text-green-400">WhatsApp</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4">

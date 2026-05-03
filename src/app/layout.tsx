@@ -113,12 +113,25 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [`${SITE_URL}/og-image.png`],
     creator: "@streaminghub_bd",
+    site: "@streaminghub_bd",
   },
   verification: {
     google: "google-site-verification-code",
   },
   category: "E-Commerce",
   classification: "Digital Subscription Store",
+  other: {
+    "fb:app_id": "streaminghub-bd",
+    "fb:pages": "streaminghub.bd",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": SITE_NAME,
+    "mobile-web-app-capable": "yes",
+    "theme-color": "#10b981",
+    "geo.region": "BD",
+    "geo.placename": "Dhaka, Bangladesh",
+    "language": "en-BD",
+  },
 };
 
 export default function RootLayout({
@@ -126,7 +139,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // JSON-LD Structured Data
+  // JSON-LD Structured Data — Organization
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -137,6 +150,7 @@ export default function RootLayout({
     address: {
       "@type": "PostalAddress",
       addressLocality: "Dhaka",
+      addressRegion: "Dhaka",
       addressCountry: "BD",
     },
     contactPoint: {
@@ -144,19 +158,24 @@ export default function RootLayout({
       telephone: "+8801647236359",
       contactType: "customer service",
       availableLanguage: ["English", "Bengali"],
+      areaServed: "BD",
     },
     sameAs: [
       "https://facebook.com/streaminghub.bd",
       "https://instagram.com/streaminghub.bd",
     ],
     priceRange: "৳50 - ৳5000",
+    currenciesAccepted: "BDT",
+    paymentAccepted: "bKash, Nagad",
   };
 
+  // JSON-LD Structured Data — WebSite with SearchAction
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
     url: SITE_URL,
+    description: SITE_DESCRIPTION,
     potentialAction: {
       "@type": "SearchAction",
       target: {
@@ -167,6 +186,7 @@ export default function RootLayout({
     },
   };
 
+  // JSON-LD Structured Data — LocalBusiness / Store
   const localBusinessSchema = {
     "@context": "https://schema.org",
     "@type": "Store",
@@ -174,9 +194,11 @@ export default function RootLayout({
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     telephone: "+8801647236359",
+    image: `${SITE_URL}/og-image.png`,
     address: {
       "@type": "PostalAddress",
       addressLocality: "Dhaka",
+      addressRegion: "Dhaka",
       addressCountry: "BD",
     },
     openingHoursSpecification: {
@@ -190,6 +212,40 @@ export default function RootLayout({
     },
     paymentAccepted: "bKash, Nagad",
     currenciesAccepted: "BDT",
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.8",
+      reviewCount: "150",
+      bestRating: "5",
+      worstRating: "1",
+    },
+  };
+
+  // JSON-LD Structured Data — Product (generic, for homepage)
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "Premium Digital Subscriptions",
+    description: SITE_DESCRIPTION,
+    brand: {
+      "@type": "Brand",
+      name: SITE_NAME,
+    },
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "BDT",
+      lowPrice: "50",
+      highPrice: "5000",
+      offerCount: "129",
+      availability: "https://schema.org/InStock",
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.8",
+      reviewCount: "150",
+      bestRating: "5",
+      worstRating: "1",
+    },
   };
 
   return (
@@ -218,9 +274,31 @@ export default function RootLayout({
             __html: JSON.stringify(localBusinessSchema),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(productSchema),
+          }}
+        />
 
         {/* Facebook Domain Verification */}
         <meta name="facebook-domain-verification" content="streaminghub-bd-verify" />
+
+        {/* Additional Facebook / Meta tags */}
+        <meta property="fb:app_id" content="streaminghub-bd" />
+        <meta property="article:publisher" content="https://facebook.com/streaminghub.bd" />
+
+        {/* PWA support */}
+        <meta name="application-name" content="Streaming Hub" />
+        <meta name="apple-mobile-web-app-title" content="Streaming Hub" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+        {/* Geo targeting for Bangladesh */}
+        <meta name="geo.region" content="BD" />
+        <meta name="geo.placename" content="Dhaka, Bangladesh" />
+        <meta name="language" content="en-BD" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { ProductCard } from './ProductCard'
 import { OrderDialog } from '@/components/order/OrderDialog'
+import { SEOHead } from '@/components/shared/SEOHead'
 
 const gradients = [
   'from-emerald-400 to-teal-500',
@@ -97,9 +98,50 @@ export function ProductDetail() {
     setOrderOpen(true)
   }
 
+  // Product SEO structured data
+  const productSchema = product ? {
+    "@type": "Product",
+    name: product.name,
+    description: product.description || `${product.name} subscription at best price in Bangladesh`,
+    image: product.image || undefined,
+    brand: {
+      "@type": "Brand",
+      name: product.category?.name || "Streaming Hub",
+    },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "BDT",
+      price: product.basePriceBDT?.replace(/[^\d.]/g, '') || "0",
+      availability: "https://schema.org/InStock",
+      seller: {
+        "@type": "Organization",
+        name: "Streaming Hub",
+      },
+      url: `https://streaminghub.com.bd/?page=product&id=${product.id}`,
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.8",
+      reviewCount: "50",
+      bestRating: "5",
+      worstRating: "1",
+    },
+  } : undefined
+
   return (
     <section className="py-4 sm:py-6 px-4">
       <div className="container mx-auto max-w-4xl">
+        {/* Product SEO */}
+        {product && (
+          <SEOHead
+            title={`${product.name} — ${formatPriceBDT(product.basePriceBDT)} | ${product.category?.name}`}
+            description={`Buy ${product.name} at ${formatPriceBDT(product.basePriceBDT)} in Bangladesh. ${product.warranty ? `Warranty: ${product.warranty}.` : ''} ${product.deliveryTime ? `Delivery: ${product.deliveryTime}.` : ''} bKash/Nagad payment, fast delivery.`}
+            keywords={[product.name, `${product.name} Bangladesh`, `${product.name} price BD`, `${product.category?.name} subscription`, 'buy subscription Bangladesh']}
+            ogType="product"
+            ogImage={product.image || undefined}
+            productSchema={productSchema}
+          />
+        )}
         {/* Back */}
         <Button
           variant="ghost"

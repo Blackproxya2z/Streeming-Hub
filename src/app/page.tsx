@@ -11,7 +11,9 @@ import { AgeGate } from '@/components/shared/AgeGate'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { AIChatWidget } from '@/components/shared/AIChatWidget'
 import { SEOHead } from '@/components/shared/SEOHead'
+import { BreadcrumbSchema } from '@/components/shared/BreadcrumbSchema'
 import { HeroSection } from '@/components/home/HeroSection'
+import { TrustBadgeBar } from '@/components/layout/TrustBadgeBar'
 import { CategoryCards } from '@/components/home/CategoryCards'
 import { FeaturedProducts } from '@/components/home/FeaturedProducts'
 import { WhyChooseUs } from '@/components/home/WhyChooseUs'
@@ -131,8 +133,10 @@ export default function Home() {
           description={seo.description}
           keywords={seo.keywords}
         />
+        <BreadcrumbSchema />
         <AnnouncementBar />
         <Header />
+        <TrustBadgeBar />
         <main className="flex-1 pb-24 lg:pb-0" role="main">
           <PageRouter />
         </main>

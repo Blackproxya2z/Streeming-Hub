@@ -13,8 +13,15 @@ import {
   Sparkles,
   Loader2,
   ExternalLink,
-  Trash2,
   RotateCcw,
+  BadgeCheck,
+  Shield,
+  Zap,
+  Headphones,
+  ShoppingCart,
+  Search,
+  CreditCard,
+  HelpCircle,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -30,6 +37,13 @@ interface ChatResponse {
   whatsappUrl?: string
   error?: string
 }
+
+const capabilities = [
+  { icon: Search, label: 'প্রোডাক্ট খুঁজুন', desc: 'Find products' },
+  { icon: CreditCard, label: 'প্রাইস জানুন', desc: 'Get prices' },
+  { icon: ShoppingCart, label: 'অর্ডার করুন', desc: 'Place order' },
+  { icon: HelpCircle, label: 'সাহায্য নিন', desc: 'Get help' },
+]
 
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
@@ -190,6 +204,8 @@ export function AIChatWidget() {
           >
             <Sparkles className="h-5 w-5 group-hover:rotate-12 transition-transform" />
             <span className="text-sm font-semibold hidden sm:inline">AI Assistant</span>
+            {/* Notification dot */}
+            <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-400 border-2 border-background animate-pulse" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -211,11 +227,20 @@ export function AIChatWidget() {
               <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white/5" />
 
               <div className="flex items-center gap-3 relative z-10">
-                <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/20">
-                  <Bot className="h-5 w-5" />
+                <div className="relative">
+                  <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/20">
+                    <Bot className="h-5 w-5" />
+                  </div>
+                  {/* Verified badge */}
+                  <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-sky-500 flex items-center justify-center ring-2 ring-emerald-500">
+                    <BadgeCheck className="h-2.5 w-2.5 text-white" />
+                  </div>
                 </div>
                 <div>
-                  <h3 className="font-bold text-base tracking-tight">SH Assistant</h3>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-bold text-base tracking-tight">SH Assistant</h3>
+                    <BadgeCheck className="h-4 w-4 text-sky-300" />
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-green-300 animate-pulse" />
                     <p className="text-[11px] text-emerald-100 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
@@ -243,11 +268,55 @@ export function AIChatWidget() {
               </div>
             </div>
 
+            {/* Capability Cards */}
+            <div className="px-4 pt-3 pb-2 border-b border-border/30 bg-muted/30 shrink-0">
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-2">আমি কি কি করতে পারি</p>
+              <div className="grid grid-cols-4 gap-2">
+                {capabilities.map((cap) => {
+                  const Icon = cap.icon
+                  return (
+                    <div
+                      key={cap.label}
+                      className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-muted/60 transition-colors cursor-default"
+                    >
+                      <div className="h-7 w-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                        <Icon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <span className="text-[9px] font-medium text-foreground text-center leading-tight">{cap.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Trust Indicators Strip */}
+            <div className="flex items-center justify-center gap-3 px-4 py-1.5 bg-emerald-50/50 dark:bg-emerald-950/20 border-b border-border/30 shrink-0">
+              <div className="flex items-center gap-1 text-[9px] text-emerald-700 dark:text-emerald-400">
+                <Shield className="h-2.5 w-2.5" />
+                <span>Warranty</span>
+              </div>
+              <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
+              <div className="flex items-center gap-1 text-[9px] text-emerald-700 dark:text-emerald-400">
+                <Zap className="h-2.5 w-2.5" />
+                <span>5-20 Min</span>
+              </div>
+              <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
+              <div className="flex items-center gap-1 text-[9px] text-emerald-700 dark:text-emerald-400">
+                <Headphones className="h-2.5 w-2.5" />
+                <span>24/7</span>
+              </div>
+              <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
+              <div className="flex items-center gap-1 text-[9px] text-emerald-700 dark:text-emerald-400">
+                <BadgeCheck className="h-2.5 w-2.5" />
+                <span>Verified</span>
+              </div>
+            </div>
+
             {/* Messages */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 overscroll-contain scroll-smooth"
-              style={{ maxHeight: 'calc(85vh - 180px)' }}
+              className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 overscroll-contain scroll-smooth custom-scrollbar"
+              style={{ maxHeight: 'calc(85vh - 300px)' }}
             >
               {messages.map((msg, i) => (
                 <motion.div
@@ -258,8 +327,13 @@ export function AIChatWidget() {
                   className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {msg.role === 'assistant' && (
-                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900 dark:to-teal-900 flex items-center justify-center shrink-0 mt-0.5 ring-1 ring-emerald-200/50 dark:ring-emerald-800/50">
-                      <Bot className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <div className="relative shrink-0 mt-0.5">
+                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900 dark:to-teal-900 flex items-center justify-center ring-1 ring-emerald-200/50 dark:ring-emerald-800/50">
+                        <Bot className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-sky-500 flex items-center justify-center ring-1 ring-background">
+                        <BadgeCheck className="h-2 w-2 text-white" />
+                      </div>
                     </div>
                   )}
                   <div
@@ -296,8 +370,13 @@ export function AIChatWidget() {
                   animate={{ opacity: 1 }}
                   className="flex gap-2.5 justify-start"
                 >
-                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900 dark:to-teal-900 flex items-center justify-center shrink-0 ring-1 ring-emerald-200/50 dark:ring-emerald-800/50">
-                    <Bot className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <div className="relative shrink-0">
+                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900 dark:to-teal-900 flex items-center justify-center ring-1 ring-emerald-200/50 dark:ring-emerald-800/50">
+                      <Bot className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-sky-500 flex items-center justify-center ring-1 ring-background">
+                      <BadgeCheck className="h-2 w-2 text-white" />
+                    </div>
                   </div>
                   <div className="bg-muted/80 rounded-2xl rounded-bl-md px-4 py-3 border border-border/30">
                     <div className="flex items-center gap-1.5">
