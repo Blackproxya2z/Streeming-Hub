@@ -266,3 +266,39 @@ Stage Summary:
 - 6-step automated order system in system prompt
 - Smart sales: upsell, urgency, memory, follow-up
 - Mobile UX: 16px font (no iOS zoom), 44px touch targets, clickable capability cards & quick actions
+
+---
+Task ID: 9
+Agent: Main Agent
+Task: Make AI assistant know about ALL products across ALL categories properly
+
+Work Log:
+- Analyzed current product search: only searched by name/description/slug, limited to 5 results, no category awareness
+- Added category-aware search: searches by category name and slug too (not just product fields)
+- Added `searchByCategory()` function: returns ALL products in a specific category
+- Added `getCatalogSummary()` function: returns full catalog overview with category names, product counts, and sample products
+- Added `detectCategoryIntent()` function: detects when user asks about a category (Bangla/Banglish/English) — maps keywords to category slugs (e.g., "VPN"/"ভিপিএন" → vpn, "gaming"/"গেমিং" → gaming-topup)
+- Added 3-tier search strategy:
+  1. If user asks "সব দেখাও" / "all products" → Full catalog summary
+  2. If user asks about a category → All products in that category
+  3. Otherwise → General product search (increased from 5 to 10 results)
+- Added fallback: if no products found, show catalog summary so AI can guide user
+- Added content filter safety:
+  - `FILTERED_CATEGORY_SLUGS` excludes adult category from AI context
+  - `sanitizeForLLM()` function strips sensitive words before sending to LLM
+  - Applied sanitization to system prompt, conversation history, and user messages
+- Updated system prompt with:
+  - Category response format: shows category name, product count, and price list
+  - All products response format: shows categories with counts
+  - Banglish keyword additions: dekhao=show, dao=give, ki ki=what are, sob=all
+- Increased search term minimum from 2 to 1 char (for short queries like "VPN")
+- Added case-insensitive search mode
+- All tests passing: Netflix query, VPN category, gaming category, full catalog
+
+Stage Summary:
+- AI now knows about ALL products across ALL categories
+- Smart category detection: VPN, streaming, gaming, AI tools, educational, design, etc.
+- Full catalog overview when user asks "সব দেখাও"
+- Category-specific listing with all products and prices
+- Content filter safe: adult category excluded, all text sanitized
+- Search improved: category-aware, 10 results, case-insensitive
