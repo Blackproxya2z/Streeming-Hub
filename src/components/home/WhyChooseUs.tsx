@@ -45,10 +45,10 @@ const features = [
 
 export function WhyChooseUs() {
   return (
-    <section className="py-16 px-4">
+    <section className="py-16 px-4" id="why-choose" aria-labelledby="why-heading">
       <div className="container mx-auto">
         <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Why Choose Us</h2>
+          <h2 id="why-heading" className="text-2xl sm:text-3xl font-bold mb-3">Why Choose Us</h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
             We provide the best digital subscription experience in Bangladesh
           </p>

@@ -13,7 +13,7 @@ export function HeroSection() {
   const whatsappNumber = settings?.whatsappNumber || '+8801647236359'
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white">
+    <section className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white" aria-label="Hero Banner — Premium Subscriptions at Best Price in Bangladesh">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />

@@ -102,10 +102,10 @@ export function CategoryCards() {
   }
 
   return (
-    <section className="py-12 sm:py-16 px-4">
+    <section className="py-12 sm:py-16 px-4" id="categories" aria-labelledby="categories-heading">
       <div className="container mx-auto">
         <div className="text-center mb-8 sm:mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Browse by Category</h2>
+          <h2 id="categories-heading" className="text-2xl sm:text-3xl font-bold mb-3">Browse by Category</h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
             Find the perfect subscription for your needs from our wide range of categories
           </p>

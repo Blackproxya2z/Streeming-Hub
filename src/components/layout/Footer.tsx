@@ -11,28 +11,30 @@ export function Footer() {
   const paymentNumber = settings?.paymentNumber || 'bKash/Nagad'
 
   return (
-    <footer className="bg-muted/50 border-t mt-auto">
+    <footer className="bg-muted/50 border-t mt-auto" role="contentinfo" itemScope itemType="https://schema.org/Organization">
       <div className="container mx-auto px-4 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center" aria-hidden="true">
                 <ShoppingBag className="h-5 w-5 text-white" />
               </div>
-              <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent" itemProp="name">
                 Streaming Hub
               </span>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground" itemProp="description">
               Your trusted store for premium digital subscriptions in Bangladesh. OTT, AI tools, education, VPN & more — fast delivery with full warranty.
             </p>
+            <meta itemProp="url" content="https://streaminghub.com.bd" />
+            <meta itemProp="telephone" content="+8801647236359" />
           </div>
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-sm uppercase tracking-wider">Quick Links</h3>
-            <nav className="flex flex-col gap-2">
+            <h2 className="font-semibold text-sm uppercase tracking-wider">Quick Links</h2>
+            <nav className="flex flex-col gap-2" aria-label="Footer navigation">
               <button onClick={() => navigate('home')} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Home</button>
               <button onClick={() => navigate('products')} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">All Products</button>
               <button onClick={() => navigate('payment')} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Payment Number</button>
@@ -45,7 +47,7 @@ export function Footer() {
 
           {/* Contact */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-sm uppercase tracking-wider">Contact Us</h3>
+            <h2 className="font-semibold text-sm uppercase tracking-wider">Contact Us</h2>
             <div className="flex flex-col gap-3">
               <a
                 href={`https://wa.me/${whatsappNumber.replace('+', '')}`}
@@ -69,7 +71,7 @@ export function Footer() {
 
           {/* Trust Badges */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-sm uppercase tracking-wider">Why Trust Us</h3>
+            <h2 className="font-semibold text-sm uppercase tracking-wider">Why Trust Us</h2>
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Shield className="h-4 w-4 text-emerald-500" />

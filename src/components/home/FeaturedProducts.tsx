@@ -183,10 +183,10 @@ export function FeaturedProducts() {
   if (products.length === 0) return null
 
   return (
-    <section className="py-12 sm:py-16 px-4 bg-muted/30">
+    <section className="py-12 sm:py-16 px-4 bg-muted/30" id="featured" aria-labelledby="featured-heading">
       <div className="container mx-auto">
         <div className="text-center mb-8 sm:mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Featured Products</h2>
+          <h2 id="featured-heading" className="text-2xl sm:text-3xl font-bold mb-3">Featured Products</h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
             Our most popular and recommended subscriptions at unbeatable prices
           </p>

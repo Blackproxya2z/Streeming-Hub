@@ -39,16 +39,39 @@ const faqs = [
   },
 ]
 
+// JSON-LD FAQ Schema for Google rich results
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(faq => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.answer,
+    },
+  })),
+}
+
 export function FAQ() {
   return (
-    <section className="py-16 px-4 bg-muted/30">
+    <section className="py-16 px-4 bg-muted/30" id="faq" aria-labelledby="faq-heading">
       <div className="container mx-auto max-w-3xl">
         <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Frequently Asked Questions</h2>
+          <h2 id="faq-heading" className="text-2xl sm:text-3xl font-bold mb-3">Frequently Asked Questions</h2>
           <p className="text-muted-foreground">
             Got questions? We&apos;ve got answers
           </p>
         </div>
+
+        {/* FAQ Schema for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqSchema),
+          }}
+        />
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

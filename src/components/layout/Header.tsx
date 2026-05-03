@@ -84,13 +84,14 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" role="banner">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <button
             onClick={() => navigate('home')}
             className="flex items-center gap-2 shrink-0"
+            aria-label="Streaming Hub — Go to homepage"
           >
             <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
               <ShoppingBag className="h-5 w-5 text-white" />
@@ -104,7 +105,7 @@ export function Header() {
           </button>
 
           {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
             <Button
               variant="ghost"
               size="sm"
