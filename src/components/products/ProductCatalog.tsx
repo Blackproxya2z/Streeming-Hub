@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo, useCallback, useState, useEffect } from 'react'
 import { useProducts, useCategories } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
 import { ProductCard } from './ProductCard'
@@ -26,14 +27,52 @@ export function ProductCatalog() {
   const { data, isLoading } = useProducts(queryParams)
   const products = data?.products || []
 
-  const handleCategoryClick = (slug: string) => {
+  const handleCategoryClick = useCallback((slug: string) => {
     setFilter('categorySlug', slug)
     if (slug) {
       navigate('category', { categorySlug: slug })
     } else {
       navigate('products')
     }
-  }
+  }, [setFilter, navigate])
+
+  // Debounced search
+  const [localSearch, setLocalSearch] = useState(searchQuery)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(localSearch)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [localSearch, setSearchQuery])
+
+  // Memoize category chips
+  const categoryChips = useMemo(() => {
+    if (!categories) return null
+    return (
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
+        <Badge
+          variant={!categorySlug ? 'default' : 'outline'}
+          className="cursor-pointer whitespace-nowrap shrink-0"
+          onClick={() => handleCategoryClick('')}
+        >
+          All
+        </Badge>
+        {categories.map(cat => {
+          if (cat.isAdult && categorySlug !== cat.slug) return null
+          return (
+            <Badge
+              key={cat.id}
+              variant={categorySlug === cat.slug ? 'default' : 'outline'}
+              className={`cursor-pointer whitespace-nowrap shrink-0 ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
+              onClick={() => handleCategoryClick(cat.slug)}
+            >
+              {cat.name}
+            </Badge>
+          )
+        })}
+      </div>
+    )
+  }, [categories, categorySlug, handleCategoryClick])
 
   return (
     <section className="py-4 sm:py-6 px-4">
@@ -56,13 +95,13 @@ export function ProductCatalog() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search products..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              value={localSearch}
+              onChange={e => setLocalSearch(e.target.value)}
               className="pl-9 h-10"
             />
-            {searchQuery && (
+            {localSearch && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => { setLocalSearch(''); setSearchQuery('') }}
                 className="absolute right-3 top-1/2 -translate-y-1/2"
               >
                 <X className="h-4 w-4 text-muted-foreground" />
@@ -73,28 +112,7 @@ export function ProductCatalog() {
         </div>
 
         {/* Category chips */}
-        <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
-          <Badge
-            variant={!categorySlug ? 'default' : 'outline'}
-            className="cursor-pointer whitespace-nowrap shrink-0"
-            onClick={() => handleCategoryClick('')}
-          >
-            All
-          </Badge>
-          {(categories || []).map(cat => {
-            if (cat.isAdult && categorySlug !== cat.slug) return null
-            return (
-              <Badge
-                key={cat.id}
-                variant={categorySlug === cat.slug ? 'default' : 'outline'}
-                className={`cursor-pointer whitespace-nowrap shrink-0 ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
-                onClick={() => handleCategoryClick(cat.slug)}
-              >
-                {cat.name}
-              </Badge>
-            )
-          })}
-        </div>
+        {categoryChips}
 
         {/* Product Grid */}
         {isLoading ? (
@@ -115,6 +133,7 @@ export function ProductCatalog() {
               Try adjusting your search or filters
             </p>
             <Button variant="outline" onClick={() => {
+              setLocalSearch('')
               setSearchQuery('')
               setFilter('categorySlug', '')
             }}>

@@ -1,0 +1,132 @@
+=== Image Generation Started: Sun May  3 09:42:29 UTC 2026 ===
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Pornhub Premium, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+Failed to make image generation request: 257 |                 headers: headers,
+258 |                 body: JSON.stringify(requestBody),
+259 |             });
+260 |             if (!response.ok) {
+261 |                 const errorBody = await response.text();
+262 |                 throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
+                                ^
+error: API request failed with status 400: {"contentFilter":[{"level":2,"role":"user"}],"error":{"code":"1301","message":"系统检测到输入或生成内容可能包含不安全或敏感内容，请您避免输入易产生敏感内容的提示语，感谢您的配合。"}}
+      at createImageGeneration (/home/z/.bun/install/global/node_modules/z-ai-web-dev-sdk/dist/index.js:262:27)
+      at async handleImage (/home/z/.bun/install/global/node_modules/z-ai-web-dev-sdk/dist/cli.js:690:54)
+      at async main (/home/z/.bun/install/global/node_modules/z-ai-web-dev-sdk/dist/cli.js:1001:23)
+
+❌ Error: API request failed with status 400: {"contentFilter":[{"level":2,"role":"user"}],"error":{"code":"1301","message":"系统检测到输入或生成内容可能包含不安全或敏感内容，请您避免输入易产生敏感内容的提示语，感谢您的配合。"}}
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for XHamster Premium, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+Failed to make image generation request: 257 |                 headers: headers,
+258 |                 body: JSON.stringify(requestBody),
+259 |             });
+260 |             if (!response.ok) {
+261 |                 const errorBody = await response.text();
+262 |                 throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
+                                ^
+error: API request failed with status 400: {"contentFilter":[{"level":2,"role":"user"}],"error":{"code":"1301","message":"系统检测到输入或生成内容可能包含不安全或敏感内容，请您避免输入易产生敏感内容的提示语，感谢您的配合。"}}
+      at createImageGeneration (/home/z/.bun/install/global/node_modules/z-ai-web-dev-sdk/dist/index.js:262:27)
+      at async handleImage (/home/z/.bun/install/global/node_modules/z-ai-web-dev-sdk/dist/cli.js:690:54)
+      at async main (/home/z/.bun/install/global/node_modules/z-ai-web-dev-sdk/dist/cli.js:1001:23)
+
+❌ Error: API request failed with status 400: {"contentFilter":[{"level":2,"role":"user"}],"error":{"code":"1301","message":"系统检测到输入或生成内容可能包含不安全或敏感内容，请您避免输入易产生敏感内容的提示语，感谢您的配合。"}}
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for FapHouse Premium, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/faphouse-premium.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Brazzers Original, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/brazzers-original.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for FapHouse Ultra, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/fap-house-ultra.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for XNXX Gold Premium, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/xnxx-gold-premium.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for XVideos Red, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+Failed to make image generation request: 257 |                 headers: headers,
+258 |                 body: JSON.stringify(requestBody),
+259 |             });
+260 |             if (!response.ok) {
+261 |                 const errorBody = await response.text();
+262 |                 throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
+                                ^
+error: API request failed with status 400: {"contentFilter":[{"level":2,"role":"user"}],"error":{"code":"1301","message":"系统检测到输入或生成内容可能包含不安全或敏感内容，请您避免输入易产生敏感内容的提示语，感谢您的配合。"}}
+      at createImageGeneration (/home/z/.bun/install/global/node_modules/z-ai-web-dev-sdk/dist/index.js:262:27)
+      at async handleImage (/home/z/.bun/install/global/node_modules/z-ai-web-dev-sdk/dist/cli.js:690:54)
+      at async main (/home/z/.bun/install/global/node_modules/z-ai-web-dev-sdk/dist/cli.js:1001:23)
+
+❌ Error: API request failed with status 400: {"contentFilter":[{"level":2,"role":"user"}],"error":{"code":"1301","message":"系统检测到输入或生成内容可能包含不安全或敏感内容，请您避免输入易产生敏感内容的提示语，感谢您的配合。"}}
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital streaming service logo icon for Kooku Gold, dark premium background with red and gold accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/kooku-gold.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital streaming service logo icon for Ullu Gold, dark premium background with red and gold accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/ullu-gold.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Bang Bros, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/bangbros.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Reality Kings, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/reality-kings.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Mofos, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/mofos.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Babes, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/babes.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Digital Playground, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/digital-playground.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Fakehub, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/fakehub.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Sexy Hub, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/sexy-hub.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Blacked, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/blacked.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Blacked Raw, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/blacked-raw.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Tushy, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024
+✅ File saved to: /home/z/my-project/public/images/products/tushy.png
+🎉 Image generation completed!
+🚀 Initializing Z-AI SDK...
+🎨 Generating image: "Professional digital subscription service logo icon for Tushy Raw, dark premium background with gold and amber accents, sleek modern design, clean typography, app icon style, high quality"
+📐 Size: 1024x1024

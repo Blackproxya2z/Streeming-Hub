@@ -9,6 +9,7 @@ import { FloatingWhatsApp } from '@/components/shared/FloatingWhatsApp'
 import { BackToTop } from '@/components/shared/BackToTop'
 import { AgeGate } from '@/components/shared/AgeGate'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
+import { AIChatWidget } from '@/components/shared/AIChatWidget'
 import { HeroSection } from '@/components/home/HeroSection'
 import { CategoryCards } from '@/components/home/CategoryCards'
 import { FeaturedProducts } from '@/components/home/FeaturedProducts'
@@ -87,6 +88,7 @@ export default function Home() {
         <FloatingWhatsApp />
         <BackToTop />
         <AgeGate />
+        <AIChatWidget />
       </div>
     </ErrorBoundary>
   )

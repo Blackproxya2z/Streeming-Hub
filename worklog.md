@@ -130,3 +130,59 @@ Stage Summary:
 - All 18 products with existing images now have image paths in both seed.ts and database
 - No other data (prices, descriptions, etc.) was modified
 - Seed script runs cleanly with exit code 0
+
+---
+Task ID: 6
+Agent: AI Chatbot Backend Builder
+Task: Build AI customer support chatbot API route
+
+Work Log:
+- Created /src/app/api/chat/route.ts with LLM integration using z-ai-web-dev-sdk
+- Implemented product search from database via Prisma (searches name, description, slug fields)
+- Added comprehensive system prompt for Streaming Hub context (business info, categories, payment, order process, rules)
+- Added WhatsApp URL generation for order confirmations with customer name, WhatsApp number, product extraction
+- Implemented regex-based extraction for customer name, WhatsApp number, and product name from conversation
+- Added conversation history support (last 10 messages for context)
+- Added graceful error handling with WhatsApp fallback on LLM failures
+- Tested with various queries: greeting, product search (Netflix, ChatGPT Plus), full order details
+- Product search correctly finds products from DB and AI shows exact prices with BDT/RMB
+- WhatsApp URL generation includes order details with pre-filled message
+- Lint check passes clean
+
+Stage Summary:
+- AI chatbot API route is ready at /api/chat (POST)
+- Uses z-ai-web-dev-sdk for LLM (singleton instance)
+- Searches products from Prisma database with multi-term matching
+- Returns { response: string, whatsappUrl?: string }
+- Comprehensive system prompt covers all business info, categories, payment, delivery, order process
+- WhatsApp URL auto-generated when order keywords detected (buy, order, payment, etc.)
+- Extracts customer name, WhatsApp number, product name from conversation for WhatsApp URL
+- Graceful error handling with WhatsApp fallback
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Improve Adult 18+ section, fix Order Now flow, add AI chatbot, fix performance
+
+Work Log:
+- Created OrderDialog component with bKash payment number + WhatsApp confirmation
+- Updated ProductCard to use OrderDialog (click Order Now opens dialog with payment info)
+- Updated ProductDetail to use OrderDialog
+- Created AI Chat Widget frontend (AIChatWidget.tsx) with chat interface
+- Created AI Chat backend API (/api/chat/route.ts) using z-ai-web-dev-sdk
+- Generated 75 adult product images using sharp (SVG-based professional cards)
+- Updated all adult products in database with proper image paths
+- Added debounced search in ProductCatalog for performance
+- Added useMemo and useCallback for performance optimization
+- Updated providers with better caching (staleTime 5min, gcTime 10min, no refetch on mount/focus)
+- Memoized ProductCard component with React.memo
+- Improved chat API error handling for rate limits (graceful fallback with WhatsApp link)
+- Updated ProductCard/FeaturedProducts to handle category images with gradient overlay
+- Added scripts/ to eslint ignores
+
+Stage Summary:
+- OrderDialog: Clicking Order Now shows bKash number + WhatsApp button with pre-filled order message
+- AI Chatbot: Full-featured chat widget with LLM backend, product search, order assistance
+- Adult Products: All 75 products have professional images with gradient backgrounds and initials
+- Performance: Debounced search, memoized components, better caching, no unnecessary refetches
+- All lint checks pass

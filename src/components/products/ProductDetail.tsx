@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import { useProduct, useProducts, useSettings } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
@@ -18,20 +19,7 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { ProductCard } from './ProductCard'
-
-const categoryImages: Record<string, string> = {
-  'streaming': '/images/categories/streaming.png',
-  'ai-tools': '/images/categories/ai-tools.png',
-  'educational': '/images/categories/educational.png',
-  'design-creative': '/images/categories/design-creative.png',
-  'productivity': '/images/categories/productivity.png',
-  'cloud-storage': '/images/categories/cloud-storage.png',
-  'vpn': '/images/categories/vpn.png',
-  'gift-cards': '/images/categories/gift-cards.png',
-  'gaming-topup': '/images/categories/gaming-topup.png',
-  'multi-collection': '/images/categories/multi-collection.png',
-  'adult': '/images/categories/adult.png',
-}
+import { OrderDialog } from '@/components/order/OrderDialog'
 
 const gradients = [
   'from-emerald-400 to-teal-500',
@@ -53,8 +41,8 @@ function getGradient(name: string) {
 export function ProductDetail() {
   const { pageParams, navigate } = useAppStore()
   const { data: product, isLoading } = useProduct(pageParams.productId)
-  const { data: settings } = useSettings()
-  const whatsappNumber = settings?.whatsappNumber || '+8801647236359'
+  const [orderOpen, setOrderOpen] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<string | undefined>()
 
   const { data: relatedData } = useProducts(
     product?.categoryId ? { categorySlug: product.category?.slug } : {}
@@ -97,8 +85,17 @@ export function ProductDetail() {
     product.priceOptions ? JSON.parse(product.priceOptions) : []
   const hasImage = !!product.image
   const isExternalImage = hasImage && product.image!.startsWith('http')
-  const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
-  const showCategoryImage = !hasImage && categoryImage
+  const isCategoryImage = hasImage && product.image!.startsWith('/images/categories/')
+
+  const handlePlanClick = (opt: { label: string; priceBDT: string }) => {
+    setSelectedPlan(opt.label)
+    setOrderOpen(true)
+  }
+
+  const handleOrderNow = () => {
+    setSelectedPlan(undefined)
+    setOrderOpen(true)
+  }
 
   return (
     <section className="py-4 sm:py-6 px-4">
@@ -117,19 +114,24 @@ export function ProductDetail() {
         <div className="grid md:grid-cols-5 gap-6">
           {/* Image — 2 cols */}
           <div className="md:col-span-2">
-            <div className={`relative rounded-2xl overflow-hidden h-52 sm:h-64 md:h-80 ${hasImage || showCategoryImage ? '' : `bg-gradient-to-br ${gradient}`} flex items-center justify-center sticky top-20`}>
+            <div className={`relative rounded-2xl overflow-hidden h-52 sm:h-64 md:h-80 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center sticky top-20`}>
               {hasImage ? (
-                <Image
-                  src={product.image!}
-                  alt={product.name}
-                  fill
-                  unoptimized={isExternalImage}
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 40vw"
-                  priority
-                />
-              ) : showCategoryImage ? (
-                <Image src={categoryImage!} alt={product.category?.name || ''} fill className="object-cover" sizes="(max-width: 768px) 100vw, 40vw" priority />
+                <>
+                  <Image
+                    src={product.image!}
+                    alt={product.name}
+                    fill
+                    unoptimized={isExternalImage}
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 40vw"
+                    priority
+                  />
+                  {isCategoryImage && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/30 flex items-center justify-center">
+                      <span className="text-5xl font-bold text-white drop-shadow-lg">{initials}</span>
+                    </div>
+                  )}
+                </>
               ) : (
                 <span className="text-6xl font-bold text-white/60">{initials}</span>
               )}
@@ -217,7 +219,7 @@ export function ProductDetail() {
                     <button
                       key={i}
                       type="button"
-                      onClick={() => navigate('order', { productId: product.id, productName: `${product.name} (${opt.label})` })}
+                      onClick={() => handlePlanClick(opt)}
                       className="flex items-center justify-between bg-background border rounded-xl px-4 py-3 hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-colors group text-left"
                     >
                       <div className="flex items-center gap-3">
@@ -243,7 +245,7 @@ export function ProductDetail() {
             {/* Order Button — Prominent */}
             <Button
               size="lg"
-              onClick={() => navigate('order', { productId: product.id, productName: product.name })}
+              onClick={handleOrderNow}
               className="w-full bg-green-600 hover:bg-green-700 font-semibold rounded-xl h-12 text-base shadow-lg shadow-green-600/20"
             >
               <MessageCircle className="h-5 w-5 mr-2" /> Order Now
@@ -303,6 +305,14 @@ export function ProductDetail() {
           </div>
         )}
       </div>
+
+      {/* Order Dialog */}
+      <OrderDialog
+        open={orderOpen}
+        onOpenChange={setOrderOpen}
+        product={product}
+        selectedPlan={selectedPlan}
+      />
     </section>
   )
 }
