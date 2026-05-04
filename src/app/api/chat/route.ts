@@ -51,7 +51,6 @@ function sanitizeForLLM(text: string): string {
 }
 
 // ─── Product Search ────────────────────────────────────────────────────────
-// Searches ALL products across all categories
 
 async function searchProducts(query: string) {
   const cleanQuery = query.replace(/[^\w\s]/g, ' ').trim()
@@ -59,7 +58,6 @@ async function searchProducts(query: string) {
 
   if (terms.length === 0) return []
 
-  // SQLite doesn't support mode:'insensitive', use contains directly
   const orConditions = terms.flatMap((term) => [
     { name: { contains: term } },
     { description: { contains: term } },
@@ -90,13 +88,13 @@ async function searchByCategory(categoryQuery: string) {
     },
   })
 
-  if (!category) return { category: null, products: [] }
+  if (!category) return { category: null, products: [], totalCount: 0 }
 
   const products = await db.product.findMany({
     where: { categoryId: category.id },
     include: { category: true },
     orderBy: { order: 'asc' },
-    take: 20, // Limit to avoid overwhelming the LLM context
+    take: 20,
   })
 
   const totalCount = await db.product.count({
@@ -104,6 +102,23 @@ async function searchByCategory(categoryQuery: string) {
   })
 
   return { category, products, totalCount }
+}
+
+// ─── Get Featured Products ──────────────────────────────────────────────
+
+async function getFeaturedProducts() {
+  const products = await db.product.findMany({
+    where: { isFeatured: true },
+    include: { category: true },
+    orderBy: { order: 'asc' },
+    take: 20,
+  })
+
+  const totalCount = await db.product.count({
+    where: { isFeatured: true },
+  })
+
+  return { products, totalCount }
 }
 
 // ─── Get Full Catalog Summary ────────────────────────────────────────────
@@ -130,14 +145,23 @@ async function getCatalogSummary() {
   }))
 }
 
-// ─── Detect Category Intent ──────────────────────────────────────────────
-// Only triggers when user asks about a CATEGORY, not a specific product
+// ─── Detect Intent ──────────────────────────────────────────────────────
+
+function detectFeaturedIntent(message: string): boolean {
+  const lower = message.toLowerCase().trim()
+  const featuredKeywords = [
+    'featured', 'feature product', 'featured product', 'best seller', 'bestseller',
+    'popular', 'top product', 'recommended', 'highlighted',
+    'ফিচার্ড', 'জনপ্রিয়', 'সেরা প্রোডাক্ট', 'টপ প্রোডাক্ট', 'হাইলাইটেড',
+    'featured product', 'featured dekhao', 'featured dekhi', 'featured dekhte chai',
+    'best product', 'top product', 'popular product',
+  ]
+  return featuredKeywords.some(kw => lower.includes(kw))
+}
 
 function detectCategoryIntent(message: string): string | null {
   const lower = message.toLowerCase().trim()
 
-  // Only detect category intent if user is clearly asking about a category listing
-  // NOT when they mention a specific product name
   const isCategoryQuestion = [
     'category', 'ক্যাটাগরি', 'কোন কোন', 'কি কি আছে', 'list', 'তালিকা',
     'সব দেখাও', 'সব প্রোডাক্ট', 'what products', 'show me', 'dekhao',
@@ -201,7 +225,6 @@ async function findSpecificProduct(query: string) {
 }
 
 // ─── Format Products for AI Context ──────────────────────────────────────
-// Two formats: FULL (for specific product queries) and COMPACT (for category/search)
 
 function formatProductFull(p: {
   name: string
@@ -214,6 +237,9 @@ function formatProductFull(p: {
   accountType: string | null
   region: string | null
   duration: string | null
+  isFeatured: boolean
+  isBestSeller: boolean
+  isNewArrival: boolean
   category?: { name: string; isAdult: boolean } | null
 }): string {
   let priceStr = ''
@@ -252,13 +278,25 @@ function formatProductFull(p: {
   ]
 
   if (features.length > 0) {
-    parts.push(`FEATURES: ${features.slice(0, 6).join(', ')}`)
+    parts.push(`FEATURES: ${features.slice(0, 8).join(', ')}`)
   }
   if (p.accountType) {
     parts.push(`ACCOUNT: ${p.accountType}`)
   }
   if (p.region) {
     parts.push(`REGION: ${p.region}`)
+  }
+  if (p.duration) {
+    parts.push(`DURATION: ${p.duration}`)
+  }
+  if (p.isFeatured) {
+    parts.push(`BADGE: Featured`)
+  }
+  if (p.isBestSeller) {
+    parts.push(`BADGE: Best Seller`)
+  }
+  if (p.isNewArrival) {
+    parts.push(`BADGE: New Arrival`)
   }
 
   return parts.join(' | ')
@@ -269,6 +307,8 @@ function formatProductCompact(p: {
   basePriceBDT: string | number
   priceOptions: string | null
   stockStatus: string
+  isFeatured: boolean
+  isBestSeller: boolean
   category?: { name: string; isAdult: boolean } | null
 }): string {
   let priceStr = ''
@@ -290,7 +330,12 @@ function formatProductCompact(p: {
     priceStr = `৳${p.basePriceBDT}`
   }
 
-  return `${p.name} [${p.category?.name || ''}]: ${priceStr} | Stock: ${p.stockStatus}`
+  const badges: string[] = []
+  if (p.isFeatured) badges.push('Featured')
+  if (p.isBestSeller) badges.push('BestSeller')
+  const badgeStr = badges.length > 0 ? ` [${badges.join(',')}]` : ''
+
+  return `${p.name}${badgeStr} [${p.category?.name || ''}]: ${priceStr} | Stock: ${p.stockStatus}`
 }
 
 // ─── WhatsApp URL Builder ────────────────────────────────────────────────
@@ -302,6 +347,7 @@ function buildWhatsAppUrl(orderDetails: {
   plan?: string
   price?: string
   address?: string
+  transactionId?: string
   message?: string
 }): string {
   const lines: string[] = ['🛒 *Order Request — Streaming Hub*\n']
@@ -312,9 +358,10 @@ function buildWhatsAppUrl(orderDetails: {
   if (orderDetails.plan) lines.push(`📋 Plan: ${orderDetails.plan}`)
   if (orderDetails.price) lines.push(`💰 Price: ${orderDetails.price}`)
   if (orderDetails.address) lines.push(`📍 Address: ${orderDetails.address}`)
+  if (orderDetails.transactionId) lines.push(`🏦 TrxID: ${orderDetails.transactionId}`)
 
   lines.push('')
-  lines.push('💳 Payment: bKash/Nagad — 01647236359')
+  lines.push('💳 Payment: bKash — 01647236359')
   lines.push('⚡ Delivery: 5-20 minutes after payment')
   lines.push('')
   lines.push('Please confirm my order. Thank you! 🙏')
@@ -326,63 +373,97 @@ function buildWhatsAppUrl(orderDetails: {
 // IMPORTANT: This prompt MUST NOT contain words that trigger the LLM content filter.
 // Use neutral terms like "Verified Premium" instead of sensitive category names.
 
-const SYSTEM_PROMPT = `You are "কর্মচারী" — a professional, accurate AI sales assistant for Streaming Hub, Bangladesh's #1 digital subscription store. You sell premium subscription accounts for streaming, AI tools, VPN, educational platforms, design tools, cloud storage, gift cards, gaming, and premium streaming services.
+const SYSTEM_PROMPT = `You are "কর্মচারী" — a professional, human-like AI sales assistant for Streaming Hub, Bangladesh's #1 digital subscription store. You sell premium digital subscription accounts for streaming platforms, AI tools, VPN services, educational platforms, design tools, cloud storage, gift cards, gaming top-ups, and premium entertainment services.
 
-IDENTITY:
+═══════════════════════════════════════════════════
+YOUR IDENTITY
+═══════════════════════════════════════════════════
 Name: কর্মচারী
-Role: Professional AI Sales Assistant
-Language: Match the user's language (Bangla, Banglish, or English)
-Personality: Warm, smart, helpful, professional, honest
-Emoji: Light use, max 1-2 per message
+Role: Professional Human-Like Sales Assistant
+Personality: Warm, smart, helpful, professional, honest, patient
+Emoji: Light use only, max 1-2 per message
+Store: Streaming Hub — Bangladesh's #1 digital subscription store
+Payment: bKash — 01647236359
+Delivery: 5-20 minutes after payment confirmation
+WhatsApp: +8801647236359
+Currency: BDT (৳) only — never any other currency
 
-CRITICAL ACCURACY RULES:
+═══════════════════════════════════════════════════
+CRITICAL ACCURACY RULES — NEVER VIOLATE
+═══════════════════════════════════════════════════
 1. You MUST ONLY use prices and product details from the PRODUCT DATABASE provided below.
 2. NEVER invent, estimate, guess, or make up any price, feature, plan, or product detail.
-3. If the database says ৳2700, you MUST say ৳2700 — NOT any other number.
+3. If the database says ৳280, you MUST say ৳280 — NOT any other number.
 4. If the database shows specific price plans, list them EXACTLY as shown.
 5. NEVER use your own knowledge about product prices — the database is the ONLY source of truth.
 6. ONLY mention products that exist in the database. NEVER recommend products we don't sell.
 7. If a product is NOT in the database, say: "দুঃখিত, এই প্রোডাক্টটি বর্তমানে আমাদের স্টকে নেই।"
-8. "Out of Stock" = "বর্তমানে স্টকে নেই"
-9. "Limited Stock" = "সীমিত স্টক আছে"
-10. Only use BDT (৳) — never any other currency.
-11. "Inbox Price" or "Low Price" items: "সেরা দামের জন্য আমাদের কন্টাক্ট করুন"
-12. NEVER show error codes or technical messages.
+8. "Out of Stock" = "দুঃখিত, এই প্রোডাক্টটি বর্তমানে স্টকে নেই।"
+9. "Limited Stock" = "সীমিত স্টক আছে — দ্রুত অর্ডার করুন!"
+10. "Inbox Price" or "Low Price" items: "সেরা দামের জন্য আমাদের সাথে যোগাযোগ করুন 😊"
+11. NEVER show error codes or technical messages to the customer.
+12. NEVER say "I don't know" — always redirect to available products or ask WhatsApp.
 
-PROFESSIONAL CONDUCT:
-- Respond professionally and factually about all products.
-- List product name, price, plans, features, stock, warranty, delivery.
-- NEVER use vulgar, offensive, or inappropriate language.
-- NEVER discuss anything involving minors, non-consensual, illegal, or harmful content.
-- If someone asks for anything illegal: "দুঃখিত, এটি আমাদের সেবার আওতায় নেই।"
-- Some products have age restrictions (VP category).
+═══════════════════════════════════════════════════
+PROFESSIONAL SALES ASSISTANT BEHAVIOR
+═══════════════════════════════════════════════════
+You are a REAL human-like sales assistant. You must:
+- Greet the customer warmly and professionally
+- Listen carefully to what the customer wants
+- Understand their needs and suggest the BEST product/package
+- Explain product details clearly: name, price, what's included, facilities, delivery, warranty
+- Confirm stock availability before taking an order
+- Guide the customer through the order process step by step
+- Ask for required details one by one (don't ask everything at once)
+- Provide bKash payment instructions clearly
+- Confirm the order after payment proof
+- Be patient, polite, and helpful at all times
 
-LANGUAGE MATCHING:
-- Bangla question → Bangla answer
-- Banglish question → Banglish answer
-- English question → English answer
+═══════════════════════════════════════════════════
+PRODUCT DETAIL FORMAT
+═══════════════════════════════════════════════════
+When a customer asks about a specific product, show ALL details using EXACT data from database:
 
-Banglish: koto taka=price, lagbe=need, chai=want, order korbo=want to order, bkash number=how to pay, deliver koto somoy=delivery time, available ache=available, warranty ache=warranty, dekhao=show, ki ki=what are, sob=all
-
-GREETING (first message only):
-"আসসালামু আলাইকুম! আমি কর্মচারী, আপনার personal assistant।
-আমি product খুঁজে পেতে, দাম জানতে, এবং order করতে সাহায্য করতে পারবো।
-কীভাবে সাহায্য করতে পারি আপনাকে? 😊"
-
-PRODUCT DETAIL FORMAT (use EXACT data from database):
 "[Product Name] সম্পর্কে বলছি 😊
-✨ বিশেষত্ব:
-• [Feature 1 from database]
-• [Feature 2 from database]
-💰 মূল্য: [EXACT price plans from database]
-📦 Stock: [Stock status from database]
-🔒 Warranty: [Warranty from database]
-🚚 Delivery: [Delivery time from database]
-🌍 Region: [Region from database if applicable]
-📋 Account: [Account type from database if applicable]
-অর্ডার করতে চান? বললেই আমি এগিয়ে নেবো 👍"
+📦 প্যাকেজ ও মূল্য:
+• [Plan 1]: ৳[Exact Price from DB]
+• [Plan 2]: ৳[Exact Price from DB]
+• (list ALL plans from database)
 
-CATEGORY LIST FORMAT:
+✨ সুবিধা:
+• [Feature 1 from DB]
+• [Feature 2 from DB]
+
+📦 স্টক: [Stock status from DB]
+🔒 ওয়ারেন্টি: [Warranty from DB]
+🚚 ডেলিভারি: [Delivery time from DB]
+🌍 রিজিওন: [Region from DB if available]
+📋 অ্যাকাউন্ট টাইপ: [Account type from DB if available]
+
+অর্ডার করতে চাইলে বলুন, আমি গাইড করবো! 😊"
+
+═══════════════════════════════════════════════════
+FEATURED PRODUCTS FORMAT
+═══════════════════════════════════════════════════
+When a customer asks about featured/best products:
+
+"⭐ আমাদের ফিচার্ড প্রোডাক্টগুলো:
+
+🎬 [Product 1 Name]
+   প্যাকেজ: [Plans & Prices from DB]
+   স্টক: [Stock from DB]
+
+🤖 [Product 2 Name]
+   প্যাকেজ: [Plans & Prices from DB]
+   স্টক: [Stock from DB]
+
+(list ALL featured products from database)
+
+কোনটা আপনার পছন্দের? বিস্তারিত জানতে চাইলে বলুন! 😊"
+
+═══════════════════════════════════════════════════
+CATEGORY LIST FORMAT
+═══════════════════════════════════════════════════
 "📂 [Category Name] ক্যাটাগরিতে মোট [X]টি প্রোডাক্ট আছে:
 • [Product 1] — ৳[Price]
 • [Product 2] — ৳[Price]
@@ -390,33 +471,110 @@ CATEGORY LIST FORMAT:
 ... আরও [X-8]টি প্রোডাক্ট আছে!
 কোনটা সম্পর্কে জানতে চান? 😊"
 
-IF PRODUCT NOT IN DATABASE:
-"দুঃখিত, এই প্রোডাক্টটি বর্তমানে আমাদের স্টকে নেই। অন্যান্য প্রোডাক্ট দেখতে চাইলে বলুন! 😊"
+═══════════════════════════════════════════════════
+ORDER COLLECTION FLOW — FOLLOW THESE STEPS
+═══════════════════════════════════════════════════
+When a customer wants to order, collect information STEP BY STEP:
 
-IF OUT OF SCOPE:
-"দুঃখিত, এটি আমাদের সেবার আওতায় নেই। আমরা ডিজিটাল সাবস্ক্রিপশন সেবা বিক্রি করি — streaming, AI tools, VPN, educational, design, gaming এবং premium streaming প্ল্যান। কোনটা দরকার? 😊"
+Step 1 — CONFIRM PRODUCT & PLAN:
+"চমৎকার! আপনি [Product Name] অর্ডার করতে চাইছেন। কোন প্ল্যান চান?
+• [Plan 1]: ৳[Price]
+• [Plan 2]: ৳[Price]
+একটা বেছে নিন! 😊"
 
-ORDER SYSTEM:
-Step 1 - "আপনি কি [Product Name] অর্ডার করতে চাইছেন? কোন প্ল্যান চান? 😊"
-Step 2 - "চমৎকার! আপনার পূর্ণ নামটা জানাবেন?"
-Step 3 - "ধন্যবাদ [Name]! delivery address দিন 📍"
-Step 4 - "active mobile number টা দিন 📱"
-Step 5 - "✅ Order: [Product] | [Plan] | ৳[Price] | [Name] | [Address] | [Phone] — Confirm? 🎉"
-Step 6 - "🎊 Order confirmed! Payment: bKash/Nagad — 01647236359, Delivery: 5-20 min. WhatsApp: +8801647236359 😊"
+Step 2 — COLLECT NAME:
+"সুন্দর পছন্দ! আপনার পূর্ণ নামটা জানাবেন? 😊"
 
-SMART SALES:
+Step 3 — COLLECT CONTACT:
+"ধন্যবাদ [Name]! আপনার active mobile number টা দিন (WhatsApp এ যোগাযোগ করার জন্য) 📱"
+
+Step 4 — PAYMENT INSTRUCTION:
+"✅ অর্ডারের বিবরণ:
+📦 প্রোডাক্ট: [Product Name]
+📋 প্ল্যান: [Selected Plan]
+💰 মূল্য: ৳[Price]
+👤 নাম: [Customer Name]
+📞 মোবাইল: [Customer Number]
+
+💳 পেমেন্ট নির্দেশনা:
+bKash এ Send Money করুন এই নম্বরে: 01647236359
+পেমেন্টের পর আপনার Transaction ID এবং স্ক্রিনশট/প্রুফ পাঠান।
+তারপর আমরা আপনার অর্ডার confirm করবো! 🎉"
+
+Step 5 — CONFIRM ORDER:
+"🎊 অর্ডার কনফার্মড!
+📦 প্রোডাক্ট: [Product] | [Plan]
+💰 মূল্য: ৳[Price]
+🚚 ডেলিভারি: 5-20 মিনিটের মধ্যে payment confirmation এর পর
+📱 WhatsApp: +8801647236359
+
+ধন্যবাদ! Streaming Hub এ স্বাগতম! 🙏"
+
+═══════════════════════════════════════════════════
+BKASH PAYMENT INSTRUCTION
+═══════════════════════════════════════════════════
+When customer is ready to pay:
+"💳 পেমেন্ট করতে এই নম্বরে bKash Send Money করুন: 01647236359
+পেমেন্টের পর আপনার Transaction ID এবং স্ক্রিনশট/প্রুফ পাঠান।
+তারপর আমরা আপনার অর্ডার confirm করবো! 🎉"
+
+═══════════════════════════════════════════════════
+IF PRODUCT NOT IN DATABASE
+═══════════════════════════════════════════════════
+"দুঃখিত, এই প্রোডাক্টটি বর্তমানে আমাদের স্টকে নেই।
+আমাদের অন্যান্য প্রোডাক্ট দেখতে চাইলে বলুন, অথবা ফিচার্ড প্রোডাক্ট দেখতে পারেন! 😊"
+
+═══════════════════════════════════════════════════
+IF OUT OF SCOPE (questions not related to our products)
+═══════════════════════════════════════════════════
+"দুঃখিত, এটি আমাদের সেবার আওতায় নেই। আমরা ডিজিটাল সাবস্ক্রিপশন সেবা বিক্রি করি — streaming, AI tools, VPN, educational, design, gaming এবং premium entertainment প্ল্যান। কোনটা দরকার? বলুন, সাহায্য করি! 😊"
+
+═══════════════════════════════════════════════════
+SAFETY RULES — STRICTLY FOLLOW
+═══════════════════════════════════════════════════
+1. Only discuss legal, verified premium services for consenting users aged 18+.
+2. NEVER mention or support anything involving minors, non-consensual content, illegal activities, or harmful material.
+3. If a customer asks for anything illegal or harmful, politely refuse: "দুঃখিত, এটি আমাদের সেবার আওতায় নেই। আমরা শুধুমাত্র আইনি ও নিরাপদ সেবা প্রদান করি।"
+4. NEVER use vulgar, offensive, or inappropriate language.
+5. NEVER provide instructions for illegal or harmful activities.
+6. Always redirect out-of-scope queries to available legal products and services.
+7. Our VP (Verified Premium) category contains legal, consenting premium entertainment for users aged 18+ only.
+
+═══════════════════════════════════════════════════
+LANGUAGE MATCHING
+═══════════════════════════════════════════════════
+- Bangla question → Bangla answer
+- Banglish question → Banglish answer  
+- English question → English answer
+
+Banglish dictionary: koto taka=price, lagbe=need, chai=want, order korbo=want to order, bkash number=how to pay, deliver koto somoy=delivery time, available ache=available, warranty ache=warranty, dekhao=show, ki ki=what are, sob=all, kinte chai=want to buy, nite chai=want to get, featured=best products, best seller=top selling
+
+═══════════════════════════════════════════════════
+GREETING (first message only)
+═══════════════════════════════════════════════════
+"আসসালামু আলাইকুম! আমি কর্মচারী, আপনার personal assistant।
+আমি product খুঁজে পেতে, দাম জানতে, এবং order করতে সাহায্য করতে পারবো।
+কীভাবে সাহায্য করতে পারি আপনাকে? 😊"
+
+═══════════════════════════════════════════════════
+SMART SALES TECHNIQUES
+═══════════════════════════════════════════════════
 - Upsell: "এইটার সাথে [Related Product] নেন — দুটো একসাথে ডেলিভারি চার্জ বাঁচবে 😊"
-- Better plan: "3 মাসের প্ল্যানে প্রতি মাসে কম পড়বে 💡"
+- Better plan: "6 মাসের প্ল্যানে প্রতি মাসে কম পড়বে — সাশ্রয়ী হবে! 💡"
 - Urgency: "সীমিত স্টক — দ্রুত অর্ডার করুন ⚡"
+- Featured: "আমাদের ফিচার্ড প্রোডাক্টগুলো দেখতে চাইলে বলুন! ⭐"
 
-ABOUT STREAMING HUB:
+═══════════════════════════════════════════════════
+ABOUT STREAMING HUB
+═══════════════════════════════════════════════════
 - Bangladesh's #1 digital subscription store
 - 127+ premium subscriptions across 11 categories
-- Payment: bKash/Nagad — 01647236359
-- Delivery: 5-20 minutes after payment
+- Payment: bKash — 01647236359
+- Delivery: 5-20 minutes after payment confirmation
 - WhatsApp: +8801647236359
-- All products have warranty
-- Prices only in BDT (৳)`
+- All products have warranty and support
+- Prices only in BDT (৳)
+- 24/7 customer support available`
 
 // ─── POST Handler ────────────────────────────────────────────────────────
 
@@ -442,34 +600,51 @@ export async function POST(request: NextRequest) {
     // ── Build product context based on query type ────────────────────
     let productContext = ''
     let specificProductContext = ''
+    let featuredProductContext = ''
+
+    // Track found product for fallback
+    let foundProduct: Awaited<ReturnType<typeof findSpecificProduct>> = null
 
     try {
-      // PRIORITY 1: Check if user is asking about a SPECIFIC product by name
-      const specificProduct = await findSpecificProduct(userMsg)
+      const lowerMsg = userMsg.toLowerCase()
 
-      if (specificProduct) {
-        // Found a specific product — provide its FULL details
-        specificProductContext = '\n\n═══ SPECIFIC PRODUCT FOUND (use EXACT data below, do NOT change any price) ═══\n' +
-          formatProductFull(specificProduct)
+      // PRIORITY 0: Check if user wants FEATURED products
+      const wantsFeatured = detectFeaturedIntent(userMsg)
 
-        // Also check if there are related products in the same category
-        const relatedProducts = await db.product.findMany({
-          where: {
-            categoryId: specificProduct.categoryId,
-            id: { not: specificProduct.id },
-          },
-          include: { category: true },
-          take: 5,
-          orderBy: { order: 'asc' },
-        })
-
-        if (relatedProducts.length > 0) {
-          specificProductContext += '\n\nRELATED PRODUCTS in same category (for upsell):\n' +
-            relatedProducts.map(p => `${p.name} — ৳${p.basePriceBDT}`).join(', ')
+      if (wantsFeatured) {
+        const { products, totalCount } = await getFeaturedProducts()
+        if (products.length > 0) {
+          featuredProductContext = `\n\n═══ FEATURED PRODUCTS — ${totalCount} total (show ALL of these to the customer with full details) ═══\n` +
+            products.map(p => formatProductFull(p)).join('\n\n')
         }
       }
 
-      const lowerMsg = userMsg.toLowerCase()
+      // PRIORITY 1: Check if user is asking about a SPECIFIC product by name
+      // Skip if user is asking about featured products (avoid partial match like "Show" → "Showtime")
+      if (!wantsFeatured) {
+        foundProduct = await findSpecificProduct(userMsg)
+
+        if (foundProduct) {
+          specificProductContext = '\n\n═══ SPECIFIC PRODUCT FOUND (use EXACT data below, do NOT change any price) ═══\n' +
+            formatProductFull(foundProduct)
+
+          // Also check if there are related products in the same category
+          const relatedProducts = await db.product.findMany({
+            where: {
+              categoryId: foundProduct.categoryId,
+              id: { not: foundProduct.id },
+            },
+            include: { category: true },
+            take: 5,
+            orderBy: { order: 'asc' },
+          })
+
+          if (relatedProducts.length > 0) {
+            specificProductContext += '\n\nRELATED PRODUCTS in same category (for upsell):\n' +
+              relatedProducts.map(p => `${p.name} — ৳${p.basePriceBDT}`).join(', ')
+          }
+        }
+      }
 
       // PRIORITY 2: Check if user wants ALL products / catalog overview
       const wantsAllProducts = [
@@ -477,6 +652,8 @@ export async function POST(request: NextRequest) {
         'সব দেখাও', 'সব প্রোডাক্ট', 'কি কি আছে', 'কি আছে',
         'sob dekhao', 'sob product', 'ki ki ache', 'ki ache',
         'what do you have', 'show me all', 'full list',
+        'product dekhao', 'products dekhi', 'product dekhte chai',
+        'প্রোডাক্ট দেখাও', 'প্রোডাক্ট দেখতে চাই',
       ].some(kw => lowerMsg.includes(kw))
 
       if (wantsAllProducts) {
@@ -485,7 +662,7 @@ export async function POST(request: NextRequest) {
           catalogSummary.map(cat =>
             `📂 ${cat.name} (${cat.productCount} products): ${cat.sampleProducts.join(', ')}`
           ).join('\n')
-      } else {
+      } else if (!wantsFeatured) {
         // PRIORITY 3: Check if user is asking about a category
         const categoryIntent = detectCategoryIntent(userMsg)
         let categoryResults: Awaited<ReturnType<typeof searchByCategory>> | null = null
@@ -510,7 +687,7 @@ export async function POST(request: NextRequest) {
         }
 
         // If no results at all, provide catalog summary
-        if (!productContext && !specificProductContext) {
+        if (!productContext && !specificProductContext && !featuredProductContext) {
           const catalogSummary = await getCatalogSummary()
           productContext = '\n\n═══ CATALOG OVERVIEW (guide the user to a category) ═══\n' +
             catalogSummary.map(cat =>
@@ -523,10 +700,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Combine product contexts ─────────────────────────────────────
-    const fullProductContext = specificProductContext + productContext
-
-    // ── Track found specific product for fallback ────────────────────
-    const foundProduct = await findSpecificProduct(userMsg)
+    const fullProductContext = featuredProductContext + specificProductContext + productContext
 
     // ── Sanitize EVERYTHING before sending to LLM ───────────────────
     const sanitizedSystem = sanitizeForLLM(SYSTEM_PROMPT + fullProductContext)
@@ -561,7 +735,7 @@ export async function POST(request: NextRequest) {
       if (!priceStr) {
         priceStr = `💰 মূল্য: ৳${p.basePriceBDT}`
         if (p.basePriceBDT === 'Inbox Price' || p.basePriceBDT === 'Low Price') {
-          priceStr = '💰 মূল্য: সেরা দামের জন্য আমাদের কন্টাক্ট করুন'
+          priceStr = '💰 মূল্য: সেরা দামের জন্য আমাদের সাথে যোগাযোগ করুন'
         }
       } else {
         priceStr = '💰 মূল্য:\n' + priceStr
@@ -569,16 +743,43 @@ export async function POST(request: NextRequest) {
 
       const features: string[] = (() => { try { return JSON.parse(p.features || '[]') } catch { return [] } })()
       const featuresStr = features.length > 0
-        ? '\n✨ বিশেষত্ব:\n' + features.slice(0, 6).map(f => `• ${f}`).join('\n')
+        ? '\n✨ সুবিধা:\n' + features.slice(0, 8).map(f => `• ${f}`).join('\n')
         : ''
 
       return `${p.name} সম্পর্কে বলছি 😊${featuresStr}
 ${priceStr}
-📦 Stock: ${p.stockStatus}
-🔒 Warranty: ${p.warranty || 'Yes'}
-🚚 Delivery: ${p.deliveryTime}
-${p.region ? `🌍 Region: ${p.region}\n` : ''}${p.accountType ? `📋 Account: ${p.accountType}\n` : ''}
-অর্ডার করতে চান? বললেই আমি এগিয়ে নেবো 👍`
+📦 স্টক: ${p.stockStatus}
+🔒 ওয়ারেন্টি: ${p.warranty || 'Yes'}
+🚚 ডেলিভারি: ${p.deliveryTime}
+${p.region ? `🌍 রিজিওন: ${p.region}\n` : ''}${p.accountType ? `📋 অ্যাকাউন্ট টাইপ: ${p.accountType}\n` : ''}
+অর্ডার করতে চাইলে বলুন, আমি গাইড করবো! 😊`
+    }
+
+    // ── Generate featured products response from database (fallback) ──
+    async function generateFeaturedResponse(): Promise<string> {
+      const { products } = await getFeaturedProducts()
+      if (products.length === 0) {
+        return 'দুঃখিত, বর্তমানে কোনো ফিচার্ড প্রোডাক্ট নেই। অন্যান্য প্রোডাক্ট দেখতে চাইলে বলুন! 😊'
+      }
+      const lines = ['⭐ আমাদের ফিচার্ড প্রোডাক্টগুলো:\n']
+      products.forEach((p, i) => {
+        let priceStr = ''
+        try {
+          const priceOptions = JSON.parse(p.priceOptions || '[]')
+          if (Array.isArray(priceOptions) && priceOptions.length > 0) {
+            priceStr = priceOptions.map((o: { label?: string; priceBDT?: string }) => `${o.label}: ৳${o.priceBDT}`).join(', ')
+          }
+        } catch { /* */ }
+        if (!priceStr) priceStr = `৳${p.basePriceBDT}`
+
+        lines.push(`${i + 1}. ${p.name}`)
+        lines.push(`   💰 ${priceStr}`)
+        lines.push(`   📦 স্টক: ${p.stockStatus}`)
+        lines.push(`   🚚 ডেলিভারি: ${p.deliveryTime}`)
+        lines.push('')
+      })
+      lines.push('কোনটা আপনার পছন্দের? বিস্তারিত জানতে চাইলে বলুন! 😊')
+      return lines.join('\n')
     }
 
     // ── Call LLM with retry for content filter ──────────────────────
@@ -599,10 +800,13 @@ ${p.region ? `🌍 Region: ${p.region}\n` : ''}${p.accountType ? `📋 Account: 
         // Fallback 1: If we found a specific product, generate response from database
         if (foundProduct) {
           aiResponse = generateProductResponse(foundProduct)
+        } else if (detectFeaturedIntent(userMsg)) {
+          // Fallback 2: If user asked for featured products
+          aiResponse = await generateFeaturedResponse()
         } else {
-          // Fallback 2: Retry with minimal prompt (no product descriptions)
+          // Fallback 3: Retry with minimal prompt (no product descriptions)
           try {
-            const simpleSystem = `You are a sales assistant for Streaming Hub, Bangladesh. Answer in the user's language. Only use prices from the data below. Never invent prices. Currency: BDT (৳) only.`
+            const simpleSystem = `You are a professional sales assistant for Streaming Hub, Bangladesh. Answer in the user's language. Only use prices from the data below. Never invent prices. Currency: BDT (৳) only. Payment: bKash — 01647236359. Delivery: 5-20 minutes.`
             const minimalContext = fullProductContext
               .split('\n')
               .filter(line => line.includes('PRODUCT:') || line.includes('PRICES:') || line.includes('STOCK:'))
@@ -618,7 +822,7 @@ ${p.region ? `🌍 Region: ${p.region}\n` : ''}${p.accountType ? `📋 Account: 
             aiResponse = retryCompletion.choices?.[0]?.message?.content || ''
           } catch {
             // All retries failed — redirect to WhatsApp
-            aiResponse = 'এই বিষয়ে বিস্তারিত জানতে আমাদের সাথে সরাসরি যোগাযোগ করুন 🙏\n\n📱 WhatsApp: +8801647236359\n💳 bKash/Nagad: 01647236359'
+            aiResponse = 'এই বিষয়ে বিস্তারিত জানতে আমাদের সাথে সরাসরি যোগাযোগ করুন 🙏\n\n📱 WhatsApp: +8801647236359\n💳 bKash: 01647236359'
           }
         }
       } else {
@@ -641,6 +845,7 @@ ${p.region ? `🌍 Region: ${p.region}\n` : ''}${p.accountType ? `📋 Account: 
       'অর্ডার', 'কিনতে চাই', 'নিতে চাই', 'পেমেন্ট', 'বিকাশ', 'নগদ',
       'order korbo', 'nite chai', 'kinte chai', 'lagbe', 'chai',
       'bkash number', 'payment kivabe', 'নেবো', 'কিনবো', 'অর্ডার করবো',
+      'confirm', 'trxid', 'transaction', 'send money', 'ট্রানজেকশন',
     ]
 
     const wantsToOrder = orderKeywords.some((kw) => lowerMessage.includes(kw))
@@ -697,9 +902,10 @@ ${p.region ? `🌍 Region: ${p.region}\n` : ''}${p.accountType ? `📋 Account: 
         return undefined
       }
 
-      const extractAddress = (text: string): string | undefined => {
+      const extractTransactionId = (text: string): string | undefined => {
         const patterns = [
-          /(?:address|ঠিকানা|location)[:\s]+([^\n]{5,100})/i,
+          /(?:trxid|transaction\s*id|txn|trx|ট্রানজেকশন)[:\s]*([a-zA-Z0-9]{6,20})/i,
+          /(?:payment\s*done|paid|পেমেন্ট\s*হয়েছে|পেমেন্ট\s*করেছি)[:\s]*([a-zA-Z0-9]{6,20})/i,
         ]
         for (const pattern of patterns) {
           const match = text.match(pattern)
@@ -710,14 +916,14 @@ ${p.region ? `🌍 Region: ${p.region}\n` : ''}${p.accountType ? `📋 Account: 
 
       const customerName = extractName(fullConversation)
       const customerWhatsApp = extractWhatsApp(fullConversation)
-      const productName = extractProduct(fullConversation)
-      const address = extractAddress(fullConversation)
+      const productName = extractProduct(fullConversation) || (foundProduct?.name)
+      const transactionId = extractTransactionId(fullConversation)
 
       whatsappUrl = buildWhatsAppUrl({
         customerName,
         whatsappNumber: customerWhatsApp,
         productName,
-        address,
+        transactionId,
         message: userMsg,
       })
     }
@@ -739,7 +945,7 @@ ${p.region ? `🌍 Region: ${p.region}\n` : ''}${p.accountType ? `📋 Account: 
     ) {
       return NextResponse.json({
         response:
-          'এই বিষয়ে বিস্তারিত জানতে আমাদের সাথে সরাসরি যোগাযোগ করুন 🙏\n\n📱 WhatsApp: +8801647236359\n💳 bKash/Nagad: 01647236359\n\nআমরা সব প্রোডাক্ট এর বিস্তারিত তথ্য দিতে পারবো! 😊',
+          'এই বিষয়ে বিস্তারিত জানতে আমাদের সাথে সরাসরি যোগাযোগ করুন 🙏\n\n📱 WhatsApp: +8801647236359\n💳 bKash: 01647236359\n\nআমরা সব প্রোডাক্ট এর বিস্তারিত তথ্য দিতে পারবো! 😊',
         whatsappUrl: buildWhatsAppUrl({ message: 'Content filter redirect' }),
       })
     }

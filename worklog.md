@@ -325,3 +325,37 @@ Stage Summary:
 - Content filter handling: sanitization + database fallback + retry logic
 - Professional sales assistant behavior with upsell, urgency, and guided ordering
 - All responses match user's language (Bangla/Banglish/English)
+---
+Task ID: 10
+Agent: Main Agent
+Task: Comprehensive AI assistant fix — professional sales assistant, Netflix prices, Featured Products, order flow, bKash payment, anti-hallucination, safety rules
+
+Work Log:
+- Updated Netflix prices in database: 1 Month: ৳280, 6 Months: ৳1500, 12 Months: ৳3000 (removed 3 Months plan)
+- Added Featured Products detection function `detectFeaturedIntent()` with Bangla/English/Banglish keywords
+- Added `getFeaturedProducts()` function to fetch isFeatured=true products from database with full details
+- Fixed Featured Products button bug: "Show me featured products" was matching "Show" to "Showtime" via `findSpecificProduct()` — now skips specific product lookup when featured intent is detected
+- Added Featured Products capability card (⭐ ফিচার্ড) and quick action button (⭐ Featured) to AIChatWidget
+- Updated capability grid from 4 to 5 columns to accommodate new Featured button
+- Completely rewrote AI system prompt with 9 structured sections: Identity, Critical Accuracy Rules, Professional Sales Behavior, Product Detail Format, Featured Products Format, Category List Format, Order Collection Flow (5 steps), bKash Payment Instruction, Safety Rules, Language Matching, Greeting, Smart Sales Techniques
+- Implemented 5-step order collection flow: Confirm Product & Plan → Collect Name → Collect Contact → Payment Instruction with bKash 01647236359 → Order Confirmation
+- Added bKash payment instruction format: "bKash এ Send Money করুন এই নম্বরে: 01647236359, পেমেন্টের পর আপনার Transaction ID এবং স্ক্রিনশট/প্রুফ পাঠান"
+- Added strict anti-hallucination rules: only use database data, never invent prices, "দুঃখিত, এই প্রোডাক্টটি বর্তমানে আমাদের স্টকে নেই" for missing products
+- Added safety rules: legal 18+ only, no minors/non-consensual/illegal content, redirect harmful queries
+- Added language matching: Bangla→Bangla, Banglish→Banglish, English→English with expanded Banglish dictionary
+- Added `generateFeaturedResponse()` fallback for content filter errors
+- Added Transaction ID extraction regex to WhatsApp URL builder
+- Updated WhatsApp URL builder to include transaction ID field
+- Added featured products message to typewriter bubble rotation
+- Updated quick actions: ⭐ Featured (first), 🛍️ Products, 🎬 Netflix দাম, 📦 Order করুন, 🔒 VPN প্ল্যান, ❓ Help
+- All lint checks pass, dev server compiles successfully
+
+Stage Summary:
+- Netflix prices updated: 1 Month ৳280, 6 Months ৳1500, 12 Months ৳3000
+- Featured Products button now works: shows all 20 featured products with full details
+- Professional sales assistant behavior: warm greeting, step-by-step order collection, product recommendations
+- 5-step order flow: Product → Name → Phone → bKash Payment (01647236359) → Confirmation
+- Anti-hallucination: strict database-only pricing, "not available" for missing products
+- Safety: legal 18+ only, no illegal content, polite refusal for harmful queries
+- Language matching: auto-detects Bangla/Banglish/English
+- Content filter handling: sanitization + database fallback + retry logic

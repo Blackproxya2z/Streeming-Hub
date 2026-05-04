@@ -45,6 +45,7 @@ interface ChatResponse {
 
 const capabilities = [
   { icon: Search, label: 'প্রোডাক্ট খুঁজুন', desc: 'Find products' },
+  { icon: Tag, label: 'ফিচার্ড', desc: 'Featured products' },
   { icon: CreditCard, label: 'প্রাইস জানুন', desc: 'Get prices' },
   { icon: ShoppingCart, label: 'অর্ডার করুন', desc: 'Place order' },
   { icon: HelpCircle, label: 'সাহায্য নিন', desc: 'Get help' },
@@ -54,12 +55,12 @@ const capabilities = [
 const typewriterMessages = [
   '👋 আমি কর্মচারী — ask me!',
   '🎬 Netflix কত টাকা?',
-  '🤖 কর্মচারী — AI Assistant',
+  '⭐ Featured products দেখুন!',
   '💎 Best prices in BD!',
   '🛒 Order করতে চান?',
   '🔒 VPN প্ল্যান দেখুন',
   '⚡ 5-20 min delivery!',
-  '💳 bKash/Nagad পেমেন্ট',
+  '💳 bKash পেমেন্ট',
 ]
 
 const KORMOCHARY_GREETING = `আসসালামু আলাইকুম! 👋 আমি কর্মচারী, আপনার personal assistant।
@@ -235,12 +236,12 @@ export function AIChatWidget() {
 
   // Quick action buttons — matches the spec's greeting options
   const quickActions = [
-    { label: '🛍️ Products দেখুন', action: 'সব প্রোডাক্ট দেখতে চাই' },
-    { label: '💰 Offers', action: 'আজকের অফার কী আছে?' },
-    { label: '📦 Order করুন', action: 'আমি order করতে চাই' },
-    { label: '❓ Help', action: 'আমাকে সাহায্য দরকার' },
+    { label: '⭐ Featured', action: 'Show me all featured products' },
+    { label: '🛍️ Products', action: 'সব প্রোডাক্ট দেখতে চাই' },
     { label: '🎬 Netflix দাম', action: 'Netflix কত টাকা?' },
+    { label: '📦 Order করুন', action: 'আমি order করতে চাই' },
     { label: '🔒 VPN প্ল্যান', action: 'VPN প্ল্যান কত টাকা?' },
+    { label: '❓ Help', action: 'আমাকে সাহায্য দরকার' },
   ]
 
   return (
@@ -401,7 +402,7 @@ export function AIChatWidget() {
             {/* Capability Cards */}
             <div className="px-4 pt-3 pb-2 border-b border-border/30 bg-muted/30 shrink-0">
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-2">আমি কি কি করতে পারি</p>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-5 gap-1.5">
                 {capabilities.map((cap) => {
                   const Icon = cap.icon
                   return (
@@ -411,6 +412,7 @@ export function AIChatWidget() {
                       onClick={() => {
                         const actionMap: Record<string, string> = {
                           'প্রোডাক্ট খুঁজুন': 'আমি প্রোডাক্ট খুঁজতে চাই',
+                          'ফিচার্ড': 'Show me all featured products',
                           'প্রাইস জানুন': 'সব প্রোডাক্ট এর দাম জানাও',
                           'অর্ডার করুন': 'আমি order করতে চাই',
                           'সাহায্য নিন': 'আমাকে সাহায্য দরকার',
