@@ -359,3 +359,22 @@ Stage Summary:
 - Safety: legal 18+ only, no illegal content, polite refusal for harmful queries
 - Language matching: auto-detects Bangla/Banglish/English
 - Content filter handling: sanitization + database fallback + retry logic
+
+---
+Task ID: 11
+Agent: Main Agent
+Task: Fix deployment failures — website can't be published
+
+Work Log:
+- Investigated build — `next build` succeeds but runtime errors would crash in production
+- Found TypeScript error in chat/route.ts: `InstanceType<typeof ZAI>` fails because ZAI has private constructor → Fixed to `Awaited<ReturnType<typeof ZAI.create>>`
+- Found runtime error in ProductFilters.tsx: `const { data: cats } = useAppStore()` — useAppStore has no `.data` property → Removed unused line
+- Removed 10 unused heavy dependencies that inflate bundle: next-auth, next-intl, react-syntax-highlighter, @mdxeditor/editor, @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities, @reactuses/core, react-markdown, @tanstack/react-table
+- Added vercel.json deployment config with build command and region
+- Verified: lint passes, build succeeds, dev server running correctly
+
+Stage Summary:
+- Fixed 2 TypeScript/runtime errors that would crash production
+- Removed 10 unused dependencies (smaller bundle = faster deploy)
+- Added vercel.json for proper deployment config
+- Build passes clean, all APIs responding 200

@@ -17,7 +17,6 @@ const sortOptions = [
 
 export function ProductFiltersMobile() {
   const { filters, setFilter, resetFilters } = useAppStore()
-  const { data: cats } = useAppStore()
   const { data: categories } = useCategories()
 
   const activeFilterCount = (filters.categorySlug ? 1 : 0) + (filters.sort && filters.sort !== 'popular' ? 1 : 0)
