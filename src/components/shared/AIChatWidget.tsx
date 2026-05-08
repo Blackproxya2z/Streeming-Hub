@@ -463,8 +463,8 @@ export function AIChatWidget() {
             {/* Messages */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[200px] sm:min-h-0 overscroll-contain scroll-smooth custom-scrollbar"
-              style={{ maxHeight: 'calc(75vh - 340px)' }}
+              className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[120px] sm:min-h-[200px] overscroll-contain scroll-smooth custom-scrollbar"
+              style={{ maxHeight: 'calc(80vh - 280px)' }}
             >
               {messages.map((msg, i) => (
                 <motion.div

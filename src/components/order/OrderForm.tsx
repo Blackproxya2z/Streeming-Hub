@@ -9,10 +9,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { 
   ArrowLeft, CreditCard, CheckCircle, MessageCircle, 
-  Phone, Shield, Clock, Truck, Copy, Check 
+  Shield, Clock, Truck, Copy, Check 
 } from 'lucide-react'
 
 type Step = 'details' | 'payment' | 'complete'
@@ -268,6 +267,7 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
               value={form.transactionId}
               onChange={e => handleChange('transactionId', e.target.value.replace(/\D/g, ''))}
               className="mt-1.5 h-10"
+              style={{ fontSize: '16px' }}
               placeholder="e.g. 123"
             />
           </div>
@@ -363,6 +363,7 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
               onChange={e => handleChange('customerName', e.target.value)}
               required
               className="mt-1.5 h-10"
+              style={{ fontSize: '16px' }}
               placeholder="আপনার নাম"
             />
           </div>
@@ -375,6 +376,7 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
               onChange={e => handleChange('customerWhatsApp', e.target.value)}
               required
               className="mt-1.5 h-10"
+              style={{ fontSize: '16px' }}
               placeholder="+880XXXXXXXXXX"
             />
           </div>
@@ -387,6 +389,7 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
               value={form.email}
               onChange={e => handleChange('email', e.target.value)}
               className="mt-1.5 h-10"
+              style={{ fontSize: '16px' }}
               placeholder="your@email.com"
             />
           </div>
@@ -399,6 +402,7 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
                 value={form.accountType || product.accountType}
                 onChange={e => handleChange('accountType', e.target.value)}
                 className="mt-1.5 h-10"
+                style={{ fontSize: '16px' }}
                 placeholder={product.accountType}
               />
             </div>

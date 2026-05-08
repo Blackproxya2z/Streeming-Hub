@@ -51,7 +51,7 @@ const categoryImages: Record<string, string> = {
   'gift-cards': '/images/categories/gift-cards.png',
   'gaming-topup': '/images/categories/gaming-topup.png',
   'multi-collection': '/images/categories/multi-collection.png',
-  'adult': '/images/categories/adult.png',
+  'adult-18': '/images/categories/adult.png',
 }
 
 function getCategoryIcon(category: Category) {
@@ -149,7 +149,7 @@ export function CategoryCards() {
                         <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
                           <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                         </div>
-                        <h3 className="font-semibold text-xs sm:text-sm mt-2 flex items-center gap-1 text-center drop-shadow-md">
+                        <h3 className="font-semibold text-xs sm:text-sm mt-2 flex items-center gap-1 text-center drop-shadow-md line-clamp-1">
                           {cat.name}
                           {cat.isAdult && <Lock className="h-3 w-3 text-amber-300" />}
                         </h3>

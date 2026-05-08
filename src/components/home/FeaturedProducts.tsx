@@ -7,7 +7,7 @@ import { formatPriceBDT } from '@/lib/price'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MessageCircle, Eye, Star, Clock, Shield, Zap, Timer, Globe } from 'lucide-react'
+import { MessageCircle, Eye, Star, Clock, Shield, Zap, Timer } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const categoryImages: Record<string, string> = {
@@ -21,7 +21,7 @@ const categoryImages: Record<string, string> = {
   'gift-cards': '/images/categories/gift-cards.png',
   'gaming-topup': '/images/categories/gaming-topup.png',
   'multi-collection': '/images/categories/multi-collection.png',
-  'adult': '/images/categories/adult.png',
+  'adult-18': '/images/categories/adult.png',
 }
 
 const gradients = [

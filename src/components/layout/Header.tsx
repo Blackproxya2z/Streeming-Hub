@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useTheme } from 'next-themes'
 import { useAppStore } from '@/lib/store'
 import { useCategories } from '@/lib/hooks'
@@ -203,7 +202,7 @@ export function Header() {
                   value={localSearch}
                   onChange={e => setLocalSearch(e.target.value)}
                   placeholder="Search products..."
-                  className="w-40 sm:w-64 h-9"
+                  className="w-32 sm:w-40 md:w-64 h-9"
                 />
                 <Button type="submit" size="sm" variant="ghost">
                   <Search className="h-4 w-4" />

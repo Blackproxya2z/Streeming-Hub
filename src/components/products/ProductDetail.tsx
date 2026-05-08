@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { useProduct, useProducts, useSettings } from '@/lib/hooks'
+import { useProduct, useProducts } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
 import { formatPriceBDT } from '@/lib/price'
 import { Badge } from '@/components/ui/badge'
@@ -73,7 +73,7 @@ export function ProductDetail() {
   if (!product) {
     return (
       <section className="py-16 px-4 text-center">
-        <h2 className="text-xl font-semibold mb-4">Product not found</h2>
+        <h1 className="text-xl sm:text-2xl font-bold mb-4">Product not found</h1>
         <Button onClick={() => navigate('products')}>Back to Products</Button>
       </section>
     )
@@ -156,7 +156,7 @@ export function ProductDetail() {
         <div className="grid md:grid-cols-5 gap-6">
           {/* Image — 2 cols */}
           <div className="md:col-span-2">
-            <div className={`relative rounded-2xl overflow-hidden h-52 sm:h-64 md:h-80 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center sticky top-24`}>
+            <div className={`relative rounded-2xl overflow-hidden h-52 sm:h-64 md:h-80 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center md:sticky md:top-20`}>
               {hasImage ? (
                 <>
                   <Image
@@ -202,7 +202,7 @@ export function ProductDetail() {
             </div>
 
             {/* Quick Info Grid */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {product.duration && (
                 <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
                   <Timer className="h-4 w-4 text-emerald-500 shrink-0" />
@@ -243,7 +243,7 @@ export function ProductDetail() {
             <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl p-4">
               <p className="text-xs text-muted-foreground mb-1">Starting from</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
               </div>

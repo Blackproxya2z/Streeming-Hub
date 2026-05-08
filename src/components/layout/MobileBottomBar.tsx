@@ -14,6 +14,8 @@ export function MobileBottomBar() {
       <div className="grid grid-cols-4 h-14">
         <button
           onClick={() => navigate('home')}
+          aria-label="Home"
+          aria-current={currentPage === 'home' ? 'page' : undefined}
           className={`flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 ${
             currentPage === 'home' ? 'text-emerald-600' : 'text-muted-foreground'
           }`}
@@ -26,6 +28,8 @@ export function MobileBottomBar() {
             setSearchQuery('')
             navigate('products')
           }}
+          aria-label="Search products"
+          aria-current={currentPage === 'products' || currentPage === 'category' ? 'page' : undefined}
           className={`flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 ${
             currentPage === 'products' || currentPage === 'category' ? 'text-emerald-600' : 'text-muted-foreground'
           }`}
@@ -35,6 +39,8 @@ export function MobileBottomBar() {
         </button>
         <button
           onClick={() => navigate('products')}
+          aria-label="Browse categories"
+          aria-current={currentPage === 'products' ? 'page' : undefined}
           className={`flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 ${
             currentPage === 'products' ? 'text-emerald-600' : 'text-muted-foreground'
           }`}
