@@ -21,7 +21,7 @@ const categoryImages: Record<string, string> = {
   'gift-cards': '/images/categories/gift-cards.png',
   'gaming-topup': '/images/categories/gaming-topup.png',
   'multi-collection': '/images/categories/multi-collection.png',
-  'adult-18': '/images/categories/adult.png',
+  'adult': '/images/categories/adult.png',
 }
 
 const gradients = [

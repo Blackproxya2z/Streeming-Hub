@@ -151,7 +151,7 @@ export function HeroSection() {
             className="mt-10 grid grid-cols-3 gap-3 sm:gap-6 max-w-sm mx-auto bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-white/10"
           >
             <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-bold">129+</p>
+              <p className="text-2xl sm:text-3xl font-bold">200+</p>
               <p className="text-xs sm:text-sm text-emerald-200">Products</p>
             </div>
             <div className="text-center border-x border-white/10">

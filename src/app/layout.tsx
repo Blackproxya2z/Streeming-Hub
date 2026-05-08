@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 const SITE_URL = "https://streaminghub.com.bd";
 const SITE_NAME = "Streaming Hub";
-const SITE_DESCRIPTION = "Bangladesh's #1 digital subscription store. Buy Netflix, Spotify, YouTube Premium, ChatGPT Plus, Midjourney, VPN & 120+ premium subscriptions at the best prices. bKash/Nagad payment, 5-20 min delivery, full warranty.";
+const SITE_DESCRIPTION = "Bangladesh's #1 digital subscription store. Buy Netflix, Spotify, YouTube Premium, ChatGPT Plus, Midjourney, VPN & 200+ premium subscriptions at the best prices. bKash/Nagad payment, 5-20 min delivery, full warranty.";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -237,7 +237,7 @@ export default function RootLayout({
       priceCurrency: "BDT",
       lowPrice: "50",
       highPrice: "5000",
-      offerCount: "129",
+      offerCount: "200",
       availability: "https://schema.org/InStock",
     },
     aggregateRating: {

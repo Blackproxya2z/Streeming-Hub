@@ -22,7 +22,7 @@ const categoryIconMap: Record<string, React.ElementType> = {
   'gift-cards': Gift,
   'gaming-topup': Gamepad2,
   'multi-collection': Layers,
-  'adult-18': AlertTriangle,
+  'adult': AlertTriangle,
 }
 
 const categoryGradients: Record<string, string> = {
@@ -36,7 +36,7 @@ const categoryGradients: Record<string, string> = {
   'gift-cards': 'from-amber-400 to-yellow-500',
   'gaming-topup': 'from-indigo-500 to-purple-600',
   'multi-collection': 'from-slate-500 to-gray-600',
-  'adult-18': 'from-orange-500 to-red-600',
+  'adult': 'from-orange-500 to-red-600',
 }
 
 // Map category slugs to their image paths
@@ -51,7 +51,7 @@ const categoryImages: Record<string, string> = {
   'gift-cards': '/images/categories/gift-cards.png',
   'gaming-topup': '/images/categories/gaming-topup.png',
   'multi-collection': '/images/categories/multi-collection.png',
-  'adult-18': '/images/categories/adult.png',
+  'adult': '/images/categories/adult.png',
 }
 
 function getCategoryIcon(category: Category) {
