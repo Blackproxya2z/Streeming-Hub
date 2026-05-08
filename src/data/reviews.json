@@ -1,0 +1,74 @@
+[
+  {
+    "id": "cmoikmoyh007qk8aiwiw7333u",
+    "name": "Rahim Uddin",
+    "rating": 5,
+    "text": "Excellent service! Got my Netflix subscription within 10 minutes. Very professional and trustworthy.",
+    "product": "Netflix",
+    "isApproved": true,
+    "createdAt": "2026-04-28T11:57:08.441Z"
+  },
+  {
+    "id": "cmoikmoyh007rk8ai9u60ddep",
+    "name": "Fatima Akter",
+    "rating": 5,
+    "text": "Grammarly Premium এর জন্য অর্ডার করেছিলাম, ৫ মিনিটের মধ্যে ডেলিভারি পেলাম। অসাধারণ সার্ভিস!",
+    "product": "Grammarly Premium",
+    "isApproved": true,
+    "createdAt": "2026-04-28T11:57:08.441Z"
+  },
+  {
+    "id": "cmoikmoyh007sk8ai1q6rq4iq",
+    "name": "Kamal Hossain",
+    "rating": 5,
+    "text": "Canva Pro ১ বছরের সাবস্ক্রিপশন নিলাম, খুবই সাশ্রয়ী দামে পেলাম। ধন্যবাদ Subscription Lagbe!",
+    "product": "Canva Pro",
+    "isApproved": true,
+    "createdAt": "2026-04-28T11:57:08.441Z"
+  },
+  {
+    "id": "cmoikmoyh007tk8ai763kn12l",
+    "name": "Nusrat Jahan",
+    "rating": 4,
+    "text": "YouTube Premium নিলাম, বাংলাদেশ অ্যাকাউন্ট, VPN লাগছে না। সব ঠিক আছে।",
+    "product": "YouTube Premium",
+    "isApproved": true,
+    "createdAt": "2026-04-28T11:57:08.441Z"
+  },
+  {
+    "id": "cmoikmoyh007uk8aiyog6frrg",
+    "name": "Sakib Ahmed",
+    "rating": 5,
+    "text": "Adobe Creative Cloud সাবস্ক্রিপশন নিলাম। সব অ্যাপ কাজ করছে, warranty ও আছে। ভালো সার্ভিস।",
+    "product": "Adobe Creative Cloud",
+    "isApproved": true,
+    "createdAt": "2026-04-28T11:57:08.441Z"
+  },
+  {
+    "id": "cmoikmoyh007vk8aiodnunwaj",
+    "name": "Tanjim Rahman",
+    "rating": 5,
+    "text": "PUBG top-up করলাম, ৫ মিনিটে ডেলিভারি। দাম ও সস্তা।",
+    "product": "PUBG TopUp",
+    "isApproved": true,
+    "createdAt": "2026-04-28T11:57:08.441Z"
+  },
+  {
+    "id": "cmoikmoyh007wk8ai5r1usrzc",
+    "name": "Mim Akter",
+    "rating": 4,
+    "text": "Coursera Plus সাবস্ক্রিপশন নিলাম, নিজের মেইলে। খুবই ভালো অভিজ্ঞতা।",
+    "product": "Coursera Plus",
+    "isApproved": true,
+    "createdAt": "2026-04-28T11:57:08.441Z"
+  },
+  {
+    "id": "cmoikmoyh007xk8ai1encjk90",
+    "name": "Arif Islam",
+    "rating": 5,
+    "text": "TradingView Premium নিলাম, own mail এ। সব ফিচার কাজ করছে। Highly recommended!",
+    "product": "TradingView",
+    "isApproved": true,
+    "createdAt": "2026-04-28T11:57:08.441Z"
+  }
+]

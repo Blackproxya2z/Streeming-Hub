@@ -1,22 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { getCategoryById } from '@/lib/data'
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const body = await request.json()
-    const category = await db.category.update({
-      where: { id },
-      data: {
-        ...(body.name !== undefined && { name: body.name }),
-        ...(body.slug !== undefined && { slug: body.slug }),
-        ...(body.icon !== undefined && { icon: body.icon }),
-        ...(body.description !== undefined && { description: body.description }),
-        ...(body.isAdult !== undefined && { isAdult: body.isAdult }),
-        ...(body.order !== undefined && { order: body.order }),
-      },
-    })
-    return NextResponse.json(category)
+    // Static data - return mock updated category
+    const existing = getCategoryById(id)
+    if (!existing) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 })
+    }
+    return NextResponse.json({ ...existing, ...body, updatedAt: new Date().toISOString() })
   } catch (error) {
     console.error('Error updating category:', error)
     return NextResponse.json({ error: 'Failed to update category' }, { status: 500 })
@@ -26,7 +20,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    await db.category.delete({ where: { id } })
+    // Static data - return mock success
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting category:', error)

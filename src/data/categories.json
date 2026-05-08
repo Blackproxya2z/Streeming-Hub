@@ -1,0 +1,156 @@
+[
+  {
+    "id": "cmoikmov20009k8ai1aaybp1p",
+    "name": "Streaming / OTT",
+    "slug": "streaming",
+    "icon": "Tv",
+    "description": "Netflix, YouTube Premium, Amazon Prime Video and more streaming subscriptions",
+    "isAdult": false,
+    "order": 1,
+    "createdAt": "2026-04-28T11:57:08.318Z",
+    "updatedAt": "2026-04-28T11:57:08.318Z",
+    "_count": {
+      "products": 21
+    }
+  },
+  {
+    "id": "cmoikmov2000ak8aiuvrzv3hk",
+    "name": "AI Tools",
+    "slug": "ai-tools",
+    "icon": "Brain",
+    "description": "Gemini AI, Perplexity, Jarvis, Midjourney and more AI tool subscriptions",
+    "isAdult": false,
+    "order": 2,
+    "createdAt": "2026-04-28T11:57:08.318Z",
+    "updatedAt": "2026-04-28T11:57:08.318Z",
+    "_count": {
+      "products": 28
+    }
+  },
+  {
+    "id": "cmoikmov2000bk8ai60mox8ry",
+    "name": "Educational",
+    "slug": "educational",
+    "icon": "GraduationCap",
+    "description": "Coursera, Grammarly, Skillshare and more educational subscriptions",
+    "isAdult": false,
+    "order": 3,
+    "createdAt": "2026-04-28T11:57:08.319Z",
+    "updatedAt": "2026-04-28T11:57:08.319Z",
+    "_count": {
+      "products": 12
+    }
+  },
+  {
+    "id": "cmoikmov3000dk8ai2lardr0p",
+    "name": "Design & Creative",
+    "slug": "design-creative",
+    "icon": "Palette",
+    "description": "Adobe CC, Canva Pro, Figma and more design tool subscriptions",
+    "isAdult": false,
+    "order": 4,
+    "createdAt": "2026-04-28T11:57:08.319Z",
+    "updatedAt": "2026-04-28T11:57:08.319Z",
+    "_count": {
+      "products": 14
+    }
+  },
+  {
+    "id": "cmoikmov2000ck8ai30ooxpvj",
+    "name": "Productivity / Business",
+    "slug": "productivity",
+    "icon": "Briefcase",
+    "description": "Microsoft Office 365, Zoom Pro, TradingView and more productivity tools",
+    "isAdult": false,
+    "order": 5,
+    "createdAt": "2026-04-28T11:57:08.319Z",
+    "updatedAt": "2026-04-28T11:57:08.319Z",
+    "_count": {
+      "products": 7
+    }
+  },
+  {
+    "id": "cmoikmov3000ek8aix80h5xod",
+    "name": "Cloud / Storage",
+    "slug": "cloud-storage",
+    "icon": "Cloud",
+    "description": "Google One, TeraBox, MEGA cloud storage subscriptions",
+    "isAdult": false,
+    "order": 6,
+    "createdAt": "2026-04-28T11:57:08.319Z",
+    "updatedAt": "2026-04-28T11:57:08.319Z",
+    "_count": {
+      "products": 3
+    }
+  },
+  {
+    "id": "cmoikmov5000jk8airoykkxgt",
+    "name": "VPN",
+    "slug": "vpn",
+    "icon": "Shield",
+    "description": "NordVPN, ExpressVPN, Proton VPN and more VPN subscriptions",
+    "isAdult": false,
+    "order": 7,
+    "createdAt": "2026-04-28T11:57:08.322Z",
+    "updatedAt": "2026-04-28T11:57:08.322Z",
+    "_count": {
+      "products": 15
+    }
+  },
+  {
+    "id": "cmoikmov3000fk8aiq1fv5pxc",
+    "name": "Gift Cards / Apple",
+    "slug": "gift-cards",
+    "icon": "Gift",
+    "description": "iTunes Gift Cards, Apple subscriptions and more",
+    "isAdult": false,
+    "order": 8,
+    "createdAt": "2026-04-28T11:57:08.320Z",
+    "updatedAt": "2026-04-28T11:57:08.320Z",
+    "_count": {
+      "products": 8
+    }
+  },
+  {
+    "id": "cmoikmov3000gk8aixpn0x1os",
+    "name": "Gaming TopUp",
+    "slug": "gaming-topup",
+    "icon": "Gamepad2",
+    "description": "Free Fire, PUBG, Clash of Clans and more gaming top-ups",
+    "isAdult": false,
+    "order": 9,
+    "createdAt": "2026-04-28T11:57:08.320Z",
+    "updatedAt": "2026-04-28T11:57:08.320Z",
+    "_count": {
+      "products": 6
+    }
+  },
+  {
+    "id": "cmoikmov4000hk8aigvjv1d0u",
+    "name": "Multi Collection",
+    "slug": "multi-collection",
+    "icon": "Layers",
+    "description": "Viu, Scribd, Remini, Freepik and more multi-collection products",
+    "isAdult": false,
+    "order": 10,
+    "createdAt": "2026-04-28T11:57:08.320Z",
+    "updatedAt": "2026-04-28T11:57:08.320Z",
+    "_count": {
+      "products": 13
+    }
+  },
+  {
+    "id": "cmoikmov4000ik8ailjevz5tu",
+    "name": "Adult 18+",
+    "slug": "adult",
+    "icon": "AlertTriangle",
+    "description": "Adult content subscriptions",
+    "isAdult": true,
+    "order": 11,
+    "createdAt": "2026-04-28T11:57:08.320Z",
+    "updatedAt": "2026-04-28T11:57:08.320Z",
+    "_count": {
+      "products": 75
+    }
+  }
+]

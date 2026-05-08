@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { getSettings } from '@/lib/data'
 
 export async function GET() {
   try {
-    const settings = await db.settings.findMany()
-    const settingsMap: Record<string, string> = {}
-    settings.forEach(s => { settingsMap[s.key] = s.value })
-    return NextResponse.json(settingsMap)
+    const settings = getSettings()
+    return NextResponse.json(settings)
   } catch (error) {
     console.error('Error fetching settings:', error)
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })
@@ -16,18 +14,9 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const updates = Object.entries(body).map(([key, value]) =>
-      db.settings.upsert({
-        where: { key },
-        update: { value: String(value) },
-        create: { key, value: String(value) },
-      })
-    )
-    await Promise.all(updates)
-    const settings = await db.settings.findMany()
-    const settingsMap: Record<string, string> = {}
-    settings.forEach(s => { settingsMap[s.key] = s.value })
-    return NextResponse.json(settingsMap)
+    // Static data - return current settings (no persistence)
+    const settings = getSettings()
+    return NextResponse.json({ ...settings, ...body })
   } catch (error) {
     console.error('Error updating settings:', error)
     return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 })

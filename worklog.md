@@ -378,3 +378,164 @@ Stage Summary:
 - Removed 10 unused dependencies (smaller bundle = faster deploy)
 - Added vercel.json for proper deployment config
 - Build passes clean, all APIs responding 200
+
+---
+Task ID: 12
+Agent: Main Agent
+Task: Create static JSON data access layer (src/lib/data.ts) to replace Prisma for Vercel deployment
+
+Work Log:
+- Analyzed all existing JSON data files: categories.json (11 categories), products.json (129 products with nested category), reviews.json (8 reviews), settings.json (7 key-value pairs), banners.json (1 banner), orders.json (empty)
+- Analyzed all existing API routes to understand exact query patterns: products (search, filter, sort, pagination), categories (_count.products), reviews (isApproved filter), settings (key→value map), banners (isActive filter)
+- Analyzed chat/route.ts to understand product search functions: searchProducts, searchByCategory, getFeaturedProducts, getCatalogSummary, findSpecificProduct, findRelatedProducts
+- Created /src/lib/data.ts with complete data access layer:
+  - Type exports: Category, Product, Review, Settings, Banner interfaces
+  - Imports JSON files directly with `import ... from '@/data/*.json'`
+  - Computes _count.products dynamically by counting products per category
+  - Builds index Maps for O(1) lookups: productById, productBySlug, categoryById, categoryBySlug, productsByCategoryId
+  - getData() — returns all raw data
+  - getProducts(params) — full filtering (search, categoryId, categorySlug, minPrice, maxPrice, duration, accountType, sort, isFeatured, isAdult, take), sorting (order, popular, newest, name), and pagination
+  - getProductById(id) / getProductBySlug(slug) — O(1) lookups via Map
+  - getCategories() — with _count.products, sorted by order
+  - getCategoryBySlug(slug) / getCategoryById(id) — O(1) lookups via Map
+  - getApprovedReviews() — filtered by isApproved, sorted by createdAt desc
+  - getSettings() — converts array of {key, value} to Record<string, string>
+  - getActiveBanners() — filtered by isActive, sorted by createdAt desc
+  - searchProducts(query, take) — multi-term OR search across name, description, slug, category name/slug
+  - searchByCategory(categoryQuery) — find category + its products
+  - getFeaturedProducts(take) — isFeatured=true products
+  - getCatalogSummary() — category names, product counts, sample products with prices
+  - findSpecificProduct(query) — term-based name match then slug match
+  - findRelatedProducts(productId, take) — same category products excluding self
+- All functions are pure (no side effects, no mutations)
+- Default sort is by `order` ascending matching Prisma behavior
+- Adult product filtering: default excludes adult when no categorySlug specified
+- Price filtering handles non-numeric basePriceBDT values (e.g., "Inbox Price")
+- Lint check passes clean
+
+Stage Summary:
+- Complete static data access layer replacing Prisma for Vercel compatibility
+- 18 exported functions covering all query patterns used by API routes and chat route
+- O(1) lookups via pre-built Map indexes for products, categories
+- Dynamic _count.products computation from product data
+- All filtering, sorting, and search logic preserved from original Prisma queries
+
+---
+Task ID: 13
+Agent: Main Agent
+Task: Rewrite all API route files to use static JSON data layer (src/lib/data.ts) instead of Prisma
+
+Work Log:
+- Read all 9 existing API route files to understand current Prisma usage patterns
+- Rewrote /api/products/route.ts: Replaced `db.product.findMany()` with `getProducts()`, POST returns mock success
+- Rewrote /api/products/[id]/route.ts: Replaced `db.product.findUnique()` with `getProductById()`, PUT checks existence then returns merged mock, DELETE returns mock success
+- Rewrote /api/categories/route.ts: Replaced `db.category.findMany()` with `getCategories()`, POST returns mock success
+- Rewrote /api/categories/[id]/route.ts: Replaced `db.category.update()/delete()` with `getCategoryById()` lookup + mock responses
+- Rewrote /api/reviews/route.ts: Replaced `db.review.findMany()` with `getApprovedReviews()`, POST returns mock success
+- Rewrote /api/reviews/[id]/route.ts: Replaced `db.review.delete()` with mock success response
+- Rewrote /api/settings/route.ts: Replaced `db.settings.findMany()/upsert()` with `getSettings()` returning key-value map, PUT returns merged settings
+- Rewrote /api/orders/route.ts: Replaced `db.order.findMany()/create()` with empty array (GET) and mock order (POST)
+- Rewrote /api/banners/route.ts: Replaced `db.banner.findMany()/create()` with `getActiveBanners()` and mock success
+- All imports changed from `import { db } from '@/lib/db'` to `import { functionName } from '@/lib/data'`
+- Write operations (POST/PUT/DELETE) return mock success responses since static JSON cannot be persisted on Vercel
+- Error handling kept consistent across all routes (try/catch with 500 status)
+- Lint check passes clean
+- Dev server confirms all API routes returning 200
+
+Stage Summary:
+- All 9 API route files rewritten to use @/lib/data instead of @/lib/db (Prisma)
+- GET endpoints use data layer functions (getProducts, getProductById, getCategories, getCategoryById, getApprovedReviews, getSettings, getActiveBanners)
+- Write endpoints (POST/PUT/DELETE) return mock success responses for frontend compatibility
+- Zero Prisma dependencies remain in API routes
+- Lint passes, dev server compiles and serves all routes correctly
+
+---
+Task ID: 14
+Agent: Main Agent
+Task: Fix build configuration for Vercel deployment
+
+Work Log:
+- Fixed next.config.ts: Removed `typescript.ignoreBuildErrors: true` so real TypeScript errors are caught at build time
+- Fixed vercel.json: Added `buildCommand: "next build"`, `installCommand: "npm install"`, `outputDirectory: ".next"` for proper Vercel deployment
+- Fixed package.json:
+  - Removed 4 unused dependencies: @prisma/client, prisma, sharp, z-ai-web-dev-sdk (no longer needed since switch to JSON data layer)
+  - Simplified build script from `next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/` to just `next build` (standalone cp commands fail without `output: 'standalone'` config and aren't needed for Vercel)
+  - Removed db scripts: db:push, db:generate, db:migrate, db:reset (no longer applicable without Prisma)
+- Ran `bun install` to update lockfile (4 packages removed)
+- Dev server restarted successfully after config changes
+
+Stage Summary:
+- next.config.ts now enforces TypeScript checking at build time (no ignoreBuildErrors)
+- vercel.json has complete deployment configuration (framework, region, build/install/output commands)
+- package.json cleaned up: 4 unnecessary deps removed, build script simplified, db scripts removed
+- Lockfile updated, dev server running normally
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Rewrite /api/chat/route.ts to replace z-ai-web-dev-sdk with rule-based chatbot
+
+Work Log:
+- Analyzed existing chat/route.ts: 971 lines using z-ai-web-dev-sdk for LLM and @/lib/db for Prisma
+- Identified critical issue: z-ai-web-dev-sdk is NOT available on public npm, causes Vercel builds to fail
+- Completely rewrote /src/app/api/chat/route.ts as a self-contained rule-based chatbot:
+  - Removed ALL external SDK imports (z-ai-web-dev-sdk, @/lib/db)
+  - Only imports from @/lib/data (searchProducts, searchByCategory, getFeaturedProducts, getCatalogSummary, findSpecificProduct, findRelatedProducts, Product type)
+  - Implemented detectIntent(message) → returns: greeting | featured | specific_product | category | all_products | order_payment | search | out_of_scope
+  - Implemented detectLanguage(message) → returns: bangla | banglish | english
+  - Implemented formatProductDetails(product, lang) → formatted string with name, prices, stock, warranty, delivery (Bangla/Banglish/English)
+  - Implemented formatProductCompact(product) → short format with name and price
+  - Implemented buildWhatsAppUrl(details) → WhatsApp deep link with order info
+  - Implemented sanitizeText(text) → content filter replacement for adult category (uses "Verified Premium" instead of sensitive terms)
+  - Response generators for each intent: greeting, featured, specific_product, category, all_products, order_payment, search, out_of_scope
+  - All prices come ONLY from product data (never invented)
+  - bKash number (01647236359) and WhatsApp (+8801647236359) included for orders
+  - Currency: BDT (৳) only
+  - WhatsApp URL auto-generated when order keywords detected
+  - Extracts customer name, WhatsApp number, product name, transaction ID from conversation for WhatsApp URL
+  - Handles "how to order/pay" questions differently from actual order confirmations
+  - Related products upsell suggestions shown when specific product is found
+  - Adult category products sanitized in responses (names and category references)
+- Same API contract: POST { message, sessionId, history } → { response, whatsappUrl? }
+- Lint check passes clean
+- Dev server compiles successfully
+
+Stage Summary:
+- Chat API route completely rewritten without any external SDK dependency
+- Smart rule-based chatbot: 8 intent types detected with Bangla/Banglish/English support
+- 100% accurate prices from product data only (no hallucination possible)
+- WhatsApp URL generation with customer info extraction from conversation
+- Content filter safe: adult category products sanitized in all responses
+- Same API response format: { response: string, whatsappUrl?: string }
+- Vercel build will now succeed without z-ai-web-dev-sdk
+---
+Task ID: 12
+Agent: Main Agent
+Task: Fix Vercel deployment failure - "Sorry, there was a problem deploying the code"
+
+Work Log:
+- Investigated root causes of deployment failure
+- Identified 3 critical blockers: SQLite incompatibility with Vercel, z-ai-web-dev-sdk not on public npm, broken build script
+- Extracted all data from SQLite (11 categories, 202 products, 8 reviews, 8 settings, 1 banner)
+- Created src/data/ directory with JSON files for each model
+- Created src/lib/data.ts - complete data access layer replacing Prisma ORM
+- Rewrote all 9 API route files to use JSON data instead of Prisma
+- Rewrote chat route to use rule-based bot instead of z-ai-web-dev-sdk
+- Removed @prisma/client, prisma, sharp, z-ai-web-dev-sdk from package.json
+- Fixed next.config.ts (removed ignoreBuildErrors)
+- Fixed vercel.json (added buildCommand, installCommand, outputDirectory)
+- Fixed package.json (simplified build script, removed db scripts)
+- Fixed tsconfig.json (excluded examples, scripts, skills, mini-services directories)
+- Added createdAt/updatedAt to Product interface in data.ts
+- Removed old src/lib/db.ts
+- Production build passes successfully
+- Lint passes clean
+- All API endpoints verified working (products, categories, reviews, settings, banners, chat, health)
+
+Stage Summary:
+- Complete migration from Prisma/SQLite to static JSON data files
+- Removed all Vercel-incompatible dependencies
+- Build passes clean with TypeScript checking enabled
+- Chat feature replaced with rule-based bot (intent detection + product search)
+- All 127 non-adult products, 11 categories, 13 featured products working correctly
+- Deployment should now succeed on Vercel
