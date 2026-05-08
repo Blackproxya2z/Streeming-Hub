@@ -122,7 +122,7 @@ ${product.warranty ? `🛡️ Warranty: ${product.warranty}` : ''}
                 </span>
               </div>
               {selectedPlan && (
-                <Badge variant="secondary" className="text-[10px] mt-0.5">{selectedPlan}</Badge>
+                <Badge variant="secondary" className="text-[11px] mt-0.5">{selectedPlan}</Badge>
               )}
             </div>
           </div>
@@ -142,7 +142,7 @@ ${product.warranty ? `🛡️ Warranty: ${product.warranty}` : ''}
                 </div>
                 <div>
                   <p className="font-bold text-pink-600 text-sm">bKash</p>
-                  <p className="text-[10px] text-muted-foreground">বিকাশ পেমেন্ট</p>
+                  <p className="text-[11px] text-muted-foreground">বিকাশ পেমেন্ট</p>
                 </div>
               </div>
               <div className="flex items-center justify-between bg-white dark:bg-background rounded-lg px-3 py-2">
@@ -170,7 +170,7 @@ ${product.warranty ? `🛡️ Warranty: ${product.warranty}` : ''}
                 </div>
                 <div>
                   <p className="font-bold text-orange-600 text-sm">Nagad</p>
-                  <p className="text-[10px] text-muted-foreground">নগদ পেমেন্ট</p>
+                  <p className="text-[11px] text-muted-foreground">নগদ পেমেন্ট</p>
                 </div>
               </div>
               <div className="flex items-center justify-between bg-white dark:bg-background rounded-lg px-3 py-2">
@@ -234,13 +234,13 @@ ${product.warranty ? `🛡️ Warranty: ${product.warranty}` : ''}
                 Confirm Order on WhatsApp
               </Button>
             </a>
-            <p className="text-[10px] text-muted-foreground text-center mt-2">
+            <p className="text-[11px] text-muted-foreground text-center mt-2">
               Your order details will be sent automatically. Just tap send! ✅
             </p>
           </div>
 
           {/* Quick contact */}
-          <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground pt-1">
+          <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground pt-1">
             <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {whatsappNumber}</span>
             <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> 5-20 min</span>
             <span className="flex items-center gap-1"><Shield className="h-3 w-3" /> Warranty</span>

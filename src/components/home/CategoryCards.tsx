@@ -154,7 +154,7 @@ export function CategoryCards() {
                           {cat.isAdult && <Lock className="h-3 w-3 text-amber-300" />}
                         </h3>
                         {cat._count && (
-                          <p className="text-[10px] text-white/80 mt-0.5">
+                          <p className="text-[11px] text-white/80 mt-0.5">
                             {cat._count.products} products
                           </p>
                         )}

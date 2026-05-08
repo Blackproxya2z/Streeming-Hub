@@ -11,7 +11,7 @@ export function Footer() {
   const paymentNumber = settings?.paymentNumber || 'bKash/Nagad'
 
   return (
-    <footer className="bg-muted/50 border-t mt-auto" role="contentinfo" itemScope itemType="https://schema.org/Organization">
+    <footer className="bg-muted/50 border-t mt-auto pb-[env(safe-area-inset-bottom,0px)]" role="contentinfo" itemScope itemType="https://schema.org/Organization">
       <div className="container mx-auto px-4 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}

@@ -55,7 +55,7 @@ const faqSchema = {
 
 export function FAQ() {
   return (
-    <section className="py-16 px-4 bg-muted/30" id="faq" aria-labelledby="faq-heading">
+    <section className="py-12 sm:py-16 px-4 bg-muted/30" id="faq" aria-labelledby="faq-heading">
       <div className="container mx-auto max-w-3xl">
         <div className="text-center mb-10">
           <h2 id="faq-heading" className="text-2xl sm:text-3xl font-bold mb-3">Frequently Asked Questions</h2>

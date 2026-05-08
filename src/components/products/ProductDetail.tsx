@@ -156,7 +156,7 @@ export function ProductDetail() {
         <div className="grid md:grid-cols-5 gap-6">
           {/* Image — 2 cols */}
           <div className="md:col-span-2">
-            <div className={`relative rounded-2xl overflow-hidden h-52 sm:h-64 md:h-80 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center sticky top-20`}>
+            <div className={`relative rounded-2xl overflow-hidden h-52 sm:h-64 md:h-80 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center sticky top-24`}>
               {hasImage ? (
                 <>
                   <Image
@@ -207,7 +207,7 @@ export function ProductDetail() {
                 <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
                   <Timer className="h-4 w-4 text-emerald-500 shrink-0" />
                   <div>
-                    <p className="text-[10px] text-muted-foreground">Duration</p>
+                    <p className="text-[11px] text-muted-foreground">Duration</p>
                     <p className="text-sm font-medium">{product.duration}</p>
                   </div>
                 </div>
@@ -216,7 +216,7 @@ export function ProductDetail() {
                 <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
                   <Globe className="h-4 w-4 text-blue-500 shrink-0" />
                   <div>
-                    <p className="text-[10px] text-muted-foreground">Account Type</p>
+                    <p className="text-[11px] text-muted-foreground">Account Type</p>
                     <p className="text-sm font-medium">{product.accountType}</p>
                   </div>
                 </div>
@@ -225,7 +225,7 @@ export function ProductDetail() {
                 <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
                   <Shield className="h-4 w-4 text-emerald-500 shrink-0" />
                   <div>
-                    <p className="text-[10px] text-muted-foreground">Warranty</p>
+                    <p className="text-[11px] text-muted-foreground">Warranty</p>
                     <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{product.warranty}</p>
                   </div>
                 </div>
@@ -233,7 +233,7 @@ export function ProductDetail() {
               <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
                 <Clock className="h-4 w-4 text-amber-500 shrink-0" />
                 <div>
-                  <p className="text-[10px] text-muted-foreground">Delivery</p>
+                  <p className="text-[11px] text-muted-foreground">Delivery</p>
                   <p className="text-sm font-medium">{product.deliveryTime}</p>
                 </div>
               </div>
@@ -304,7 +304,7 @@ export function ProductDetail() {
         {/* How to Order — Simple 3 Steps */}
         <div className="mt-8 bg-muted/40 rounded-2xl p-5">
           <h2 className="font-bold text-base mb-4">How to Order</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col items-center text-center gap-2">
               <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-600 font-bold text-sm">1</div>
               <div>

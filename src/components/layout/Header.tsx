@@ -111,7 +111,7 @@ export function Header() {
                 </span>
                 <BadgeCheck className="h-4 w-4 text-sky-500 shrink-0" />
               </div>
-              <span className="text-[9px] text-muted-foreground font-medium -mt-0.5">BD&apos;s #1 Subscription Store</span>
+              <span className="text-[10px] text-muted-foreground font-medium -mt-0.5">BD&apos;s #1 Subscription Store</span>
             </div>
             <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent sm:hidden flex items-center gap-1">
               SH
@@ -222,7 +222,7 @@ export function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setSearchOpen(true)}
-                className="h-9 w-9"
+                className="h-11 w-11"
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -233,7 +233,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="h-9 w-9"
+              className="h-11 w-11"
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -243,11 +243,11 @@ export function Header() {
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9">
+                <Button variant="ghost" size="icon" className="lg:hidden h-11 w-11">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80 p-0">
+              <SheetContent side="left" className="w-[85vw] max-w-80 p-0">
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <div className="flex flex-col h-full">
                   <div className="p-4 border-b bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950">
@@ -266,7 +266,7 @@ export function Header() {
                           </span>
                           <BadgeCheck className="h-4 w-4 text-sky-500" />
                         </div>
-                        <p className="text-[9px] text-muted-foreground">BD&apos;s #1 Subscription Store</p>
+                        <p className="text-[10px] text-muted-foreground">BD&apos;s #1 Subscription Store</p>
                       </div>
                     </div>
                     {/* Payment methods in mobile menu */}

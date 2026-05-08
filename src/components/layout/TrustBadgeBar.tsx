@@ -75,8 +75,8 @@ export function TrustBadgeBar() {
                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/50 ${badge.bg} transition-all hover:shadow-sm`}>
                   <Icon className={`h-3.5 w-3.5 shrink-0 ${badge.color}`} />
                   <div className="flex flex-col leading-none">
-                    <span className="text-[11px] font-semibold text-foreground whitespace-nowrap">{badge.label}</span>
-                    <span className="text-[9px] text-muted-foreground whitespace-nowrap hidden sm:block">{badge.sublabel}</span>
+                    <span className="text-xs font-semibold text-foreground whitespace-nowrap">{badge.label}</span>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap hidden sm:block">{badge.sublabel}</span>
                   </div>
                 </div>
                 {i < badges.length - 1 && (

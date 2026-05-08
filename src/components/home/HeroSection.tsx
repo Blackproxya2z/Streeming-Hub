@@ -148,7 +148,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-10 grid grid-cols-3 gap-6 max-w-sm mx-auto bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-white/10"
+            className="mt-10 grid grid-cols-3 gap-3 sm:gap-6 max-w-sm mx-auto bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-white/10"
           >
             <div className="text-center">
               <p className="text-2xl sm:text-3xl font-bold">129+</p>

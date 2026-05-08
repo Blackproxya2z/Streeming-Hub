@@ -19,7 +19,7 @@ export function MobileBottomBar() {
           }`}
         >
           <Home className="h-5 w-5" />
-          <span className="text-[10px] font-medium">Home</span>
+          <span className="text-[11px] font-medium">Home</span>
         </button>
         <button
           onClick={() => {
@@ -31,7 +31,7 @@ export function MobileBottomBar() {
           }`}
         >
           <Search className="h-5 w-5" />
-          <span className="text-[10px] font-medium">Search</span>
+          <span className="text-[11px] font-medium">Search</span>
         </button>
         <button
           onClick={() => navigate('products')}
@@ -40,7 +40,7 @@ export function MobileBottomBar() {
           }`}
         >
           <Grid3X3 className="h-5 w-5" />
-          <span className="text-[10px] font-medium">Categories</span>
+          <span className="text-[11px] font-medium">Categories</span>
         </button>
         <a
           href={`https://wa.me/${whatsappNumber.replace('+', '')}`}
@@ -49,7 +49,7 @@ export function MobileBottomBar() {
           className="flex flex-col items-center justify-center gap-0.5 text-green-600 active:scale-95"
         >
           <MessageCircle className="h-5 w-5" />
-          <span className="text-[10px] font-medium">WhatsApp</span>
+          <span className="text-[11px] font-medium">WhatsApp</span>
         </a>
       </div>
     </div>

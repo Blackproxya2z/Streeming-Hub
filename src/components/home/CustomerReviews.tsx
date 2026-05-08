@@ -10,7 +10,7 @@ export function CustomerReviews() {
 
   if (isLoading) {
     return (
-      <section className="py-16 px-4">
+      <section className="py-12 sm:py-16 px-4">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -25,7 +25,7 @@ export function CustomerReviews() {
   const allReviews = reviews || []
 
   return (
-    <section className="py-16 px-4">
+    <section className="py-12 sm:py-16 px-4">
       <div className="container mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">Customer Reviews</h2>

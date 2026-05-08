@@ -36,7 +36,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -50,5 +49,24 @@ test
 prompt
 
 server.log
+
 # Skills directory
 /skills/
+
+# Scripts directory (dev-only, not for deployment)
+/scripts/
+/examples/
+/mini-services/
+/.zscripts/
+/agent-ctx/
+
+# Prisma (no longer used - static JSON data)
+/prisma/
+/db/
+
+# Sandbox-only files
+Caddyfile
+*.sh
+generation_*.txt
+exported-data.json
+worklog.md

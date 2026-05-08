@@ -53,7 +53,7 @@ export function ProductCatalog() {
       <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
         <Badge
           variant={!categorySlug ? 'default' : 'outline'}
-          className="cursor-pointer whitespace-nowrap shrink-0"
+          className="cursor-pointer whitespace-nowrap shrink-0 h-9"
           onClick={() => handleCategoryClick('')}
         >
           All
@@ -64,7 +64,7 @@ export function ProductCatalog() {
             <Badge
               key={cat.id}
               variant={categorySlug === cat.slug ? 'default' : 'outline'}
-              className={`cursor-pointer whitespace-nowrap shrink-0 ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
+              className={`cursor-pointer whitespace-nowrap shrink-0 h-9 ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
               onClick={() => handleCategoryClick(cat.slug)}
             >
               {cat.name}

@@ -94,12 +94,12 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
             {(product.isBestSeller || product.isNewArrival) && (
               <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
                 {product.isBestSeller && (
-                  <Badge className="bg-amber-500 text-white border-0 text-[10px] px-1.5 py-0.5">
+                  <Badge className="bg-amber-500 text-white border-0 text-[11px] px-1.5 py-0.5">
                     <Star className="h-2.5 w-2.5 mr-0.5" /> Best
                   </Badge>
                 )}
                 {product.isNewArrival && (
-                  <Badge className="bg-emerald-500 text-white border-0 text-[10px] px-1.5 py-0.5">
+                  <Badge className="bg-emerald-500 text-white border-0 text-[11px] px-1.5 py-0.5">
                     <Zap className="h-2.5 w-2.5 mr-0.5" /> New
                   </Badge>
                 )}
@@ -112,14 +112,14 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
             <h3 className="font-semibold text-sm line-clamp-1">{product.name}</h3>
 
             {product.warranty && (
-              <div className="flex items-center gap-0.5 text-[10px] text-emerald-600 dark:text-emerald-400">
+              <div className="flex items-center gap-0.5 text-[11px] text-emerald-600 dark:text-emerald-400">
                 <Shield className="h-3 w-3" /> {product.warranty}
               </div>
             )}
 
             {/* Short description */}
             {product.description && (
-              <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                 {product.description}
               </p>
             )}
@@ -132,7 +132,7 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
                 </span>
               </div>
               {product.duration && (
-                <p className="text-[10px] text-muted-foreground mt-0.5">{product.duration}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{product.duration}</p>
               )}
             </div>
 
@@ -140,7 +140,7 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
             <div className="mt-2">
               <Button
                 size="sm"
-                className="w-full bg-green-600 hover:bg-green-700 text-xs h-8 rounded-lg font-medium"
+                className="w-full bg-green-600 hover:bg-green-700 text-xs h-10 rounded-lg font-medium"
                 onClick={handleOrderClick}
               >
                 <MessageCircle className="h-3.5 w-3.5 mr-1.5" /> Order Now

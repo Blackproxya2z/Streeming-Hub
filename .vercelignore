@@ -1,0 +1,15 @@
+skills/
+scripts/
+.zscripts/
+agent-ctx/
+examples/
+mini-services/
+prisma/
+db/
+Caddyfile
+*.sh
+generation_*.txt
+dev.log
+server.log
+exported-data.json
+worklog.md

@@ -51,7 +51,7 @@ const steps = [
 
 export function HowToOrder() {
   return (
-    <section className="py-16 px-4 bg-muted/30" id="how-to-order" aria-labelledby="how-heading">
+    <section className="py-12 sm:py-16 px-4 bg-muted/30" id="how-to-order" aria-labelledby="how-heading">
       <div className="container mx-auto">
         <div className="text-center mb-10">
           <h2 id="how-heading" className="text-2xl sm:text-3xl font-bold mb-3">How to Order</h2>

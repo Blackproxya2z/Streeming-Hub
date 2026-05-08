@@ -112,12 +112,12 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
             )}
             {product.isBestSeller && (
-              <Badge className="absolute top-2 left-2 bg-amber-500 text-white border-0 text-[10px] z-10 shadow-sm">
+              <Badge className="absolute top-2 left-2 bg-amber-500 text-white border-0 text-[11px] z-10 shadow-sm">
                 <Star className="h-3 w-3 mr-0.5" /> Best Seller
               </Badge>
             )}
             {product.isNewArrival && (
-              <Badge className="absolute top-2 right-2 bg-emerald-500 text-white border-0 text-[10px] z-10 shadow-sm">
+              <Badge className="absolute top-2 right-2 bg-emerald-500 text-white border-0 text-[11px] z-10 shadow-sm">
                 <Zap className="h-3 w-3 mr-0.5" /> New
               </Badge>
             )}
@@ -125,13 +125,13 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
 
           {/* Content */}
           <div className="p-3 sm:p-4 flex flex-col flex-1 min-h-0 gap-1.5">
-            <Badge variant="secondary" className="text-[10px] w-fit">
+            <Badge variant="secondary" className="text-[11px] w-fit">
               {product.category?.name}
             </Badge>
             <h3 className="font-semibold text-sm line-clamp-1">{product.name}</h3>
             <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
 
-            <div className="flex flex-wrap gap-1 text-[10px] sm:text-[11px] text-muted-foreground">
+            <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
               {product.duration && (
                 <span className="flex items-center gap-0.5 bg-muted rounded-md px-1.5 py-0.5">
                   <Timer className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> {product.duration}
@@ -150,7 +150,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
               </div>
-              <Badge className={`text-[10px] mt-1 mr-1 ${stockColor}`}>
+              <Badge className={`text-[11px] mt-1 mr-1 ${stockColor}`}>
                 {product.stockStatus}
               </Badge>
             </div>
@@ -158,7 +158,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
             <div className="flex gap-1.5 sm:gap-2 mt-2">
               <Button
                 size="sm"
-                className="flex-1 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-9 sm:h-10 rounded-lg font-medium"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-11 sm:h-10 rounded-lg font-medium"
                 onClick={handleOrderClick}
               >
                 <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" /> Order
@@ -166,7 +166,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
               <Button
                 size="sm"
                 variant="outline"
-                className="flex-1 text-xs sm:text-sm h-9 sm:h-10 rounded-lg font-medium"
+                className="flex-1 text-xs sm:text-sm h-11 sm:h-10 rounded-lg font-medium"
                 onClick={handleDetailsClick}
               >
                 <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" /> Details
@@ -192,7 +192,7 @@ export function FeaturedProducts() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 items-start">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="rounded-2xl bg-muted animate-pulse" style={{ height: '320px' }} />
+              <div key={i} className="rounded-2xl bg-muted animate-pulse h-64 sm:h-80" />
             ))}
           </div>
         </div>
