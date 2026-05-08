@@ -9,8 +9,7 @@ import {
   type Product,
 } from '@/lib/data'
 
-// ─── Content Filter Safe Terms ────────────────────────────────────────────
-// Replace sensitive terms for adult category with safe alternatives
+// ─── Content Filter ────────────────────────────────────────────────────────
 
 const FILTER_REPLACEMENTS: Array<[RegExp, string]> = [
   [/\b18\+?/gi, 'VP'],
@@ -51,32 +50,67 @@ type Intent =
   | 'category'
   | 'all_products'
   | 'order_payment'
+  | 'how_to_use'
+  | 'warranty_delivery'
+  | 'price_inquiry'
   | 'search'
   | 'out_of_scope'
 
-function detectIntent(message: string): Intent {
+function detectIntent(message: string, history: Array<{ role: string; content: string }>): Intent {
   const lower = message.toLowerCase().trim()
 
-  // GREETING — simple hellos / salaams with no product keywords
+  // GREETING
   const greetingKeywords = [
     'hi', 'hello', 'hey', 'assalam', 'সালাম', 'আসসালামু', 'আসসালাম',
     'হ্যালো', 'হাই', 'কেমন আছ', 'kemon acho', 'kemn acho',
     'good morning', 'good evening', 'good afternoon',
-    'শুভ সকাল', 'শুভ সন্ধ্যা',
+    'শুভ সকাল', 'শুভ সন্ধ্যা', 'sup', 'yo',
   ]
-  const hasGreeting = greetingKeywords.some((kw) => lower.includes(kw))
-
-  // If it's a short greeting-only message (no product/order intent)
   const productRelatedWords = [
     'product', 'price', 'order', 'buy', 'netflix', 'vpn', 'chatgpt', 'spotify',
     'canva', 'adobe', 'midjourney', 'premium', 'subscription', 'plan', 'streaming',
     'প্রোডাক্ট', 'দাম', 'অর্ডার', 'কিনতে', 'মূল্য', 'প্ল্যান',
     'dekhao', 'chai', 'lagbe', 'koto', 'taka',
   ]
+  const hasGreeting = greetingKeywords.some((kw) => lower.includes(kw))
   const hasProductIntent = productRelatedWords.some((kw) => lower.includes(kw))
-
   if (hasGreeting && !hasProductIntent && lower.split(/\s+/).length <= 6) {
     return 'greeting'
+  }
+
+  // HOW TO USE intent
+  const howToUseKeywords = [
+    'how to use', 'kivabe use', 'use kivabe', 'kivabe korbo', 'kivabe chalabo',
+    'কীভাবে ব্যবহার', 'কিভাবে ব্যবহার', 'কীভাবে চালাবো', 'কিভাবে চালাবো',
+    'কীভাবে কাজ করে', 'কিভাবে কাজ করে', 'how does it work', 'tutorial',
+    'guide', 'নিয়ম', 'নিয়ম কি', 'ব্যবহার করে', 'use kora jay',
+    'কোথায় ব্যবহার', 'কি করতে হবে', 'কি করলে', 'চালানো যায়',
+    'kivabe', 'কিভাবে', 'কীভাবে',
+  ]
+  if (howToUseKeywords.some((kw) => lower.includes(kw))) {
+    return 'how_to_use'
+  }
+
+  // WARRANTY / DELIVERY intent
+  const warrantyKeywords = [
+    'warranty', 'guarantee', 'গ্যারান্টি', 'ওয়ারেন্টি', 'replacement',
+    'delivery time', 'কত সময়', 'কতক্ষণ', 'কবে পাবো', 'কবে দেবেন',
+    'delivery kivabe', 'delivery koto somoy', 'deliver koto din',
+    'ডেলিভারি', 'পাবো কবে', 'সময় লাগবে',
+  ]
+  if (warrantyKeywords.some((kw) => lower.includes(kw))) {
+    return 'warranty_delivery'
+  }
+
+  // PRICE INQUIRY - specific price questions
+  const priceKeywords = [
+    'koto taka', 'koto tk', 'dam koto', 'price koto', 'koto dar',
+    'কত টাকা', 'কত দাম', 'দাম কত', 'মূল্য কত', 'টাকা কত',
+    'price ki', 'price koto', 'cost koto', 'suto koto',
+    'কি দাম', 'দাম কি', 'sasta', 'সস্তা', 'discount', 'ছাড়',
+  ]
+  if (priceKeywords.some((kw) => lower.includes(kw))) {
+    return 'price_inquiry'
   }
 
   // ORDER / PAYMENT intent
@@ -89,6 +123,7 @@ function detectIntent(message: string): Intent {
     'bkash number', 'payment kivabe', 'নেবো', 'কিনবো', 'অর্ডার করবো',
     'trxid', 'transaction', 'send money', 'ট্রানজেকশন',
     'বিকাশ নম্বর', 'পেমেন্ট করবো', 'টাকা পাঠাবো',
+    'order kivabe', 'কীভাবে অর্ডার', 'কিভাবে অর্ডার', 'কীভাবে কিনবো',
   ]
   if (orderKeywords.some((kw) => lower.includes(kw))) {
     return 'order_payment'
@@ -100,13 +135,13 @@ function detectIntent(message: string): Intent {
     'popular', 'top product', 'recommended', 'highlighted',
     'ফিচার্ড', 'জনপ্রিয়', 'সেরা প্রোডাক্ট', 'টপ প্রোডাক্ট', 'হাইলাইটেড',
     'featured dekhao', 'featured dekhi', 'featured dekhte chai',
-    'best product', 'popular product',
+    'best product', 'popular product', 'best price',
   ]
   if (featuredKeywords.some((kw) => lower.includes(kw))) {
     return 'featured'
   }
 
-  // ALL PRODUCTS / catalog overview intent
+  // ALL PRODUCTS
   const allProductKeywords = [
     'সব', 'all product', 'all category', 'catalog', 'ক্যাটালগ',
     'সব দেখাও', 'সব প্রোডাক্ট', 'কি কি আছে', 'কি আছে',
@@ -119,19 +154,19 @@ function detectIntent(message: string): Intent {
     return 'all_products'
   }
 
-  // CATEGORY intent — detect if user mentions a category
+  // CATEGORY intent
   const categorySlug = detectCategorySlug(message)
   if (categorySlug) {
     return 'category'
   }
 
-  // SPECIFIC PRODUCT — try to find a specific product by name
+  // SPECIFIC PRODUCT
   const specificProduct = findSpecificProduct(message)
   if (specificProduct) {
     return 'specific_product'
   }
 
-  // GENERAL SEARCH — if the message contains enough words, try search
+  // SEARCH
   const cleanQuery = message.replace(/[^\w\s]/g, ' ').trim()
   const terms = cleanQuery.split(/\s+/).filter((t) => t.length > 1)
   if (terms.length >= 1) {
@@ -141,7 +176,6 @@ function detectIntent(message: string): Intent {
     }
   }
 
-  // OUT OF SCOPE
   return 'out_of_scope'
 }
 
@@ -149,191 +183,96 @@ function detectIntent(message: string): Intent {
 
 function detectCategorySlug(message: string): string | null {
   const lower = message.toLowerCase().trim()
-
   const categoryMap: Record<string, string[]> = {
-    streaming: ['streaming', 'ott', 'movie', 'স্ট্রিমিং', 'সিনেমা', 'netflix', 'spotify', 'youtube', 'hotstar', 'crunchyroll', 'disney'],
-    'ai-tools': ['ai tool', 'ai tools', 'এআই', 'chatgpt', 'midjourney', 'ai টুল', 'gemini', 'cursor', 'perplexity', 'grammarly'],
-    educational: ['educational', 'education', 'শিক্ষা', 'course', 'কোর্স', 'learning', 'coursera', 'udemy'],
+    streaming: ['streaming', 'ott', 'movie', 'স্ট্রিমিং', 'সিনেমা', 'netflix', 'spotify', 'youtube', 'hotstar', 'crunchyroll', 'disney', 'hoichoi', 'chorki'],
+    'ai-tools': ['ai tool', 'ai tools', 'এআই', 'chatgpt', 'midjourney', 'ai টুল', 'gemini', 'cursor', 'perplexity', 'grammarly', 'claude ai'],
+    educational: ['educational', 'education', 'শিক্ষা', 'course', 'কোর্স', 'learning', 'coursera', 'udemy', 'skillshare'],
     'design-creative': ['design', 'ডিজাইন', 'creative', 'ক্রিয়েটিভ', 'adobe', 'figma', 'canva', 'capcut'],
     productivity: ['productivity', 'প্রোডাক্টিভিটি', 'office', 'অফিস', 'microsoft'],
     'cloud-storage': ['cloud', 'ক্লাউড', 'storage', 'স্টোরেজ', 'icloud', 'google drive'],
     vpn: ['vpn', 'ভিপিএন', 'nordvpn', 'expressvpn', 'surfshark'],
-    'gift-cards': ['gift card', 'গিফট', 'itunes', 'google play card', 'gift'],
-    'gaming-topup': ['gaming', 'গেমিং', 'game', 'গেম', 'free fire', 'pubg', 'topup', 'gaming topup'],
+    'gift-cards': ['gift card', 'গিফট', 'itunes', 'google play card', 'gift', 'apple gift'],
+    'gaming-topup': ['gaming', 'গেমিং', 'game', 'গেম', 'free fire', 'pubg', 'topup', 'gaming topup', 'uc', 'diamond'],
     'multi-collection': ['multi', 'combo', 'bundle', 'কম্বো', 'collection'],
     adult: ['verified premium', 'premium entertainment', 'premium site', 'বিশেষ', 'restricted category'],
   }
-
   for (const [slug, keywords] of Object.entries(categoryMap)) {
     for (const keyword of keywords) {
-      if (lower.includes(keyword)) {
-        return slug
-      }
+      if (lower.includes(keyword)) return slug
     }
   }
-
   return null
 }
 
 // ─── Language Detection ───────────────────────────────────────────────────
 
 function detectLanguage(message: string): 'bangla' | 'banglish' | 'english' {
-  const banglaRegex = /[\u0980-\u09FF]/
-  const hasBangla = banglaRegex.test(message)
-
-  if (hasBangla) return 'bangla'
-
-  // Check for Banglish patterns
+  if (/[\u0980-\u09FF]/.test(message)) return 'bangla'
   const banglishPatterns = [
     /koto/i, /taka/i, /lagbe/i, /chai/i, /order\s*korbo/i, /nite\s*chai/i,
     /kinte\s*chai/i, /dekhao/i, /dekh/i, /ki\s*ki/i, /sob/i, /nam/i,
     /amar/i, /apnar/i, /bhai/i, /apu/i, /kichu/i, /kemon/i, /valo/i,
     /ase/i, /ache/i, /dibo/i, /nibo/i, /korbo/i, /parbo/i, /jani/i,
+    /kivabe/i, /keno/i, /kena/i,
   ]
-
-  const banglishMatches = banglishPatterns.filter((p) => p.test(message)).length
-  if (banglishMatches >= 1) return 'banglish'
-
+  if (banglishPatterns.filter((p) => p.test(message)).length >= 1) return 'banglish'
   return 'english'
 }
 
 // ─── Product Formatting ───────────────────────────────────────────────────
 
 function parsePriceOptions(product: Product): string {
-  let priceStr = ''
   try {
     const priceOptions = JSON.parse(product.priceOptions || '[]')
     if (Array.isArray(priceOptions) && priceOptions.length > 0) {
-      priceStr = priceOptions
+      return priceOptions
         .map((o: { label?: string; priceBDT?: string }) => `${o.label}: ৳${o.priceBDT}`)
         .join(', ')
     }
-  } catch {
-    // priceOptions parse failed
-  }
-  if (!priceStr) {
-    priceStr = `৳${product.basePriceBDT}`
-  }
-  return priceStr
+  } catch { /* empty */ }
+  return `৳${product.basePriceBDT}`
 }
 
 function parsePriceOptionsDetailed(product: Product): string {
-  let priceStr = ''
   try {
     const priceOptions = JSON.parse(product.priceOptions || '[]')
     if (Array.isArray(priceOptions) && priceOptions.length > 0) {
-      priceStr = priceOptions
-        .map((o: { label?: string; priceBDT?: string }) => `• ${o.label}: ৳${o.priceBDT}`)
+      return priceOptions
+        .map((o: { label?: string; priceBDT?: string }) => `  • ${o.label}: ৳${o.priceBDT}`)
         .join('\n')
     }
-  } catch {
-    // priceOptions parse failed
+  } catch { /* empty */ }
+  if (product.basePriceBDT === 'Inbox Price' || product.basePriceBDT === 'Low Price') {
+    return '  💰 সেরা দামের জন্য আমাদের সাথে যোগাযোগ করুন!'
   }
-  if (!priceStr) {
-    if (
-      product.basePriceBDT === 'Inbox Price' ||
-      product.basePriceBDT === 'Low Price'
-    ) {
-      priceStr = '💰 সেরা দামের জন্য আমাদের সাথে যোগাযোগ করুন'
-    } else {
-      priceStr = `• Base: ৳${product.basePriceBDT}`
-    }
-  }
-  return priceStr
+  return `  • Base: ৳${product.basePriceBDT}`
 }
 
 function parseFeatures(product: Product): string[] {
+  try { return JSON.parse(product.features || '[]') } catch { return [] }
+}
+
+function getCheapestPlan(product: Product): string {
   try {
-    return JSON.parse(product.features || '[]')
-  } catch {
-    return []
-  }
-}
-
-function formatProductDetails(product: Product, lang: 'bangla' | 'banglish' | 'english' = 'bangla'): string {
-  const sanitizedName = product.category.isAdult ? sanitizeText(product.name) : product.name
-
-  if (lang === 'english') {
-    const priceStr = parsePriceOptionsDetailed(product)
-    const features = parseFeatures(product)
-    const featuresStr = features.length > 0
-      ? '\n✨ Features:\n' + features.slice(0, 8).map((f) => `• ${f}`).join('\n')
-      : ''
-
-    return `${sanitizedName} Details 😊
-📦 Plans & Pricing:
-${priceStr}${featuresStr}
-📦 Stock: ${product.stockStatus}
-🔒 Warranty: ${product.warranty || 'Yes'}
-🚚 Delivery: ${product.deliveryTime}
-${product.region ? `🌍 Region: ${product.region}` : ''}
-${product.accountType ? `📋 Account Type: ${product.accountType}` : ''}
-
-Want to order? Let me know, I'll guide you! 😊`
-  }
-
-  if (lang === 'banglish') {
-    const priceStr = parsePriceOptionsDetailed(product)
-    const features = parseFeatures(product)
-    const featuresStr = features.length > 0
-      ? '\n✨ Features:\n' + features.slice(0, 8).map((f) => `• ${f}`).join('\n')
-      : ''
-
-    return `${sanitizedName} details dicchi 😊
-📦 Plan & Price:
-${priceStr}${featuresStr}
-📦 Stock: ${product.stockStatus}
-🔒 Warranty: ${product.warranty || 'Yes'}
-🚚 Delivery: ${product.deliveryTime}
-${product.region ? `🌍 Region: ${product.region}` : ''}
-${product.accountType ? `📋 Account Type: ${product.accountType}` : ''}
-
-Order korte chaile bolle din, ami guide korbo! 😊`
-  }
-
-  // Default: Bangla
-  const priceStr = parsePriceOptionsDetailed(product)
-  const features = parseFeatures(product)
-  const featuresStr = features.length > 0
-    ? '\n✨ সুবিধা:\n' + features.slice(0, 8).map((f) => `• ${f}`).join('\n')
-    : ''
-
-  return `${sanitizedName} সম্পর্কে বলছি 😊
-📦 প্যাকেজ ও মূল্য:
-${priceStr}${featuresStr}
-📦 স্টক: ${product.stockStatus}
-🔒 ওয়ারেন্টি: ${product.warranty || 'Yes'}
-🚚 ডেলিভারি: ${product.deliveryTime}
-${product.region ? `🌍 রিজিওন: ${product.region}` : ''}
-${product.accountType ? `📋 অ্যাকাউন্ট টাইপ: ${product.accountType}` : ''}
-
-অর্ডার করতে চাইলে বলুন, আমি গাইড করবো! 😊`
-}
-
-function formatProductCompact(product: Product): string {
-  const sanitizedName = product.category.isAdult ? sanitizeText(product.name) : product.name
-  const priceStr = parsePriceOptions(product)
-  const badges: string[] = []
-  if (product.isFeatured) badges.push('⭐')
-  if (product.isBestSeller) badges.push('🔥')
-  const badgeStr = badges.length > 0 ? ` ${badges.join('')}` : ''
-  return `${sanitizedName}${badgeStr} — ${priceStr} | Stock: ${product.stockStatus}`
+    const priceOptions = JSON.parse(product.priceOptions || '[]')
+    if (Array.isArray(priceOptions) && priceOptions.length > 0) {
+      const sorted = [...priceOptions].sort((a: any, b: any) =>
+        parseInt(String(a.priceBDT).replace(/\D/g, '') || '0') -
+        parseInt(String(b.priceBDT).replace(/\D/g, '') || '0')
+      )
+      return `৳${sorted[0].priceBDT} (${sorted[0].label})`
+    }
+  } catch { /* empty */ }
+  return `৳${product.basePriceBDT}`
 }
 
 // ─── WhatsApp URL Builder ─────────────────────────────────────────────────
 
 function buildWhatsAppUrl(orderDetails: {
-  customerName?: string
-  whatsappNumber?: string
-  productName?: string
-  plan?: string
-  price?: string
-  address?: string
-  transactionId?: string
-  message?: string
+  customerName?: string; whatsappNumber?: string; productName?: string;
+  plan?: string; price?: string; address?: string; transactionId?: string; message?: string;
 }): string {
   const lines: string[] = ['🛒 *Order Request — Streaming Hub*\n']
-
   if (orderDetails.customerName) lines.push(`👤 Name: ${orderDetails.customerName}`)
   if (orderDetails.whatsappNumber) lines.push(`📞 WhatsApp: ${orderDetails.whatsappNumber}`)
   if (orderDetails.productName) lines.push(`📦 Product: ${orderDetails.productName}`)
@@ -341,106 +280,202 @@ function buildWhatsAppUrl(orderDetails: {
   if (orderDetails.price) lines.push(`💰 Price: ${orderDetails.price}`)
   if (orderDetails.address) lines.push(`📍 Address: ${orderDetails.address}`)
   if (orderDetails.transactionId) lines.push(`🏦 TrxID: ${orderDetails.transactionId}`)
-
   lines.push('')
   lines.push('💳 Payment: bKash — 01647236359')
   lines.push('⚡ Delivery: 5-20 minutes after payment')
   lines.push('')
   lines.push('Please confirm my order. Thank you! 🙏')
-
   return `https://wa.me/8801647236359?text=${encodeURIComponent(lines.join('\n'))}`
 }
 
-// ─── Response Generators ──────────────────────────────────────────────────
+// ─── Smart Sales Response Generators ──────────────────────────────────────
 
 function generateGreeting(lang: 'bangla' | 'banglish' | 'english'): string {
   if (lang === 'english') {
-    return `Assalamu Alaikum! I'm Zara, your personal assistant at Streaming Hub 😊
+    return `Assalamu Alaikum! Welcome to Streaming Hub! 🎉
 
-I can help you:
-🔍 Find products & check prices
-📦 Get product details & stock info
-🛒 Guide you through ordering
+I'm কর্মচারী, your personal shopping assistant. I'm here to help you find the perfect subscription at the best price in Bangladesh! 💯
 
-What can I help you with?`
+What are you looking for today? You can ask me:
+🎬 Netflix, Spotify, YouTube Premium prices
+🤖 ChatGPT Plus, Midjourney, AI tools
+🔒 VPN plans — NordVPN, ExpressVPN
+🎮 Gaming top-up, Gift Cards & more!
+
+Just tell me what you need — I'll find the best deal for you! 😊`
   }
 
   if (lang === 'banglish') {
-    return `Assalamu Alaikum! Ami Zara, Streaming Hub er personal assistant 😊
+    return `Assalamu Alaikum! Streaming Hub e swagotom! 🎉
 
-Ami apnake help korte pari:
-🔍 Product khuje pete & daam jante
-📦 Product details & stock info pete
-🛒 Order korte guide korte
+Ami কর্মচারী, apnar personal shopping assistant. Apnar jonno best subscription best price e khuje berate help korbo! 💯
 
-Ki help lagbe bolle din! 😊`
+Aaj ki lagbe bolle din? Ami help korte pari:
+🎬 Netflix, Spotify, YouTube Premium er daam
+🤖 ChatGPT Plus, Midjourney, AI tools
+🔒 VPN plan — NordVPN, ExpressVPN
+🎮 Gaming top-up, Gift Cards & ar onek kichu!
+
+Shudhu bolle din ki chai — apnar jonno best deal ta khuje debo! 😊`
   }
 
-  return `আসসালামু আলাইকুম! আমি জারা, আপনার personal assistant 😊
+  return `আসসালামু আলাইকুম! Streaming Hub-এ স্বাগতম! 🎉
 
-আমি সাহায্য করতে পারবো:
-🔍 প্রোডাক্ট খুঁজে পেতে ও দাম জানতে
-📦 প্রোডাক্ট বিস্তারিত ও স্টক জানতে
-🛒 অর্ডার করতে গাইড করতে
+আমি কর্মচারী, আপনার পার্সোনাল শপিং অ্যাসিস্ট্যান্ট। বাংলাদেশে সেরা দামে আপনার জন্য সঠিক সাবস্ক্রিপশন খুঁজে দিতে আমি এখানে আছি! 💯
 
-কীভাবে সাহায্য করতে পারি আপনাকে? 😊`
+আজ কী লাগবে বলুন? আমি সাহায্য করতে পারি:
+🎬 Netflix, Spotify, YouTube Premium এর দাম
+🤖 ChatGPT Plus, Midjourney, AI tools
+🔒 VPN প্ল্যান — NordVPN, ExpressVPN
+🎮 Gaming top-up, Gift Cards আর আরও অনেক কিছু!
+
+শুধু বলুন কী চান — আপনার জন্য সেরা ডিল খুঁজে দেবো! 😊`
 }
 
 function generateFeaturedResponse(lang: 'bangla' | 'banglish' | 'english'): string {
   const { products } = getFeaturedProducts()
-
   if (products.length === 0) {
-    if (lang === 'english') return 'Sorry, no featured products available right now. Check out our other products! 😊'
-    if (lang === 'banglish') return 'Sorry, ekhon kono featured product nai. Onno product gulo dekhen! 😊'
-    return 'দুঃখিত, বর্তমানে কোনো ফিচার্ড প্রোডাক্ট নেই। অন্যান্য প্রোডাক্ট দেখতে চাইলে বলুন! 😊'
+    if (lang === 'english') return 'We\'re updating our featured collection! Check out all products in the meantime. 😊'
+    if (lang === 'banglish') return 'Featured collection update hocche! Ektu pore abar dekhen. 😊'
+    return 'ফিচার্ড কালেকশন আপডেট হচ্ছে! একটু পরে আবার দেখুন। 😊'
   }
 
-  const maxShow = 10
+  const maxShow = 8
   const showing = products.slice(0, maxShow)
 
   if (lang === 'english') {
-    const lines = ['⭐ Our Featured Products:\n']
+    const lines = ['⭐ Our Most Popular Products — Best Sellers!\n']
     showing.forEach((p, i) => {
-      lines.push(`${i + 1}. ${p.category.isAdult ? sanitizeText(p.name) : p.name}`)
-      lines.push(`   💰 ${parsePriceOptions(p)}`)
-      lines.push(`   📦 Stock: ${p.stockStatus}`)
-      lines.push('')
+      const name = p.category.isAdult ? sanitizeText(p.name) : p.name
+      const cheapest = getCheapestPlan(p)
+      const badge = p.isBestSeller ? ' 🔥' : p.isNewArrival ? ' ✨' : ''
+      lines.push(`${i + 1}. ${name}${badge} — Starting ${cheapest}`)
     })
-    if (products.length > maxShow) {
-      lines.push(`... and ${products.length - maxShow} more featured products!`)
-    }
-    lines.push('Which one interests you? Ask for details! 😊')
+    if (products.length > maxShow) lines.push(`\n... and ${products.length - maxShow} more!`)
+    lines.push('\n💡 Which one catches your eye? Ask for details — I\'ll tell you everything! 😊')
     return lines.join('\n')
   }
 
   if (lang === 'banglish') {
-    const lines = ['⭐ Amar featured products:\n']
+    const lines = ['⭐ Amader sobcheye popular products — Best Sellers!\n']
     showing.forEach((p, i) => {
-      lines.push(`${i + 1}. ${p.category.isAdult ? sanitizeText(p.name) : p.name}`)
-      lines.push(`   💰 ${parsePriceOptions(p)}`)
-      lines.push(`   📦 Stock: ${p.stockStatus}`)
-      lines.push('')
+      const name = p.category.isAdult ? sanitizeText(p.name) : p.name
+      const cheapest = getCheapestPlan(p)
+      const badge = p.isBestSeller ? ' 🔥' : p.isNewArrival ? ' ✨' : ''
+      lines.push(`${i + 1}. ${name}${badge} — Shuru ${cheapest} theke`)
     })
-    if (products.length > maxShow) {
-      lines.push(`... ar ${products.length - maxShow} ta featured product ache!`)
-    }
-    lines.push('Kon ta detail dekhte chan? Bolle din! 😊')
+    if (products.length > maxShow) lines.push(`\n... ar ${products.length - maxShow} ta ache!`)
+    lines.push('\n💡 Kon ta pochondo holo? Details er jonno bolle din — sob bujhiye debo! 😊')
     return lines.join('\n')
   }
 
-  // Bangla (default)
-  const lines = ['⭐ আমাদের ফিচার্ড প্রোডাক্টগুলো:\n']
+  const lines = ['⭐ আমাদের সবচেয়ে জনপ্রিয় প্রোডাক্ট — Best Sellers!\n']
   showing.forEach((p, i) => {
-    lines.push(`${i + 1}. ${p.category.isAdult ? sanitizeText(p.name) : p.name}`)
-    lines.push(`   💰 ${parsePriceOptions(p)}`)
-    lines.push(`   📦 স্টক: ${p.stockStatus}`)
-    lines.push('')
+    const name = p.category.isAdult ? sanitizeText(p.name) : p.name
+    const cheapest = getCheapestPlan(p)
+    const badge = p.isBestSeller ? ' 🔥' : p.isNewArrival ? ' ✨' : ''
+    lines.push(`${i + 1}. ${name}${badge} — শুরু ${cheapest} থেকে`)
   })
-  if (products.length > maxShow) {
-    lines.push(`... আরও ${products.length - maxShow}টি ফিচার্ড প্রোডাক্ট আছে!`)
-  }
-  lines.push('কোনটা আপনার পছন্দের? বিস্তারিত জানতে চাইলে বলুন! 😊')
+  if (products.length > maxShow) lines.push(`\n... আরও ${products.length - maxShow}টি আছে!`)
+  lines.push('\n💡 কোনটা পছন্দ হলো? বিস্তারিত জানতে চাইলে বলুন — সব বুঝিয়ে বলবো! 😊')
   return lines.join('\n')
+}
+
+function generateSpecificProductResponse(
+  product: Product,
+  lang: 'bangla' | 'banglish' | 'english',
+  intent: Intent
+): string {
+  const sanitizedName = product.category.isAdult ? sanitizeText(product.name) : product.name
+  const priceStr = parsePriceOptionsDetailed(product)
+  const features = parseFeatures(product)
+  const cheapest = getCheapestPlan(product)
+  const isLimited = product.stockStatus === 'Limited Stock'
+
+  // Price inquiry — short & sweet answer
+  if (intent === 'price_inquiry') {
+    if (lang === 'english') {
+      return `${sanitizedName} Pricing 💰\n\n${priceStr}\n\n${isLimited ? '⚠️ Limited stock — order soon!\n' : ''}Want to order? I can guide you through the process! 😊`
+    }
+    if (lang === 'banglish') {
+      return `${sanitizedName} er daam 💰\n\n${priceStr}\n\n${isLimited ? '⚠️ Stock limited — joldi order korren!\n' : ''}Order korte chaile? Ami guide korbo! 😊`
+    }
+    return `${sanitizedName} এর দাম 💰\n\n${priceStr}\n\n${isLimited ? '⚠️ স্টক লিমিটেড — দ্রুত অর্ডার করুন!\n' : ''}অর্ডার করতে চাইলে? আমি গাইড করবো! 😊`
+  }
+
+  // Full product detail — conversational & sales-oriented
+  const featuresStr = features.length > 0
+    ? '\n✨ যা যা পাবেন:\n' + features.slice(0, 8).map((f) => `  • ${f}`).join('\n')
+    : ''
+
+  if (lang === 'english') {
+    let response = `Great choice! Let me tell you about ${sanitizedName} 😊\n\n`
+    response += `📦 Plans & Pricing:\n${priceStr}\n`
+    if (featuresStr) response += featuresStr + '\n'
+    response += `\n📦 Stock: ${product.stockStatus}${isLimited ? ' ⚠️ Order fast!' : ''}`
+    response += `\n🔒 Warranty: ${product.warranty || 'Full warranty included'}`
+    response += `\n🚚 Delivery: ${product.deliveryTime}`
+    if (product.region) response += `\n🌍 Region: ${product.region}`
+    if (product.accountType) response += `\n📋 Type: ${product.accountType}`
+    response += `\n\n💡 Starting at just ${cheapest} — that's an amazing deal!`
+    response += `\n\nWant to order? Or need help choosing a plan? Just ask! 😊`
+
+    // Add related products
+    const related = findRelatedProducts(product.id, 3)
+    if (related.length > 0) {
+      const relatedStr = related.map((p) => {
+        const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
+        return `${pName} (${getCheapestPlan(p)})`
+      }).join(', ')
+      response += `\n\n🎁 You might also like: ${relatedStr}`
+    }
+    return response
+  }
+
+  if (lang === 'banglish') {
+    let response = `Valo choice! ${sanitizedName} er kotha bolchi 😊\n\n`
+    response += `📦 Plan & Price:\n${priceStr}\n`
+    if (featuresStr) response += featuresStr + '\n'
+    response += `\n📦 Stock: ${product.stockStatus}${isLimited ? ' ⚠️ Joldi order korren!' : ''}`
+    response += `\n🔒 Warranty: ${product.warranty || 'Full warranty ache'}`
+    response += `\n🚚 Delivery: ${product.deliveryTime}`
+    if (product.region) response += `\n🌍 Region: ${product.region}`
+    if (product.accountType) response += `\n📋 Type: ${product.accountType}`
+    response += `\n\n💡 Shuru ${cheapest} theke — onek valo deal!`
+    response += `\n\nOrder korte chan? Ba plan choose korte help lagbe? Bolle din! 😊`
+
+    const related = findRelatedProducts(product.id, 3)
+    if (related.length > 0) {
+      const relatedStr = related.map((p) => {
+        const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
+        return `${pName} (${getCheapestPlan(p)})`
+      }).join(', ')
+      response += `\n\n🎁 Ar ei gulo o apnar pochondo hote pare: ${relatedStr}`
+    }
+    return response
+  }
+
+  // Bangla (default)
+  let response = `চমৎকার পছন্দ! ${sanitizedName} সম্পর্কে বলছি 😊\n\n`
+  response += `📦 প্যাকেজ ও মূল্য:\n${priceStr}\n`
+  if (featuresStr) response += featuresStr + '\n'
+  response += `\n📦 স্টক: ${product.stockStatus}${isLimited ? ' ⚠️ দ্রুত অর্ডার করুন!' : ''}`
+  response += `\n🔒 ওয়ারেন্টি: ${product.warranty || 'ফুল ওয়ারেন্টি অন্তর্ভুক্ত'}`
+  response += `\n🚚 ডেলিভারি: ${product.deliveryTime}`
+  if (product.region) response += `\n🌍 রিজিওন: ${product.region}`
+  if (product.accountType) response += `\n📋 টাইপ: ${product.accountType}`
+  response += `\n\n💡 মাত্র ${cheapest} থেকে শুরু — দারুণ ডিল!`
+  response += `\n\nঅর্ডার করতে চান? প্ল্যান বেছে নিতে সাহায্য লাগলে বলুন! 😊`
+
+  const related = findRelatedProducts(product.id, 3)
+  if (related.length > 0) {
+    const relatedStr = related.map((p) => {
+      const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
+      return `${pName} (${getCheapestPlan(p)})`
+    }).join(', ')
+    response += `\n\n🎁 আপনি এইগুলোও পছন্দ করতে পারেন: ${relatedStr}`
+  }
+  return response
 }
 
 function generateCategoryResponse(
@@ -448,9 +483,7 @@ function generateCategoryResponse(
   lang: 'bangla' | 'banglish' | 'english'
 ): string {
   const { category, products, totalCount } = searchByCategory(categorySlug)
-
   if (!category || products.length === 0) {
-    // Fallback to search
     return generateSearchFallback(categorySlug, lang)
   }
 
@@ -459,41 +492,43 @@ function generateCategoryResponse(
   const showing = products.slice(0, maxShow)
 
   if (lang === 'english') {
-    const lines = [`📂 ${sanitizedName} — ${totalCount} products:\n`]
-    showing.forEach((p) => {
+    const lines = [`📂 ${sanitizedName} — ${totalCount} products available!\n`]
+    lines.push('Here are our top picks:\n')
+    showing.forEach((p, i) => {
       const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
-      lines.push(`• ${pName} — ${parsePriceOptions(p)}`)
+      const cheapest = getCheapestPlan(p)
+      const badge = p.isBestSeller ? ' 🔥' : p.isFeatured ? ' ⭐' : ''
+      lines.push(`${i + 1}. ${pName}${badge} — From ${cheapest}`)
     })
-    if (totalCount > maxShow) {
-      lines.push(`\n... and ${totalCount - maxShow} more products!`)
-    }
-    lines.push('\nWhich product would you like to know more about? 😊')
+    if (totalCount > maxShow) lines.push(`\n... and ${totalCount - maxShow} more!`)
+    lines.push('\n💡 Which one interests you? I\'ll give you full details! 😊')
     return lines.join('\n')
   }
 
   if (lang === 'banglish') {
-    const lines = [`📂 ${sanitizedName} — ${totalCount} ta product:\n`]
-    showing.forEach((p) => {
+    const lines = [`📂 ${sanitizedName} — ${totalCount} ta product ache!\n`]
+    lines.push('Top picks gulo holo:\n')
+    showing.forEach((p, i) => {
       const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
-      lines.push(`• ${pName} — ${parsePriceOptions(p)}`)
+      const cheapest = getCheapestPlan(p)
+      const badge = p.isBestSeller ? ' 🔥' : p.isFeatured ? ' ⭐' : ''
+      lines.push(`${i + 1}. ${pName}${badge} — ${cheapest} theke`)
     })
-    if (totalCount > maxShow) {
-      lines.push(`\n... ar ${totalCount - maxShow} ta product ache!`)
-    }
-    lines.push('\nKon product er details chante chan? 😊')
+    if (totalCount > maxShow) lines.push(`\n... ar ${totalCount - maxShow} ta ache!`)
+    lines.push('\n💡 Kon ta details dekhte chan? Sob bujhiye debo! 😊')
     return lines.join('\n')
   }
 
-  // Bangla
-  const lines = [`📂 ${sanitizedName} ক্যাটাগরিতে মোট ${totalCount}টি প্রোডাক্ট আছে:\n`]
-  showing.forEach((p) => {
+  const lines = [`📂 ${sanitizedName} ক্যাটাগরিতে ${totalCount}টি প্রোডাক্ট আছে!\n`]
+  lines.push('টপ পিকগুলো হলো:\n')
+  showing.forEach((p, i) => {
     const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
-    lines.push(`• ${pName} — ${parsePriceOptions(p)}`)
+    const cheapest = getCheapestPlan(p)
+    const badge = p.isBestSeller ? ' 🔥' : p.isFeatured ? ' ⭐' : ''
+    lines.push(`${i + 1}. ${pName}${badge} — ${cheapest} থেকে`)
   })
-  if (totalCount > maxShow) {
-    lines.push(`\n... আরও ${totalCount - maxShow}টি প্রোডাক্ট আছে!`)
-  }
-  lines.push('\nকোনটা সম্পর্কে জানতে চান? 😊')
+  if (totalCount > maxShow) lines.push(`\n... আরও ${totalCount - maxShow}টি আছে!`)
+  lines.push('\n💡 কোনটা বিস্তারিত দেখতে চান? সব বুঝিয়ে বলবো! 😊')
   return lines.join('\n')
 }
 
@@ -501,129 +536,158 @@ function generateAllProductsResponse(lang: 'bangla' | 'banglish' | 'english'): s
   const catalogSummary = getCatalogSummary()
 
   if (lang === 'english') {
-    const lines = ['📂 Our Product Categories:\n']
+    const lines = ['📂 We have 200+ products across 11 categories!\n']
     catalogSummary.forEach((cat) => {
-      const sanitizedName = cat.isAdult ? sanitizeText(cat.name) : cat.name
-      lines.push(`📂 ${sanitizedName} (${cat.productCount} products):`)
-      lines.push(`   ${cat.sampleProducts.slice(0, 3).join(', ')}`)
+      const name = cat.isAdult ? sanitizeText(cat.name) : cat.name
+      lines.push(`📂 ${name} (${cat.productCount} products)`)
+      lines.push(`   Popular: ${cat.sampleProducts.slice(0, 3).join(', ')}`)
     })
-    lines.push('\nWhich category interests you? Ask for details! 😊')
+    lines.push('\n💡 Which category interests you? Or tell me a specific product name! 😊')
     return lines.join('\n')
   }
 
   if (lang === 'banglish') {
-    const lines = ['📂 Amar product categories:\n']
+    const lines = ['📂 Amader 200+ product ache 11 ta category te!\n']
     catalogSummary.forEach((cat) => {
-      const sanitizedName = cat.isAdult ? sanitizeText(cat.name) : cat.name
-      lines.push(`📂 ${sanitizedName} (${cat.productCount} ta product):`)
-      lines.push(`   ${cat.sampleProducts.slice(0, 3).join(', ')}`)
+      const name = cat.isAdult ? sanitizeText(cat.name) : cat.name
+      lines.push(`📂 ${name} (${cat.productCount} ta)`)
+      lines.push(`   Popular: ${cat.sampleProducts.slice(0, 3).join(', ')}`)
     })
-    lines.push('\nKon category dekhte chan? Bolle din! 😊')
+    lines.push('\n💡 Kon category dekhte chan? Ba kon product er nam bolle din! 😊')
     return lines.join('\n')
   }
 
-  // Bangla
-  const lines = ['📂 আমাদের প্রোডাক্ট ক্যাটাগরিগুলো:\n']
+  const lines = ['📂 আমাদের ১১টি ক্যাটাগরিতে ২০০+ প্রোডাক্ট আছে!\n']
   catalogSummary.forEach((cat) => {
-    const sanitizedName = cat.isAdult ? sanitizeText(cat.name) : cat.name
-    lines.push(`📂 ${sanitizedName} (${cat.productCount}টি প্রোডাক্ট):`)
-    lines.push(`   ${cat.sampleProducts.slice(0, 3).join(', ')}`)
+    const name = cat.isAdult ? sanitizeText(cat.name) : cat.name
+    lines.push(`📂 ${name} (${cat.productCount}টি)`)
+    lines.push(`   জনপ্রিয়: ${cat.sampleProducts.slice(0, 3).join(', ')}`)
   })
-  lines.push('\nকোন ক্যাটাগরি দেখতে চান? বলুন! 😊')
+  lines.push('\n💡 কোন ক্যাটাগরি দেখতে চান? অথবা প্রোডাক্টের নাম বলুন! 😊')
   return lines.join('\n')
-}
-
-function generateSpecificProductResponse(
-  product: Product,
-  lang: 'bangla' | 'banglish' | 'english'
-): string {
-  const response = formatProductDetails(product, lang)
-
-  // Add related products for upsell
-  const related = findRelatedProducts(product.id, 3)
-  if (related.length > 0) {
-    const relatedStr = related
-      .map((p) => {
-        const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
-        return `${pName} — ৳${p.basePriceBDT}`
-      })
-      .join(', ')
-
-    if (lang === 'english') {
-      return response + `\n\n💡 You might also like: ${relatedStr}`
-    }
-    if (lang === 'banglish') {
-      return response + `\n\n💡 Apni ar ei gulo o pochondo korte paren: ${relatedStr}`
-    }
-    return response + `\n\n💡 আপনি এইগুলোও পছন্দ করতে পারেন: ${relatedStr}`
-  }
-
-  return response
 }
 
 function generateSearchResponse(
   products: Product[],
   lang: 'bangla' | 'banglish' | 'english'
 ): string {
-  if (products.length === 0) {
-    return generateOutOfScopeResponse(lang)
-  }
+  if (products.length === 0) return generateOutOfScopeResponse(lang)
 
   const maxShow = 6
   const showing = products.slice(0, maxShow)
 
   if (lang === 'english') {
-    const lines = ['🔍 Here\'s what I found:\n']
+    const lines = ['🔍 I found these for you:\n']
     showing.forEach((p, i) => {
       const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
-      lines.push(`${i + 1}. ${pName}`)
-      lines.push(`   💰 ${parsePriceOptions(p)} | Stock: ${p.stockStatus}`)
-      lines.push('')
+      const cheapest = getCheapestPlan(p)
+      const badge = p.isBestSeller ? ' 🔥' : ''
+      lines.push(`${i + 1}. ${pName}${badge} — From ${cheapest}`)
     })
-    if (products.length > maxShow) {
-      lines.push(`... and ${products.length - maxShow} more results!`)
-    }
-    lines.push('Want details on any product? Just ask! 😊')
+    if (products.length > maxShow) lines.push(`\n... and ${products.length - maxShow} more!`)
+    lines.push('\n💡 Want details on any product? Just ask! 😊')
     return lines.join('\n')
   }
 
   if (lang === 'banglish') {
-    const lines = ['🔍 Ei je pailam:\n']
+    const lines = ['🔍 Apnar jonno ei gulo pailam:\n']
     showing.forEach((p, i) => {
       const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
-      lines.push(`${i + 1}. ${pName}`)
-      lines.push(`   💰 ${parsePriceOptions(p)} | Stock: ${p.stockStatus}`)
-      lines.push('')
+      const cheapest = getCheapestPlan(p)
+      const badge = p.isBestSeller ? ' 🔥' : ''
+      lines.push(`${i + 1}. ${pName}${badge} — ${cheapest} theke`)
     })
-    if (products.length > maxShow) {
-      lines.push(`... ar ${products.length - maxShow} ta result ache!`)
-    }
-    lines.push('Kon product er details chante chan? Bolle din! 😊')
+    if (products.length > maxShow) lines.push(`\n... ar ${products.length - maxShow} ta ache!`)
+    lines.push('\n💡 Kon product er details chante chan? Bolle din! 😊')
     return lines.join('\n')
   }
 
-  // Bangla
-  const lines = ['🔍 এইগুলো পেলাম:\n']
+  const lines = ['🔍 আপনার জন্য এইগুলো পেলাম:\n']
   showing.forEach((p, i) => {
     const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
-    lines.push(`${i + 1}. ${pName}`)
-    lines.push(`   💰 ${parsePriceOptions(p)} | স্টক: ${p.stockStatus}`)
-    lines.push('')
+    const cheapest = getCheapestPlan(p)
+    const badge = p.isBestSeller ? ' 🔥' : ''
+    lines.push(`${i + 1}. ${pName}${badge} — ${cheapest} থেকে`)
   })
-  if (products.length > maxShow) {
-    lines.push(`... আরও ${products.length - maxShow}টি রেজাল্ট আছে!`)
-  }
-  lines.push('কোন প্রোডাক্টের বিস্তারিত জানতে চান? বলুন! 😊')
+  if (products.length > maxShow) lines.push(`\n... আরও ${products.length - maxShow}টি আছে!`)
+  lines.push('\n💡 কোন প্রোডাক্টের বিস্তারিত জানতে চান? বলুন! 😊')
   return lines.join('\n')
 }
 
 function generateSearchFallback(query: string, lang: 'bangla' | 'banglish' | 'english'): string {
   const results = searchProducts(query, 6)
-  if (results.length > 0) {
-    return generateSearchResponse(results, lang)
-  }
+  if (results.length > 0) return generateSearchResponse(results, lang)
   return generateOutOfScopeResponse(lang)
 }
+
+// ─── NEW: How to Use Guide ────────────────────────────────────────────────
+
+function generateHowToUseResponse(
+  userMsg: string,
+  lang: 'bangla' | 'banglish' | 'english'
+): string {
+  const product = findSpecificProduct(userMsg)
+  const sanitizedName = product ? (product.category.isAdult ? sanitizeText(product.name) : product.name) : null
+
+  if (lang === 'english') {
+    let response = `📱 How to Use Your Subscription:\n\n`
+    response += `1️⃣ After payment, we'll send you login credentials within 5-20 minutes\n`
+    response += `2️⃣ Log in with the provided email & password\n`
+    response += `3️⃣ Change the password to your own for security\n`
+    response += `4️⃣ Start enjoying your premium subscription! 🎉\n\n`
+    if (sanitizedName) {
+      response += `For ${sanitizedName}, we provide a full setup guide after purchase.\n\n`
+    }
+    response += `🔒 All subscriptions come with full warranty. If any issue, we'll replace it free!\n\n`
+    response += `Want to order? I'll guide you step by step! 😊`
+    return response
+  }
+
+  if (lang === 'banglish') {
+    let response = `📱 Subscription kivabe use korben:\n\n`
+    response += `1️⃣ Payment er por, 5-20 minute e login credentials pathabo\n`
+    response += `2️⃣ Dea email & password diye login korren\n`
+    response += `3️⃣ Security er jonno password apnar nijer ta change korren\n`
+    response += `4️⃣ Premium subscription enjoy korren! 🎉\n\n`
+    if (sanitizedName) {
+      response += `${sanitizedName} er jonno purchase er por full setup guide debo.\n\n`
+    }
+    response += `🔒 Sob subscription e full warranty ache. Kono problem hole free e replace kore debo!\n\n`
+    response += `Order korte chan? Step by step guide korbo! 😊`
+    return response
+  }
+
+  let response = `📱 সাবস্ক্রিপশন কীভাবে ব্যবহার করবেন:\n\n`
+  response += `1️⃣ পেমেন্টের পর, 5-20 মিনিটে লগইন তথ্য পাঠাবো\n`
+  response += `2️⃣ দেওয়া ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন\n`
+  response += `3️⃣ নিরাপত্তার জন্য পাসওয়ার্ড আপনারটা দিয়ে চেঞ্জ করুন\n`
+  response += `4️⃣ প্রিমিয়াম সাবস্ক্রিপশন উপভোগ করুন! 🎉\n\n`
+  if (sanitizedName) {
+    response += `${sanitizedName} এর জন্য কেনার পর সম্পূর্ণ সেটআপ গাইড দেবো।\n\n`
+  }
+  response += `🔒 সব সাবস্ক্রিপশনে ফুল ওয়ারেন্টি আছে। কোনো সমস্যা হলে ফ্রিতে রিপ্লেস করে দেবো!\n\n`
+  response += `অর্ডার করতে চান? স্টেপ বাই স্টেপ গাইড করবো! 😊`
+  return response
+}
+
+// ─── NEW: Warranty & Delivery Info ────────────────────────────────────────
+
+function generateWarrantyDeliveryResponse(
+  userMsg: string,
+  lang: 'bangla' | 'banglish' | 'english'
+): string {
+  if (lang === 'english') {
+    return `🔒 Warranty & Delivery Policy:\n\n✅ Full warranty on all subscriptions\n✅ If any issue, free replacement within warranty period\n✅ No questions asked replacement policy\n\n🚚 Delivery Time:\n• Most products: 5-20 minutes\n• Some products: Up to 24 hours\n• We'll notify you the exact time after order\n\n💰 Payment Methods:\n• bKash: 01647236359\n• Nagad: 01647236359\n\n📱 Any other questions? Or ready to order? 😊`
+  }
+
+  if (lang === 'banglish') {
+    return `🔒 Warranty & Delivery Policy:\n\n✅ Sob subscription e full warranty\n✅ Kono issue hole warranty period e free replacement\n✅ Kono question na kore replace kore debo\n\n🚚 Delivery Time:\n• Most product: 5-20 minute\n• Kichu product: 24 hours porjonto\n• Order er por exact time janiye debo\n\n💰 Payment Methods:\n• bKash: 01647236359\n• Nagad: 01647236359\n\n📱 Ar kono question? Ba order korte ready? 😊`
+  }
+
+  return `🔒 ওয়ারেন্টি ও ডেলিভারি পলিসি:\n\n✅ সব সাবস্ক্রিপশনে ফুল ওয়ারেন্টি\n✅ কোনো সমস্যা হলে ওয়ারেন্টি সময়ে ফ্রি রিপ্লেসমেন্ট\n✅ কোনো প্রশ্ন ছাড়াই রিপ্লেস করে দেবো\n\n🚚 ডেলিভারি সময়:\n• বেশিরভাগ প্রোডাক্ট: 5-20 মিনিট\n• কিছু প্রোডাক্ট: ২৪ ঘণ্টা পর্যন্ত\n• অর্ডারের পর সঠিক সময় জানিয়ে দেবো\n\n💰 পেমেন্ট মাধ্যম:\n• bKash: 01647236359\n• Nagad: 01647236359\n\n📱 আর কোনো প্রশ্ন? অথবা অর্ডার করতে রেডি? 😊`
+}
+
+// ─── Order Payment Response ───────────────────────────────────────────────
 
 function generateOrderPaymentResponse(
   userMsg: string,
@@ -631,67 +695,56 @@ function generateOrderPaymentResponse(
   lang: 'bangla' | 'banglish' | 'english'
 ): { response: string; whatsappUrl: string } {
   const lower = userMsg.toLowerCase()
-
-  // Extract info from conversation
   const fullConversation = [
     ...history.map((m) => `${m.role}: ${m.content}`),
     `user: ${userMsg}`,
   ].join('\n')
 
   const extractName = (text: string): string | undefined => {
-    const patterns = [
+    for (const p of [
       /(?:my name is|i'm|i am|name[:\s]+)\s*([a-zA-Z\s]{2,30})/i,
       /(?:আমার নাম|নাম[:\s]+)\s*([^\n]{2,30})/i,
       /(?:amar nam|nam[:\s]+)\s*([a-zA-Z\s]{2,30})/i,
-    ]
-    for (const pattern of patterns) {
-      const match = text.match(pattern)
-      if (match) return match[1].trim()
+    ]) {
+      const m = text.match(p)
+      if (m) return m[1].trim()
     }
     return undefined
   }
 
   const extractWhatsApp = (text: string): string | undefined => {
-    const patterns = [
+    for (const p of [
       /(?:whatsapp|phone|number|mobile|contact|নম্বর|ফোন)[:\s]*(?:number)?[:\s]*([+]?[\d]{10,15})/i,
       /([+]?880[\d]{10})/,
       /([+]?01[\d]{9})/,
-    ]
-    for (const pattern of patterns) {
-      const match = text.match(pattern)
-      if (match) return match[1].trim()
+    ]) {
+      const m = text.match(p)
+      if (m) return m[1].trim()
     }
     return undefined
   }
 
   const extractProduct = (text: string): string | undefined => {
-    const productPatterns = [
+    for (const p of [
       /(?:i want to (?:buy|order|get|subscribe to)|looking for|interested in)[:\s]+([a-zA-Z\s&+]{3,40})/i,
       /(?:product|subscribe to|subscription for|plan for)[:\s]+([a-zA-Z\s&+]{3,40})/i,
       /(?:buy|order|get|purchase)[:\s]+([a-zA-Z\s&+]{3,40})/i,
       /(?:লাগবে|চাই|নিতে চাই|কিনতে চাই)[:\s]*([^\n]{3,40})/i,
       /(?:lagbe|chai|nite chai|kinte chai)[:\s]+([a-zA-Z\s&+]{3,40})/i,
-    ]
-    for (const pattern of productPatterns) {
-      const match = text.match(pattern)
-      if (match) {
-        return match[1]
-          .replace(/\b(to|for|the|a|an|please)\b/gi, '')
-          .replace(/\s+/g, ' ')
-          .trim()
-      }
+    ]) {
+      const m = text.match(p)
+      if (m) return m[1].replace(/\b(to|for|the|a|an|please)\b/gi, '').replace(/\s+/g, ' ').trim()
     }
     return undefined
   }
 
   const extractTransactionId = (text: string): string | undefined => {
-    const patterns = [
+    for (const p of [
       /(?:trxid|transaction\s*id|txn|trx|ট্রানজেকশন)[:\s]*([a-zA-Z0-9]{6,20})/i,
       /(?:payment\s*done|paid|পেমেন্ট\s*হয়েছে|পেমেন্ট\s*করেছি)[:\s]*([a-zA-Z0-9]{6,20})/i,
-    ]
-    for (const pattern of patterns) {
-      const match = text.match(pattern)
-      if (match) return match[1].trim()
+    ]) {
+      const m = text.match(p)
+      if (m) return m[1].trim()
     }
     return undefined
   }
@@ -701,136 +754,177 @@ function generateOrderPaymentResponse(
   const productFromConv = extractProduct(fullConversation)
   const transactionId = extractTransactionId(fullConversation)
 
-  // Try to find the product being discussed
   let foundProduct: Product | null = null
-  if (productFromConv) {
-    foundProduct = findSpecificProduct(productFromConv)
-  }
-  if (!foundProduct) {
-    foundProduct = findSpecificProduct(userMsg)
-  }
-  // Also check history for product mentions
+  if (productFromConv) foundProduct = findSpecificProduct(productFromConv)
+  if (!foundProduct) foundProduct = findSpecificProduct(userMsg)
   if (!foundProduct) {
     for (const msg of history.slice(-6).reverse()) {
       const p = findSpecificProduct(msg.content)
-      if (p) {
-        foundProduct = p
-        break
-      }
+      if (p) { foundProduct = p; break }
     }
   }
 
   const whatsappUrl = buildWhatsAppUrl({
-    customerName,
-    whatsappNumber: customerWhatsApp,
-    productName: foundProduct?.name || productFromConv,
-    transactionId,
-    message: userMsg,
+    customerName, whatsappNumber: customerWhatsApp,
+    productName: foundProduct?.name || productFromConv, transactionId, message: userMsg,
   })
 
-  // Check if user is asking "how to order/pay" vs. actually confirming an order
+  // Check if user is asking HOW to order
   const isAskingHow = [
     'how to order', 'how to pay', 'how to buy', 'kivabe order',
     'kivabe pay', 'order kivabe', 'payment kivabe', 'bkash number',
     'bkash number ki', 'কীভাবে অর্ডার', 'কীভাবে পেমেন্ট',
     'বিকাশ নম্বর', 'অর্ডার কীভাবে', 'পেমেন্ট কীভাবে',
+    'order process', 'payment process',
   ].some((kw) => lower.includes(kw))
 
   if (isAskingHow) {
     if (lang === 'english') {
-      let response = `💳 **How to Order:**\n\n`
+      let response = `💳 How to Order — Easy 3 Steps!\n\n`
       if (foundProduct) {
-        response += `📦 Product: ${foundProduct.name}\n💰 Price: ${parsePriceOptions(foundProduct)}\n\n`
+        response += `📦 Your Product: ${foundProduct.name}\n💰 Price: ${parsePriceOptions(foundProduct)}\n\n`
       }
-      response += `1️⃣ Send bKash to: **01647236359**\n2️⃣ Send your Transaction ID & screenshot\n3️⃣ We'll confirm & deliver in 5-20 minutes! ⚡\n\n📱 Or message us on WhatsApp for direct ordering!`
+      response += `Step 1️⃣: Send Money to bKash — **01647236359**\n`
+      response += `Step 2️⃣: Send Transaction ID & screenshot to us\n`
+      response += `Step 3️⃣: Get your subscription in 5-20 minutes! ⚡\n\n`
+      response += `🔒 Full warranty on every order!\n\n`
+      response += `📱 Or click the button below to order directly on WhatsApp! 👇`
       return { response, whatsappUrl }
     }
 
     if (lang === 'banglish') {
-      let response = `💳 **Order kivabe korben:**\n\n`
+      let response = `💳 Order Kivabe Korben — Easy 3 Steps!\n\n`
       if (foundProduct) {
-        response += `📦 Product: ${foundProduct.name}\n💰 Price: ${parsePriceOptions(foundProduct)}\n\n`
+        response += `📦 Apnar Product: ${foundProduct.name}\n💰 Price: ${parsePriceOptions(foundProduct)}\n\n`
       }
-      response += `1️⃣ bKash e Send Money: **01647236359**\n2️⃣ Transaction ID & screenshot pathan\n3️⃣ Amra confirm kore 5-20 minute e deliver dib! ⚡\n\n📱 Or WhatsApp e message korun direct order er jonno!`
+      response += `Step 1️⃣: bKash e Send Money — **01647236359**\n`
+      response += `Step 2️⃣: Transaction ID & screenshot amader pathan\n`
+      response += `Step 3️⃣: 5-20 minute e subscription peye jaben! ⚡\n\n`
+      response += `🔒 Protita order e full warranty!\n\n`
+      response += `📱 Or niche button e click kore WhatsApp e direct order korren! 👇`
       return { response, whatsappUrl }
     }
 
-    // Bangla
-    let response = `💳 **অর্ডার কীভাবে করবেন:**\n\n`
+    let response = `💳 অর্ডার কীভাবে করবেন — সহজ ৩ ধাপ!\n\n`
     if (foundProduct) {
-      response += `📦 প্রোডাক্ট: ${foundProduct.name}\n💰 মূল্য: ${parsePriceOptions(foundProduct)}\n\n`
+      response += `📦 আপনার প্রোডাক্ট: ${foundProduct.name}\n💰 মূল্য: ${parsePriceOptions(foundProduct)}\n\n`
     }
-    response += `1️⃣ bKash এ Send Money করুন: **01647236359**\n2️⃣ আপনার Transaction ID এবং স্ক্রিনশট পাঠান\n3️⃣ আমরা confirm করে 5-20 মিনিটে ডেলিভারি দেব! ⚡\n\n📱 অথবা WhatsApp এ সরাসরি মেসেজ করুন!`
+    response += `ধাপ 1️⃣: bKash এ Send Money করুন — **01647236359**\n`
+    response += `ধাপ 2️⃣: Transaction ID ও স্ক্রিনশট আমাদের পাঠান\n`
+    response += `ধাপ 3️⃣: 5-20 মিনিটে সাবস্ক্রিপশন পেয়ে যান! ⚡\n\n`
+    response += `🔒 প্রতিটি অর্ডারে ফুল ওয়ারেন্টি!\n\n`
+    response += `📱 অথবা নিচের বাটনে ক্লিক করে WhatsApp এ সরাসরি অর্ডার করুন! 👇`
     return { response, whatsappUrl }
   }
 
-  // User wants to order
+  // User wants to ORDER
   if (lang === 'english') {
-    let response = `🛒 Great! Let's get your order processed!\n\n`
+    let response = `🛒 Awesome! Let's get your order ready!\n\n`
     if (foundProduct) {
       response += `📦 Product: ${foundProduct.name}\n💰 Price: ${parsePriceOptions(foundProduct)}\n📦 Stock: ${foundProduct.stockStatus}\n🚚 Delivery: ${foundProduct.deliveryTime}\n\n`
     }
-    response += `💳 Payment: bKash Send Money to **01647236359**\n\nAfter payment, send your Transaction ID & screenshot. We'll deliver in 5-20 minutes! ⚡\n\n📱 Or click below to order on WhatsApp directly!`
+    response += `💳 Payment: bKash Send Money to **01647236359**\n\n`
+    response += `After payment, send your Transaction ID. We'll deliver in 5-20 minutes! ⚡\n\n`
+    response += `📱 Or order directly on WhatsApp — click below! 👇`
     return { response, whatsappUrl }
   }
 
   if (lang === 'banglish') {
-    let response = `🛒 Valo! Apnar order ta niye jejuri kori!\n\n`
+    let response = `🛒 Valo! Apnar order ready kori!\n\n`
     if (foundProduct) {
       response += `📦 Product: ${foundProduct.name}\n💰 Price: ${parsePriceOptions(foundProduct)}\n📦 Stock: ${foundProduct.stockStatus}\n🚚 Delivery: ${foundProduct.deliveryTime}\n\n`
     }
-    response += `💳 Payment: bKash e Send Money **01647236359** number e\n\nPayment er por Transaction ID & screenshot pathan. Amra 5-20 minute e deliver dib! ⚡\n\n📱 Or niche click kore WhatsApp e direct order korren!`
+    response += `💳 Payment: bKash e Send Money **01647236359** number e\n\n`
+    response += `Payment er por Transaction ID pathan. 5-20 minute e deliver dib! ⚡\n\n`
+    response += `📱 Ba WhatsApp e direct order korren — niche click korren! 👇`
     return { response, whatsappUrl }
   }
 
-  // Bangla
-  let response = `🛒 চমৎকার! আপনার অর্ডারটি প্রসেস করি!\n\n`
+  let response = `🛒 চমৎকার! আপনার অর্ডার রেডি করি!\n\n`
   if (foundProduct) {
     response += `📦 প্রোডাক্ট: ${foundProduct.name}\n💰 মূল্য: ${parsePriceOptions(foundProduct)}\n📦 স্টক: ${foundProduct.stockStatus}\n🚚 ডেলিভারি: ${foundProduct.deliveryTime}\n\n`
   }
-  response += `💳 পেমেন্ট: bKash এ Send Money করুন **01647236359** নম্বরে\n\nপেমেন্টের পর আপনার Transaction ID এবং স্ক্রিনশট পাঠান। আমরা 5-20 মিনিটে ডেলিভারি দেব! ⚡\n\n📱 অথবা নিচে ক্লিক করে WhatsApp এ সরাসরি অর্ডার করুন!`
+  response += `💳 পেমেন্ট: bKash এ Send Money করুন **01647236359** নম্বরে\n\n`
+  response += `পেমেন্টের পর Transaction ID পাঠান। 5-20 মিনিটে ডেলিভারি দেবো! ⚡\n\n`
+  response += `📱 অথবা WhatsApp এ সরাসরি অর্ডার করুন — নিচে ক্লিক করুন! 👇`
   return { response, whatsappUrl }
 }
 
+// ─── Price Inquiry Response ───────────────────────────────────────────────
+
+function generatePriceInquiryResponse(
+  userMsg: string,
+  lang: 'bangla' | 'banglish' | 'english'
+): string {
+  // Try to find the specific product
+  const product = findSpecificProduct(userMsg)
+  if (product) {
+    return generateSpecificProductResponse(product, lang, 'price_inquiry')
+  }
+
+  // If no specific product found, try search
+  const results = searchProducts(userMsg, 4)
+  if (results.length > 0) {
+    return generateSearchResponse(results, lang)
+  }
+
+  // Generic price overview
+  if (lang === 'english') {
+    return `💰 Our Price Range:\n\n🎬 Streaming: ৳99 - ৳1,499\n🤖 AI Tools: ৳199 - ৳4,999\n🔒 VPN: ৳149 - ৳2,499\n📚 Education: ৳199 - ৳2,999\n🎨 Design: ৳199 - ৳3,499\n🎮 Gaming: ৳99 - ৳999\n🎁 Gift Cards: ৳500 - ৳5,000\n\n💡 Tell me which product you're interested in — I'll give you the exact price! 😊`
+  }
+
+  if (lang === 'banglish') {
+    return `💰 Amader Price Range:\n\n🎬 Streaming: ৳99 - ৳1,499\n🤖 AI Tools: ৳199 - ৳4,999\n🔒 VPN: ৳149 - ৳2,499\n📚 Education: ৳199 - ৳2,999\n🎨 Design: ৳199 - ৳3,499\n🎮 Gaming: ৳99 - ৳999\n🎁 Gift Cards: ৳500 - ৳5,000\n\n💡 Kon product er daam jante chan bolle din — exact price debo! 😊`
+  }
+
+  return `💰 আমাদের প্রাইস রেঞ্জ:\n\n🎬 স্ট্রিমিং: ৳99 - ৳1,499\n🤖 AI Tools: ৳199 - ৳4,999\n🔒 VPN: ৳149 - ৳2,499\n📚 এডুকেশন: ৳199 - ৳2,999\n🎨 ডিজাইন: ৳199 - ৳3,499\n🎮 গেমিং: ৳99 - ৳999\n🎁 গিফট কার্ড: ৳500 - ৳5,000\n\n💡 কোন প্রোডাক্টের দাম জানতে চান বলুন — সঠিক মূল্য দেবো! 😊`
+}
+
+// ─── Out of Scope Response ────────────────────────────────────────────────
+
 function generateOutOfScopeResponse(lang: 'bangla' | 'banglish' | 'english'): string {
-  // Provide catalog overview as redirect
   const catalogSummary = getCatalogSummary()
 
   if (lang === 'english') {
-    const lines = [
-      "Sorry, I couldn't find what you're looking for. We sell digital subscriptions:\n",
-    ]
+    const lines = ["I'd love to help! We sell premium digital subscriptions:\n"]
     catalogSummary.slice(0, 6).forEach((cat) => {
-      const sanitizedName = cat.isAdult ? sanitizeText(cat.name) : cat.name
-      lines.push(`📂 ${sanitizedName} (${cat.productCount} products)`)
+      const name = cat.isAdult ? sanitizeText(cat.name) : cat.name
+      lines.push(`📂 ${name} (${cat.productCount} products)`)
     })
-    lines.push('\nWhich category interests you? Or ask about a specific product! 😊')
+    lines.push('\n💡 Try asking things like:')
+    lines.push('• "Netflix কত টাকা?"')
+    lines.push('• "Best VPN plans"')
+    lines.push('• "Featured products দেখাও"')
+    lines.push('• "কীভাবে অর্ডার করবো?"')
     lines.push('\n📱 Need help? WhatsApp: +8801647236359')
     return lines.join('\n')
   }
 
   if (lang === 'banglish') {
-    const lines = [
-      'Sorry, apnar kotha bujhte parlam na. Amra digital subscription bechhi:\n',
-    ]
+    const lines = ['Ami help korte chai! Amra digital subscription bechhi:\n']
     catalogSummary.slice(0, 6).forEach((cat) => {
-      const sanitizedName = cat.isAdult ? sanitizeText(cat.name) : cat.name
-      lines.push(`📂 ${sanitizedName} (${cat.productCount} ta product)`)
+      const name = cat.isAdult ? sanitizeText(cat.name) : cat.name
+      lines.push(`📂 ${name} (${cat.productCount} ta)`)
     })
-    lines.push('\nKon category dekhte chan? Ba kon product er kotha bolle din! 😊')
+    lines.push('\n💡 Ei gulo try korren:')
+    lines.push('• "Netflix koto taka?"')
+    lines.push('• "Best VPN plans"')
+    lines.push('• "Featured products dekhao"')
+    lines.push('• "Order kivabe korbo?"')
     lines.push('\n📱 Help lagle WhatsApp: +8801647236359')
     return lines.join('\n')
   }
 
-  // Bangla
-  const lines = [
-    'দুঃখিত, আপনার কথা বুঝতে পারিনি। আমরা ডিজিটাল সাবস্ক্রিপশন সেবা বিক্রি করি:\n',
-  ]
+  const lines = ['আমি সাহায্য করতে চাই! আমরা ডিজিটাল সাবস্ক্রিপশন বিক্রি করি:\n']
   catalogSummary.slice(0, 6).forEach((cat) => {
-    const sanitizedName = cat.isAdult ? sanitizeText(cat.name) : cat.name
-    lines.push(`📂 ${sanitizedName} (${cat.productCount}টি প্রোডাক্ট)`)
+    const name = cat.isAdult ? sanitizeText(cat.name) : cat.name
+    lines.push(`📂 ${name} (${cat.productCount}টি)`)
   })
-  lines.push('\nকোন ক্যাটাগরি দেখতে চান? অথবা নির্দিষ্ট প্রোডাক্টের কথা বলুন! 😊')
+  lines.push('\n💡 এইগুলো চেষ্টা করুন:')
+  lines.push('• "Netflix কত টাকা?"')
+  lines.push('• "Best VPN প্ল্যান কত?"')
+  lines.push('• "ফিচার্ড প্রোডাক্ট দেখাও"')
+  lines.push('• "কীভাবে অর্ডার করবো?"')
   lines.push('\n📱 সাহায্য লাগলে WhatsApp: +8801647236359')
   return lines.join('\n')
 }
@@ -841,21 +935,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { message, sessionId, history = [] } = body as {
-      message?: string
-      sessionId?: string
+      message?: string; sessionId?: string;
       history?: Array<{ role: string; content: string }>
     }
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Message is required' }, { status: 400 })
     }
 
     const userMsg = message.trim()
     const lang = detectLanguage(userMsg)
-    const intent = detectIntent(userMsg)
+    const intent = detectIntent(userMsg, history)
 
     let response = ''
     let whatsappUrl: string | undefined
@@ -874,9 +964,9 @@ export async function POST(request: NextRequest) {
       case 'specific_product': {
         const product = findSpecificProduct(userMsg)
         if (product) {
-          response = generateSpecificProductResponse(product, lang)
+          response = generateSpecificProductResponse(product, lang, intent)
         } else {
-          response = generateOutOfScopeResponse(lang)
+          response = generateSearchFallback(userMsg, lang)
         }
         break
       }
@@ -893,6 +983,27 @@ export async function POST(request: NextRequest) {
 
       case 'all_products': {
         response = generateAllProductsResponse(lang)
+        break
+      }
+
+      case 'how_to_use': {
+        response = generateHowToUseResponse(userMsg, lang)
+        // If a product was mentioned, also include its details
+        const product = findSpecificProduct(userMsg)
+        if (product) {
+          const productInfo = generateSpecificProductResponse(product, lang, 'price_inquiry')
+          response = productInfo + '\n\n---\n\n' + response
+        }
+        break
+      }
+
+      case 'warranty_delivery': {
+        response = generateWarrantyDeliveryResponse(userMsg, lang)
+        break
+      }
+
+      case 'price_inquiry': {
+        response = generatePriceInquiryResponse(userMsg, lang)
         break
       }
 
@@ -916,15 +1027,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Also include WhatsApp URL if user seems interested in ordering
-    // (even if the main intent wasn't order_payment)
+    // Add WhatsApp URL if user seems interested in ordering
     if (!whatsappUrl) {
       const lowerMsg = userMsg.toLowerCase()
       const softOrderKeywords = [
         'order', 'buy', 'কিনতে', 'নিতে চাই', 'অর্ডার', 'lagbe', 'chai',
       ]
       const hasSoftOrderIntent = softOrderKeywords.some((kw) => lowerMsg.includes(kw))
-
       if (hasSoftOrderIntent && intent === 'specific_product') {
         const product = findSpecificProduct(userMsg)
         if (product) {
@@ -940,8 +1049,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Chat API error:', error)
     return NextResponse.json({
-      response:
-        'দুঃখিত, একটু সমস্যা হচ্ছে। WhatsApp এ যোগাযোগ করুন: +8801647236359 🙏',
+      response: 'দুঃখিত, একটু সমস্যা হচ্ছে। WhatsApp এ যোগাযোগ করুন: +8801647236359 🙏',
       whatsappUrl: buildWhatsAppUrl({ message: 'Error fallback' }),
     })
   }

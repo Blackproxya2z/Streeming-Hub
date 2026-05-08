@@ -53,20 +53,24 @@ const capabilities = [
 
 // Rotating messages for the typewriter bubble
 const typewriterMessages = [
-  '👋 আমি কর্মচারী — ask me!',
-  '🎬 Netflix কত টাকা?',
-  '⭐ Featured products দেখুন!',
-  '💎 Best prices in BD!',
-  '🛒 Order করতে চান?',
-  '🔒 VPN প্ল্যান দেখুন',
-  '⚡ 5-20 min delivery!',
-  '💳 bKash পেমেন্ট',
+  '👋 আমি কর্মচারী — বলুন কী লাগবে!',
+  '🎬 Netflix কত টাকা জানতে চান?',
+  '⭐ সেরা ডিল দেখুন — featured products!',
+  '💎 BD তে সেরা দাম গ্যারান্টি!',
+  '🛒 অর্ডার করতে চান? আমি গাইড করবো!',
+  '🔒 VPN প্ল্যান শুরু ৳১৪৯ থেকে',
+  '⚡ মাত্র 5-20 মিনিটে ডেলিভারি!',
+  '💳 bKash/Nagad পেমেন্ট সহজ!',
 ]
 
-const KORMOCHARY_GREETING = `আসসালামু আলাইকুম! 👋 আমি কর্মচারী, আপনার personal assistant।
-আমি product খুঁজে পেতে, দাম জানতে, এবং order করতে সাহায্য করতে পারবো।
+const KORMOCHARY_GREETING = `আসসালামু আলাইকুম! 🎉 Streaming Hub-এ স্বাগতম!
 
-কীভাবে সাহায্য করতে পারি আপনাকে? 😊`
+আমি কর্মচারী, আপনার personal shopping assistant। বাংলাদেশে সেরা দামে প্রিমিয়াম সাবস্ক্রিপশন পেতে আমি সাহায্য করবো! 💯
+
+🎬 Netflix, Spotify, ChatGPT Plus
+🔒 VPN, AI Tools, আরও অনেক কিছু!
+
+কী লাগবে বলুন — সেরা ডিল খুঁজে দেবো! 😊`
 
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
@@ -241,12 +245,12 @@ export function AIChatWidget() {
 
   // Quick action buttons — matches the spec's greeting options
   const quickActions = [
-    { label: '⭐ Featured', action: 'Show me all featured products' },
-    { label: '🛍️ Products', action: 'সব প্রোডাক্ট দেখতে চাই' },
+    { label: '⭐ Best Sellers', action: 'ফিচার্ড প্রোডাক্ট দেখাও' },
     { label: '🎬 Netflix দাম', action: 'Netflix কত টাকা?' },
-    { label: '📦 Order করুন', action: 'আমি order করতে চাই' },
+    { label: '🤖 ChatGPT Plus', action: 'ChatGPT Plus কত টাকা?' },
     { label: '🔒 VPN প্ল্যান', action: 'VPN প্ল্যান কত টাকা?' },
-    { label: '❓ Help', action: 'আমাকে সাহায্য দরকার' },
+    { label: '📦 অর্ডার করুন', action: 'কীভাবে অর্ডার করবো?' },
+    { label: '❓ সাহায্য', action: 'আমাকে সাহায্য দরকার' },
   ]
 
   return (
