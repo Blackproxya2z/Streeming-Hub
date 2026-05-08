@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const duration = searchParams.get('duration') || ''
     const accountType = searchParams.get('accountType') || ''
     const sort = searchParams.get('sort') || 'order'
+    const isFeatured = searchParams.get('isFeatured')
     const isAdult = searchParams.get('isAdult') === 'true' ? true : searchParams.get('isAdult') === 'false' ? false : undefined
 
     const where: any = {}
@@ -31,10 +32,18 @@ export async function GET(request: NextRequest) {
       where.category = { slug: categorySlug }
     }
 
+    // Filter by isFeatured
+    if (isFeatured === 'true') {
+      where.isFeatured = true
+    } else if (isFeatured === 'false') {
+      where.isFeatured = false
+    }
+
     if (isAdult !== undefined) {
       where.category = { ...where.category, isAdult }
     } else if (!categorySlug) {
-      where.category = { isAdult: false }
+      // Default: exclude adult products on homepage
+      where.category = { ...where.category, isAdult: false }
     }
 
     if (duration) {

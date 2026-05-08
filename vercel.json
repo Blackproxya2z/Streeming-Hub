@@ -1,9 +1,4 @@
 {
-  "buildCommand": "npx prisma generate && next build",
-  "installCommand": "bun install",
   "framework": "nextjs",
-  "regions": ["sin1"],
-  "env": {
-    "DATABASE_URL": "file:./db/custom.db"
-  }
+  "regions": ["sin1"]
 }

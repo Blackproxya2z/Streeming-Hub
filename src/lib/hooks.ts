@@ -50,14 +50,16 @@ export interface Settings {
   [key: string]: string
 }
 
-async function fetchAPI<T>(url: string, retries = 3): Promise<T> {
+async function fetchAPI<T>(url: string, retries = 6): Promise<T> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const res = await fetch(url)
       if (res.status === 412 || res.status === 503) {
-        // Function pending / service unavailable — retry after delay
+        // Function pending / service unavailable — retry with exponential backoff
+        // This happens during deployment when serverless functions aren't ready yet
         if (attempt < retries) {
-          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+          const delay = Math.min(2000 * Math.pow(1.8, attempt), 15000)
+          await new Promise(r => setTimeout(r, delay))
           continue
         }
       }
@@ -65,7 +67,8 @@ async function fetchAPI<T>(url: string, retries = 3): Promise<T> {
       return res.json()
     } catch (error) {
       if (attempt === retries) throw error
-      await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+      const delay = Math.min(1500 * Math.pow(1.5, attempt), 10000)
+      await new Promise(r => setTimeout(r, delay))
     }
   }
   throw new Error('Max retries exceeded')
@@ -79,8 +82,8 @@ export function useProducts(params: Record<string, string> = {}) {
   return useQuery({
     queryKey: ['products', params],
     queryFn: () => fetchAPI<{ products: Product[]; total: number; page: number; totalPages: number }>(url),
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
 }
 
@@ -89,8 +92,8 @@ export function useProduct(id: string) {
     queryKey: ['product', id],
     queryFn: () => fetchAPI<Product>(`/api/products/${id}`),
     enabled: !!id,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
 }
 
@@ -98,8 +101,8 @@ export function useCategories() {
   return useQuery({
     queryKey: ['categories'],
     queryFn: () => fetchAPI<Category[]>('/api/categories'),
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
 }
 
@@ -107,8 +110,8 @@ export function useReviews() {
   return useQuery({
     queryKey: ['reviews'],
     queryFn: () => fetchAPI<Review[]>('/api/reviews'),
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
 }
 
@@ -116,8 +119,8 @@ export function useSettings() {
   return useQuery({
     queryKey: ['settings'],
     queryFn: () => fetchAPI<Settings>('/api/settings'),
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
 }
 
@@ -125,7 +128,7 @@ export function useBanners() {
   return useQuery({
     queryKey: ['banners'],
     queryFn: () => fetchAPI<{ id: string; text: string; isActive: boolean }[]>('/api/banners'),
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 5000),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
 }

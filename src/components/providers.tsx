@@ -12,8 +12,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         refetchOnWindowFocus: false,
         refetchOnMount: false,
         refetchOnReconnect: false,
-        retry: 2,
-        retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 3000),
+        retry: 3,
+        retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 15000),
       },
     },
   }))

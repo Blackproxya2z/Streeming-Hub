@@ -55,13 +55,30 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
   const isCategoryImage = hasImage && product.image.startsWith('/images/categories/')
   const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
 
+  const handleCardClick = () => {
+    navigate('product', { productId: product.id })
+  }
+
+  const handleOrderClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    navigate('order', { productId: product.id, productName: product.name })
+  }
+
+  const handleDetailsClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    navigate('product', { productId: product.id })
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
     >
-      <Card className="card-shine group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full flex flex-col rounded-2xl border-0 shadow-sm">
+      <Card
+        className="card-shine group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full flex flex-col rounded-2xl border-0 shadow-sm cursor-pointer active:scale-[0.98]"
+        onClick={handleCardClick}
+      >
         <CardContent className="p-0 flex flex-col h-full overflow-hidden">
           {/* Image */}
           <div className={`relative h-36 sm:h-44 shrink-0 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center overflow-hidden`}>
@@ -141,18 +158,18 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
             <div className="flex gap-1.5 sm:gap-2 mt-2">
               <Button
                 size="sm"
-                className="flex-1 bg-green-600 hover:bg-green-700 text-[11px] sm:text-xs h-7 sm:h-8 rounded-lg"
-                onClick={() => navigate('order', { productId: product.id, productName: product.name })}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-9 sm:h-10 rounded-lg font-medium"
+                onClick={handleOrderClick}
               >
-                <MessageCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5" /> Order
+                <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" /> Order
               </Button>
               <Button
                 size="sm"
                 variant="outline"
-                className="flex-1 text-[11px] sm:text-xs h-7 sm:h-8 rounded-lg"
-                onClick={() => navigate('product', { productId: product.id })}
+                className="flex-1 text-xs sm:text-sm h-9 sm:h-10 rounded-lg font-medium"
+                onClick={handleDetailsClick}
               >
-                <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5" /> Details
+                <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" /> Details
               </Button>
             </div>
           </div>
@@ -163,17 +180,35 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
 }
 
 export function FeaturedProducts() {
-  const { data, isLoading } = useProducts({ isFeatured: 'true' })
+  const { data, isLoading, isError, refetch } = useProducts({ isFeatured: 'true' })
 
   if (isLoading) {
     return (
       <section className="py-12 sm:py-16 px-4 bg-muted/30">
         <div className="container mx-auto">
+          <div className="text-center mb-8 sm:mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Featured Products</h2>
+            <p className="text-muted-foreground text-sm">Loading products...</p>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 items-start">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="rounded-2xl bg-muted animate-pulse" style={{ height: '320px' }} />
             ))}
           </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (isError) {
+    return (
+      <section className="py-12 sm:py-16 px-4 bg-muted/30">
+        <div className="container mx-auto text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Featured Products</h2>
+          <p className="text-muted-foreground text-sm mb-4">Products are loading, please wait...</p>
+          <Button onClick={() => refetch()} variant="outline" className="gap-2">
+            <Clock className="h-4 w-4" /> Try Again
+          </Button>
         </div>
       </section>
     )
