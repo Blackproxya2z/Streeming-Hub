@@ -260,11 +260,12 @@ export function AIChatWidget() {
         {!isOpen && (
           <motion.div
             className="fixed z-[55] flex items-center gap-2 sm:gap-3
-              bottom-[96px] right-3
+              top-[72px] right-3
+              sm:bottom-[88px] sm:right-6 sm:top-auto
               lg:bottom-[88px] lg:right-6"
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           >
             {/* Typewriter Message Bubble — visible on sm+ screens */}
@@ -348,14 +349,14 @@ export function AIChatWidget() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="fixed z-[60] flex flex-col bg-background border border-border/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm
-              bottom-[96px] right-3 w-[calc(100%-24px)]
-              sm:bottom-6 sm:right-6 sm:w-[420px]
-              max-h-[80vh] sm:max-h-[75vh]"
+              top-[72px] right-3 left-3 w-auto
+              sm:bottom-6 sm:right-6 sm:left-auto sm:w-[420px] sm:top-auto
+              max-h-[75vh] sm:max-h-[75vh]"
           >
             {/* Header — কর্মচারী Branding */}
             <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white p-4 flex items-center justify-between shrink-0 overflow-hidden">

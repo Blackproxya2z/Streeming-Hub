@@ -26,6 +26,8 @@ import {
   Send,
   ExternalLink,
   ArrowRight,
+  Mail,
+  Hash,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import type { Product } from '@/lib/hooks'
@@ -45,6 +47,9 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
   const nagadNumber = settings?.nagadNumber || settings?.paymentNumber || '01647236359'
   const [copied, setCopied] = useState<string | null>(null)
   const [selectedPayment, setSelectedPayment] = useState<'bkash' | 'nagad' | null>(null)
+  const [email, setEmail] = useState('')
+  const [bkashLastDigit, setBkashLastDigit] = useState('')
+  const [showOrderFields, setShowOrderFields] = useState(false)
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text)
@@ -90,7 +95,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
 
 📦 Product: ${product.name}${planInfo}
 💰 Price: ${formatPriceBDT(selectedPrice)}
-💳 Payment: Send Money via ${payMethod} → ${bkashNumber}
+💳 Payment: Send Money via ${payMethod} → ${bkashNumber}${bkashLastDigit ? `\n🔢 bKash Last Digit: ${bkashLastDigit}` : ''}${email ? `\n📧 Email: ${email}` : ''}
 
 ✅ I have sent the money. Please confirm and deliver.`
 
@@ -110,7 +115,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
               Order: {product.name}
             </DialogTitle>
             <DialogDescription className="text-emerald-100 text-xs">
-              সর্বমোট ২ ধাপে অর্ডার সম্পন্ন করুন
+              সর্বমোট ৩ ধাপে অর্ডার সম্পন্ন করুন
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -315,10 +320,55 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
 
           <Separator />
 
-          {/* Step 2: WhatsApp */}
+          {/* Order Details: Email + Bkash Last Digit */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="h-7 w-7 rounded-full bg-green-600 text-white flex items-center justify-center text-xs font-bold shrink-0">2</div>
+              <div className="h-7 w-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0">2</div>
+              <span className="font-semibold text-sm">অর্ডার ডিটেইলস দিন 📝</span>
+            </div>
+
+            <div className="space-y-3 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl p-3 border border-blue-100 dark:border-blue-900">
+              {/* Email */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                  <Mail className="h-3 w-3" /> Email Address (for account)
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full h-10 rounded-lg border border-border/50 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400"
+                  style={{ fontSize: '16px' }}
+                />
+              </div>
+
+              {/* Bkash Last Digit */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                  <Hash className="h-3 w-3" /> Send Money এর শেষ Digit
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={bkashLastDigit}
+                  onChange={e => setBkashLastDigit(e.target.value.replace(/\D/g, ''))}
+                  placeholder="e.g. 4567"
+                  className="w-full h-10 rounded-lg border border-border/50 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400"
+                  style={{ fontSize: '16px' }}
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">bKash/Nagad Send Money এর শেষ ৩-৪ ডিজিট দিন</p>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Step 3: WhatsApp */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-7 w-7 rounded-full bg-green-600 text-white flex items-center justify-center text-xs font-bold shrink-0">3</div>
               <span className="font-semibold text-sm">WhatsApp-এ কনফার্ম করুন ✅</span>
             </div>
             <p className="text-xs text-muted-foreground mb-3">

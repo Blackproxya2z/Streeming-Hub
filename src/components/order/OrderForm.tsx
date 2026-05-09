@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { 
   ArrowLeft, CreditCard, CheckCircle, MessageCircle, 
-  Shield, Clock, Truck, Copy, Check, Send, ExternalLink
+  Shield, Clock, Truck, Copy, Check, Send, ExternalLink, Hash
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
@@ -83,15 +83,15 @@ export function OrderForm() {
     const planInfo = form.plan ? ` (${form.plan})` : ''
     const typeInfo = form.accountType ? ` [${form.accountType}]` : ''
     const payInfo = form.paymentMethod ? `\n💳 Payment: Send Money via ${form.paymentMethod}` : ''
-    const txnInfo = form.transactionId ? `\n🧾 Last 3 digits: ...${form.transactionId}` : ''
+    const txnInfo = form.transactionId ? `\n🔢 bKash Last Digit: ${form.transactionId}` : ''
+    const emailInfo = form.email ? `\n📧 Email: ${form.email}` : ''
     const message = `🛒 *New Order — Streaming Hub*
 
 📦 Product: ${product?.name || pageParams.productName}${planInfo}${typeInfo}
-💰 Price: ${formatPriceBDT(product?.basePriceBDT || '')}${payInfo}${txnInfo}
+💰 Price: ${formatPriceBDT(product?.basePriceBDT || '')}${payInfo}${txnInfo}${emailInfo}
 
 👤 Name: ${form.customerName || 'N/A'}
 📱 WhatsApp: ${form.customerWhatsApp || 'N/A'}
-${form.email ? `📧 Email: ${form.email}` : ''}
 
 ✅ I have sent the money. Please confirm and deliver.`
 
@@ -350,15 +350,18 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
 
           {/* Transaction ID */}
           <div className="mb-4">
-            <Label className="text-sm font-medium">Transaction Last 3 Digits (optional)</Label>
+            <Label className="text-sm font-medium flex items-center gap-1">
+              <Hash className="h-3.5 w-3.5" /> bKash Send Money এর শেষ Digit
+            </Label>
             <Input
-              maxLength={3}
+              maxLength={4}
               value={form.transactionId}
               onChange={e => handleChange('transactionId', e.target.value.replace(/\D/g, ''))}
               className="mt-1.5 h-10"
               style={{ fontSize: '16px' }}
-              placeholder="e.g. 123"
+              placeholder="e.g. 4567"
             />
+            <p className="text-[10px] text-muted-foreground mt-1">bKash/Nagad Send Money এর শেষ ৩-৪ ডিজিট দিন</p>
           </div>
 
           {/* Done Button */}
