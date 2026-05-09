@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { 
   ArrowLeft, CreditCard, CheckCircle, MessageCircle, 
-  Shield, Clock, Truck, Copy, Check 
+  Shield, Clock, Truck, Copy, Check, Send, ExternalLink
 } from 'lucide-react'
 
 type Step = 'details' | 'payment' | 'complete'
@@ -58,12 +58,22 @@ export function OrderForm() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  // bKash Send Money deep link
+  const getBkashURL = () => {
+    return `bkash://send_money?number=${bkashNumber}`
+  }
+
+  // Nagad Send Money deep link
+  const getNagadURL = () => {
+    return `nagad://send_money?number=${nagadNumber}`
+  }
+
   // Build WhatsApp message with order details
   const getWhatsAppURL = () => {
     const planInfo = form.plan ? ` (${form.plan})` : ''
     const typeInfo = form.accountType ? ` [${form.accountType}]` : ''
-    const payInfo = form.paymentMethod ? `\n💳 Payment: ${form.paymentMethod}` : ''
-    const txnInfo = form.transactionId ? `\n🧾 Transaction ID: ...${form.transactionId}` : ''
+    const payInfo = form.paymentMethod ? `\n💳 Payment: Send Money via ${form.paymentMethod}` : ''
+    const txnInfo = form.transactionId ? `\n🧾 Last 3 digits: ...${form.transactionId}` : ''
     const message = `🛒 *New Order — Streaming Hub*
 
 📦 Product: ${product?.name || pageParams.productName}${planInfo}${typeInfo}
@@ -73,7 +83,7 @@ export function OrderForm() {
 📱 WhatsApp: ${form.customerWhatsApp || 'N/A'}
 ${form.email ? `📧 Email: ${form.email}` : ''}
 
-✅ I have completed the payment. Please confirm and deliver.`
+✅ I have sent the money. Please confirm and deliver.`
 
     return `https://wa.me/${whatsappNumber.replace('+', '')}?text=${encodeURIComponent(message)}`
   }
@@ -94,9 +104,9 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
               </div>
             </div>
 
-            <h2 className="text-2xl font-bold mb-2">Payment Complete! ✅</h2>
+            <h2 className="text-2xl font-bold mb-2">Send Money সম্পন্ন! ✅</h2>
             <p className="text-muted-foreground text-sm mb-1">
-              পেমেন্ট সম্পন্ন! এখন WhatsApp-এ যোগাযোগ করুন।
+              এখন WhatsApp-এ যোগাযোগ করুন, আমরা ডেলিভারি দেব!
             </p>
             <p className="text-muted-foreground text-xs mb-8">
               Now contact us on WhatsApp with your order details. We&apos;ll deliver within 5-20 minutes!
@@ -124,7 +134,7 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
                   {form.paymentMethod && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Payment</span>
-                      <span className="font-medium">{form.paymentMethod}</span>
+                      <span className="font-medium">Send Money via {form.paymentMethod}</span>
                     </div>
                   )}
                 </div>
@@ -140,12 +150,12 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
             >
               <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 font-semibold rounded-xl h-14 text-base shadow-lg shadow-green-600/20">
                 <MessageCircle className="h-5 w-5 mr-2" />
-                Send Order on WhatsApp
+                WhatsApp-এ অর্ডার কনফার্ম করুন
               </Button>
             </a>
 
             <p className="text-[11px] text-muted-foreground mt-3">
-              Your order details will be sent automatically. Just tap send in WhatsApp!
+              আপনার অর্ডার ডিটেইলস অটোমেটিক পাঠানো হবে, শুধু Send ট্যাপ করুন!
             </p>
 
             <Button
@@ -161,7 +171,7 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
     )
   }
 
-  // ─── STEP 2: PAYMENT ───
+  // ─── STEP 2: PAYMENT (Send Money) ───
   if (step === 'payment') {
     return (
       <section className="py-4 sm:py-6 px-4">
@@ -175,9 +185,9 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
 
-          <h1 className="text-xl sm:text-2xl font-bold mb-1">Complete Payment</h1>
+          <h1 className="text-xl sm:text-2xl font-bold mb-1">Send Money করুন 💸</h1>
           <p className="text-muted-foreground text-sm mb-6">
-            পেমেন্ট করুন / Send payment to one of the numbers below
+            নিচের bKash বা Nagad অ্যাপে Send Money করুন
           </p>
 
           {/* Product Summary */}
@@ -193,19 +203,44 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
             </CardContent>
           </Card>
 
-          {/* bKash */}
+          {/* How to Send Money Instructions */}
+          <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4 mb-4 border border-blue-200 dark:border-blue-800">
+            <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-2">
+              📱 Send Money করার নিয়ম:
+            </p>
+            <div className="space-y-1.5 text-xs text-blue-600 dark:text-blue-400">
+              <div className="flex items-start gap-2">
+                <span className="font-bold shrink-0">১.</span>
+                <span>নিচের bKash বা Nagad বাটনে ক্লিক করুন</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-bold shrink-0">২.</span>
+                <span>অ্যাপ ওপেন হলে <strong>Send Money</strong> সিলেক্ট করুন</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-bold shrink-0">৩.</span>
+                <span>নম্বর ও টাকার পরিমাণ দিন</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-bold shrink-0">৪.</span>
+                <span>আপনার PIN দিয়ে কনফার্ম করুন</span>
+              </div>
+            </div>
+          </div>
+
+          {/* bKash Send Money */}
           <Card className="border shadow-sm mb-3">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="h-10 w-10 rounded-xl bg-pink-100 dark:bg-pink-950 flex items-center justify-center">
-                  <CreditCard className="h-5 w-5 text-pink-600" />
+                <div className="h-10 w-10 rounded-xl bg-pink-500 flex items-center justify-center">
+                  <Send className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-pink-600">bKash</h3>
-                  <p className="text-[11px] text-muted-foreground">বিকাশ</p>
+                  <h3 className="font-bold text-pink-600">bKash Send Money</h3>
+                  <p className="text-[11px] text-muted-foreground">বিকাশ সেন্ড মানি</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2.5">
+              <div className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2.5 mb-3">
                 <span className="font-mono font-bold text-lg">{bkashNumber}</span>
                 <Button
                   size="sm"
@@ -216,22 +251,32 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
                   {copied === 'bkash' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
+              <a href={getBkashURL()} target="_blank" rel="noopener noreferrer" className="block">
+                <Button
+                  size="sm"
+                  className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg h-10"
+                  onClick={() => handleChange('paymentMethod', 'bKash')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-1.5" />
+                  bKash অ্যাপে Send Money করুন
+                </Button>
+              </a>
             </CardContent>
           </Card>
 
-          {/* Nagad */}
+          {/* Nagad Send Money */}
           <Card className="border shadow-sm mb-4">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
-                  <CreditCard className="h-5 w-5 text-orange-600" />
+                <div className="h-10 w-10 rounded-xl bg-orange-500 flex items-center justify-center">
+                  <Send className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-orange-600">Nagad</h3>
-                  <p className="text-[11px] text-muted-foreground">নগদ</p>
+                  <h3 className="font-bold text-orange-600">Nagad Send Money</h3>
+                  <p className="text-[11px] text-muted-foreground">নগদ সেন্ড মানি</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2.5">
+              <div className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2.5 mb-3">
                 <span className="font-mono font-bold text-lg">{nagadNumber}</span>
                 <Button
                   size="sm"
@@ -242,6 +287,16 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
                   {copied === 'nagad' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
+              <a href={getNagadURL()} target="_blank" rel="noopener noreferrer" className="block">
+                <Button
+                  size="sm"
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg h-10"
+                  onClick={() => handleChange('paymentMethod', 'Nagad')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-1.5" />
+                  Nagad অ্যাপে Send Money করুন
+                </Button>
+              </a>
             </CardContent>
           </Card>
 
@@ -250,11 +305,11 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
             <div className="space-y-2 text-xs text-amber-700 dark:text-amber-300">
               <div className="flex items-start gap-2">
                 <Shield className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>Payment first, then delivery. পেমেন্ট ফার্স্ট।</span>
+                <span><strong>Send Money</strong> করুন, Payment নয়। পেমেন্ট ফার্স্ট।</span>
               </div>
               <div className="flex items-start gap-2">
                 <Truck className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>Delivery within 5-20 minutes after confirmation. ৫-২০ মিনিটে ডেলিভারি।</span>
+                <span>৫-২০ মিনিটে ডেলিভারি। Delivery within 5-20 minutes.</span>
               </div>
             </div>
           </div>
@@ -279,11 +334,11 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
             className="w-full bg-emerald-600 hover:bg-emerald-700 font-semibold rounded-xl h-12 text-base"
           >
             <CheckCircle className="h-5 w-5 mr-2" />
-            I Have Completed Payment
+            আমি Send Money করেছি
           </Button>
 
           <p className="text-[11px] text-muted-foreground text-center mt-3">
-            পেমেন্ট করা হয়ে গেলে উপরের বাটনে ক্লিক করুন
+            Send Money করা হয়ে গেলে উপরের বাটনে ক্লিক করুন
           </p>
         </div>
       </section>
@@ -349,15 +404,15 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
           </div>
         )}
 
-        <h1 className="text-xl sm:text-2xl font-bold mb-1">Your Details</h1>
+        <h1 className="text-xl sm:text-2xl font-bold mb-1">আপনার তথ্য দিন</h1>
         <p className="text-muted-foreground text-sm mb-5">
-          আপনার তথ্য দিন / Fill in your details to proceed
+          Fill in your details to proceed
         </p>
 
         <div className="space-y-4">
           {/* Name */}
           <div>
-            <Label className="text-sm font-medium">Your Name *</Label>
+            <Label className="text-sm font-medium">আপনার নাম *</Label>
             <Input
               value={form.customerName}
               onChange={e => handleChange('customerName', e.target.value)}
@@ -416,7 +471,7 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
             className="w-full bg-emerald-600 hover:bg-emerald-700 font-semibold rounded-xl h-12 text-base mt-2 disabled:opacity-50"
           >
             <CreditCard className="h-5 w-5 mr-2" />
-            Proceed to Payment
+            Send Money পেজে যান
           </Button>
 
           <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground mt-2">

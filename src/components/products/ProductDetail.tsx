@@ -324,27 +324,27 @@ export function ProductDetail() {
 
         {/* How to Order — Simple 3 Steps */}
         <div className="mt-8 bg-muted/40 rounded-2xl p-5">
-          <h2 className="font-bold text-base mb-4">How to Order</h2>
+          <h2 className="font-bold text-base mb-4">অর্ডার করার নিয়ম / How to Order</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col items-center text-center gap-2">
               <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-600 font-bold text-sm">1</div>
               <div>
-                <p className="text-sm font-medium">Pay</p>
-                <p className="text-[11px] text-muted-foreground">bKash / Nagad</p>
+                <p className="text-sm font-medium">Send Money</p>
+                <p className="text-[11px] text-muted-foreground">bKash / Nagad দিয়ে</p>
               </div>
             </div>
             <div className="flex flex-col items-center text-center gap-2">
               <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-600 font-bold text-sm">2</div>
               <div>
-                <p className="text-sm font-medium">Message</p>
-                <p className="text-[11px] text-muted-foreground">WhatsApp us</p>
+                <p className="text-sm font-medium">WhatsApp মেসেজ</p>
+                <p className="text-[11px] text-muted-foreground">অর্ডার কনফার্ম করুন</p>
               </div>
             </div>
             <div className="flex flex-col items-center text-center gap-2">
               <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-purple-600 font-bold text-sm">3</div>
               <div>
-                <p className="text-sm font-medium">Receive</p>
-                <p className="text-[11px] text-muted-foreground">5-20 min delivery</p>
+                <p className="text-sm font-medium">ডেলিভারি নিন</p>
+                <p className="text-[11px] text-muted-foreground">৫-২০ মিনিটে</p>
               </div>
             </div>
           </div>

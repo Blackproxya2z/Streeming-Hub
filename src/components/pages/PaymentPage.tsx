@@ -30,8 +30,8 @@ export function PaymentPage() {
                 <CreditCard className="h-6 w-6 text-pink-600" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-pink-600">bKash Payment</h2>
-                <p className="text-sm text-muted-foreground">বিকাশ পেমেন্ট</p>
+                <h2 className="text-lg font-bold text-pink-600">bKash Send Money</h2>
+                <p className="text-sm text-muted-foreground">বিকাশ সেন্ড মানি</p>
               </div>
             </div>
             <Separator className="mb-4" />
@@ -41,18 +41,18 @@ export function PaymentPage() {
                 <span><strong>bKash Number:</strong> {bkashNumber}</span>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <p className="font-semibold">Instructions / নিয়মাবলী:</p>
+                <p className="font-semibold">Send Money করার নিয়ম:</p>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Send payment to the bKash number above.<br />উপরের বিকাশ নম্বরে পেমেন্ট পাঠান।</span>
+                  <span><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!<br />Select <strong>Send Money</strong>, not Payment!</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>In the reference, mention your name and the product name.<br />রেফারেন্সে আপনার নাম এবং পণ্যের নাম লিখুন।</span>
+                  <span>উপরের বিকাশ নম্বরে Send Money করুন।<br />Send Money to the bKash number above.</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>After payment, send the last 3 digits of transaction ID via WhatsApp.<br />পেমেন্টের পর ট্রানজেকশন আইডির শেষ ৩ ডিজিট WhatsApp-এ পাঠান।</span>
+                  <span>Send Money করার পর Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।<br />After sending, share the last 3 digits of transaction ID via WhatsApp.</span>
                 </div>
               </div>
             </div>
@@ -67,8 +67,8 @@ export function PaymentPage() {
                 <CreditCard className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-orange-600">Nagad Payment</h2>
-                <p className="text-sm text-muted-foreground">নগদ পেমেন্ট</p>
+                <h2 className="text-lg font-bold text-orange-600">Nagad Send Money</h2>
+                <p className="text-sm text-muted-foreground">নগদ সেন্ড মানি</p>
               </div>
             </div>
             <Separator className="mb-4" />
@@ -78,18 +78,18 @@ export function PaymentPage() {
                 <span><strong>Nagad Number:</strong> {nagadNumber}</span>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <p className="font-semibold">Instructions / নিয়মাবলী:</p>
+                <p className="font-semibold">Send Money করার নিয়ম:</p>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Send payment to the Nagad number above.<br />উপরের নগদ নম্বরে পেমেন্ট পাঠান।</span>
+                  <span><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!<br />Select <strong>Send Money</strong>, not Payment!</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>In the reference, mention your name and the product name.<br />রেফারেন্সে আপনার নাম এবং পণ্যের নাম লিখুন।</span>
+                  <span>উপরের নগদ নম্বরে Send Money করুন।<br />Send Money to the Nagad number above.</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>After payment, send the last 3 digits of transaction ID via WhatsApp.<br />পেমেন্টের পর ট্রানজেকশন আইডির শেষ ৩ ডিজিট WhatsApp-এ পাঠান।</span>
+                  <span>Send Money করার পর Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।<br />After sending, share the last 3 digits of transaction ID via WhatsApp.</span>
                 </div>
               </div>
             </div>
@@ -106,7 +106,7 @@ export function PaymentPage() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span><strong>Payment First:</strong> We require payment before delivery. পেমেন্ট ফার্স্ট ব্যবস্থা।</span>
+                <span><strong>Send Money First:</strong> পেমেন্ট ফার্স্ট — আগে Send Money, তারপর ডেলিভারি। Payment first, then delivery.</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
