@@ -42,8 +42,11 @@ function getGradient(name: string) {
 export function ProductDetail() {
   const { pageParams, navigate, ageVerified, setAgeGateOpen, setPendingAdultNavigate } = useAppStore()
   const { data: product, isLoading } = useProduct(pageParams.productId)
+  const relatedParams: Record<string, string> = {}
+  if (product?.category?.slug) relatedParams.categorySlug = product.category.slug
+  if (product?.category?.isAdult) relatedParams.isAdult = 'true'
   const { data: relatedData } = useProducts(
-    product?.category?.slug ? { categorySlug: product.category.slug, isAdult: product.category.isAdult ? 'true' : undefined } : {}
+    Object.keys(relatedParams).length > 0 ? relatedParams : undefined
   )
   const [orderOpen, setOrderOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string | undefined>()

@@ -181,7 +181,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
 
 export function FeaturedProducts() {
   const { ageVerified } = useAppStore()
-  const { data, isLoading, isError, refetch } = useProducts({ isFeatured: 'true', isAdult: ageVerified ? undefined : 'false' })
+  const { data, isLoading, isError, refetch } = useProducts(ageVerified ? { isFeatured: 'true' } : { isFeatured: 'true', isAdult: 'false' })
 
   if (isLoading) {
     return (
