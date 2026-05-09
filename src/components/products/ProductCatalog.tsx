@@ -13,7 +13,7 @@ import { Search, ShoppingBag, X, SlidersHorizontal } from 'lucide-react'
 import { SEOHead } from '@/components/shared/SEOHead'
 
 export function ProductCatalog() {
-  const { filters, searchQuery, setSearchQuery, pageParams, setFilter, navigate } = useAppStore()
+  const { filters, searchQuery, setSearchQuery, pageParams, setFilter, navigate, ageVerified, setAgeGateOpen, setPendingAdultNavigate } = useAppStore()
   const categorySlug = pageParams.categorySlug || filters.categorySlug || ''
 
   const { data: categories } = useCategories()
@@ -23,19 +23,27 @@ export function ProductCatalog() {
   if (searchQuery) queryParams.search = searchQuery
   if (categorySlug) queryParams.categorySlug = categorySlug
   if (filters.sort) queryParams.sort = filters.sort
+  // If viewing an adult category, pass isAdult=true to include those products
   if (currentCategory?.isAdult) queryParams.isAdult = 'true'
+  // If viewing "All Products" and age is verified, include adult products too
+  if (!categorySlug && ageVerified) queryParams.isAdult = 'true'
 
   const { data, isLoading } = useProducts(queryParams)
   const products = data?.products || []
 
-  const handleCategoryClick = useCallback((slug: string) => {
+  const handleCategoryClick = useCallback((slug: string, isAdult?: boolean) => {
+    if (isAdult && !ageVerified) {
+      setPendingAdultNavigate({ page: 'category', params: { categorySlug: slug } })
+      setAgeGateOpen(true)
+      return
+    }
     setFilter('categorySlug', slug)
     if (slug) {
       navigate('category', { categorySlug: slug })
     } else {
       navigate('products')
     }
-  }, [setFilter, navigate])
+  }, [setFilter, navigate, ageVerified, setAgeGateOpen, setPendingAdultNavigate])
 
   // Debounced search
   const [localSearch, setLocalSearch] = useState(searchQuery)
@@ -59,13 +67,13 @@ export function ProductCatalog() {
           All
         </Badge>
         {categories.map(cat => {
-          if (cat.isAdult && categorySlug !== cat.slug) return null
+          if (cat.isAdult && !ageVerified && categorySlug !== cat.slug) return null
           return (
             <Badge
               key={cat.id}
               variant={categorySlug === cat.slug ? 'default' : 'outline'}
               className={`cursor-pointer whitespace-nowrap shrink-0 h-9 ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
-              onClick={() => handleCategoryClick(cat.slug)}
+              onClick={() => handleCategoryClick(cat.slug, cat.isAdult)}
             >
               {cat.name}
             </Badge>
@@ -73,7 +81,7 @@ export function ProductCatalog() {
         })}
       </div>
     )
-  }, [categories, categorySlug, handleCategoryClick])
+  }, [categories, categorySlug, handleCategoryClick, ageVerified])
 
   return (
     <section className="py-4 sm:py-6 px-4">

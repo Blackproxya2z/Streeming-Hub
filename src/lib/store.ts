@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export type PageType = 
   | 'home' 
@@ -12,6 +13,11 @@ export type PageType =
   | 'contact' 
   | 'admin' 
   | 'order'
+
+interface PendingNavigation {
+  page: PageType
+  params: Record<string, string>
+}
 
 interface AppState {
   currentPage: PageType
@@ -28,6 +34,7 @@ interface AppState {
   }
   ageVerified: boolean
   ageGateOpen: boolean
+  pendingAdultNavigate: PendingNavigation | null
   isMobileMenuOpen: boolean
   
   navigate: (page: PageType, params?: Record<string, string>) => void
@@ -36,6 +43,7 @@ interface AppState {
   resetFilters: () => void
   setAgeVerified: (verified: boolean) => void
   setAgeGateOpen: (open: boolean) => void
+  setPendingAdultNavigate: (nav: PendingNavigation | null) => void
   setMobileMenuOpen: (open: boolean) => void
 }
 
@@ -49,29 +57,39 @@ const defaultFilters = {
   sort: 'popular',
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  currentPage: 'home',
-  pageParams: {},
-  searchQuery: '',
-  filters: { ...defaultFilters },
-  ageVerified: false,
-  ageGateOpen: false,
-  isMobileMenuOpen: false,
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      currentPage: 'home',
+      pageParams: {},
+      searchQuery: '',
+      filters: { ...defaultFilters },
+      ageVerified: false,
+      ageGateOpen: false,
+      pendingAdultNavigate: null,
+      isMobileMenuOpen: false,
 
-  navigate: (page, params = {}) => {
-    set({ currentPage: page, pageParams: params, isMobileMenuOpen: false })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  },
+      navigate: (page, params = {}) => {
+        set({ currentPage: page, pageParams: params, isMobileMenuOpen: false })
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      },
 
-  setSearchQuery: (query) => set({ searchQuery: query }),
+      setSearchQuery: (query) => set({ searchQuery: query }),
 
-  setFilter: (key, value) => set((state) => ({
-    filters: { ...state.filters, [key]: value }
-  })),
+      setFilter: (key, value) => set((state) => ({
+        filters: { ...state.filters, [key]: value }
+      })),
 
-  resetFilters: () => set({ filters: { ...defaultFilters }, searchQuery: '' }),
+      resetFilters: () => set({ filters: { ...defaultFilters }, searchQuery: '' }),
 
-  setAgeVerified: (verified) => set({ ageVerified: verified, ageGateOpen: false }),
-  setAgeGateOpen: (open) => set({ ageGateOpen: open }),
-  setMobileMenuOpen: (open) => set({ isMobileMenuOpen: open }),
-}))
+      setAgeVerified: (verified) => set({ ageVerified: verified, ageGateOpen: false }),
+      setAgeGateOpen: (open) => set({ ageGateOpen: open }),
+      setPendingAdultNavigate: (nav) => set({ pendingAdultNavigate: nav }),
+      setMobileMenuOpen: (open) => set({ isMobileMenuOpen: open }),
+    }),
+    {
+      name: 'streaming-hub-age',
+      partialize: (state) => ({ ageVerified: state.ageVerified }),
+    }
+  )
+)

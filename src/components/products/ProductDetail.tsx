@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useProduct, useProducts } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
@@ -40,14 +40,35 @@ function getGradient(name: string) {
 }
 
 export function ProductDetail() {
-  const { pageParams, navigate } = useAppStore()
+  const { pageParams, navigate, ageVerified, setAgeGateOpen, setPendingAdultNavigate } = useAppStore()
   const { data: product, isLoading } = useProduct(pageParams.productId)
+  const { data: relatedData } = useProducts(
+    product?.category?.slug ? { categorySlug: product.category.slug, isAdult: product.category.isAdult ? 'true' : undefined } : {}
+  )
   const [orderOpen, setOrderOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string | undefined>()
 
-  const { data: relatedData } = useProducts(
-    product?.categoryId ? { categorySlug: product.category?.slug } : {}
-  )
+  // Age gate guard: if viewing an adult product without verification, trigger age gate
+  const isAdultProduct = product?.category?.isAdult === true
+  const needsAgeGate = isAdultProduct && !ageVerified && !isLoading
+
+  useEffect(() => {
+    if (needsAgeGate) {
+      setPendingAdultNavigate({ page: 'product', params: { productId: pageParams.productId } })
+      setAgeGateOpen(true)
+    }
+  }, [needsAgeGate, pageParams.productId, setPendingAdultNavigate, setAgeGateOpen])
+
+  if (needsAgeGate) {
+    return (
+      <section className="py-16 px-4 text-center">
+        <h1 className="text-xl sm:text-2xl font-bold mb-4">Age Verification Required</h1>
+        <p className="text-muted-foreground text-sm mb-4">Please complete the age verification to view this product.</p>
+        <Button onClick={() => navigate('home')}>Back to Home</Button>
+      </section>
+    )
+  }
+
   const relatedProducts = (relatedData?.products || [])
     .filter(p => p.id !== product?.id)
     .slice(0, 4)

@@ -76,11 +76,12 @@ function getCategoryGradient(category: Category) {
 }
 
 export function CategoryCards() {
-  const { navigate, setAgeGateOpen, ageVerified } = useAppStore()
+  const { navigate, setAgeGateOpen, ageVerified, setPendingAdultNavigate } = useAppStore()
   const { data: categories, isLoading } = useCategories()
 
   const handleClick = (cat: Category) => {
     if (cat.isAdult && !ageVerified) {
+      setPendingAdultNavigate({ page: 'category', params: { categorySlug: cat.slug } })
       setAgeGateOpen(true)
       return
     }

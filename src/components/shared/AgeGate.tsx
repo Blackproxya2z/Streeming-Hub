@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { AlertTriangle, Lock } from 'lucide-react'
 
 export function AgeGate() {
-  const { ageGateOpen, setAgeVerified, setAgeGateOpen } = useAppStore()
+  const { ageGateOpen, setAgeVerified, setAgeGateOpen, pendingAdultNavigate, navigate, setPendingAdultNavigate } = useAppStore()
   const [step, setStep] = useState<'age' | 'pin'>('age')
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
@@ -34,6 +34,11 @@ export function AgeGate() {
       setStep('age')
       setPin('')
       setError('')
+      // Execute pending navigation if there is one
+      if (pendingAdultNavigate) {
+        navigate(pendingAdultNavigate.page, pendingAdultNavigate.params)
+        setPendingAdultNavigate(null)
+      }
     } else {
       setError('Wrong PIN. Access denied.')
     }
@@ -41,6 +46,7 @@ export function AgeGate() {
 
   const handleCancel = () => {
     setAgeGateOpen(false)
+    setPendingAdultNavigate(null)
     setStep('age')
     setPin('')
     setError('')
