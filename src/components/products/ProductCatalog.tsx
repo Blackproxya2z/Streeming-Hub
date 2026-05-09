@@ -24,7 +24,7 @@ export function ProductCatalog() {
   if (categorySlug) queryParams.categorySlug = categorySlug
   if (filters.sort) queryParams.sort = filters.sort
   // If viewing an adult category, pass isAdult=true to include those products
-  if (currentCategory?.isAdult) queryParams.isAdult = 'true'
+  if (currentCategory?.isAdult && ageVerified) queryParams.isAdult = 'true'
   // If viewing "All Products" and age is verified, include adult products too
   if (!categorySlug && ageVerified) queryParams.isAdult = 'true'
 
@@ -67,7 +67,7 @@ export function ProductCatalog() {
           All
         </Badge>
         {categories.map(cat => {
-          if (cat.isAdult && !ageVerified && categorySlug !== cat.slug) return null
+          // Show adult chip: always visible but with lock icon when not verified
           return (
             <Badge
               key={cat.id}
@@ -75,7 +75,7 @@ export function ProductCatalog() {
               className={`cursor-pointer whitespace-nowrap shrink-0 h-9 ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
               onClick={() => handleCategoryClick(cat.slug, cat.isAdult)}
             >
-              {cat.name}
+              {cat.name} {cat.isAdult && !ageVerified ? '🔒' : cat.isAdult ? '🔓' : ''}
             </Badge>
           )
         })}

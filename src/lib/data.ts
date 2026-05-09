@@ -295,9 +295,11 @@ export function getProducts(params: {
   if (params.isAdult !== undefined) {
     filtered = filtered.filter((p) => p.category.isAdult === params.isAdult)
   } else if (!params.categorySlug) {
-    // Default: exclude adult products on homepage
+    // Default: exclude adult products when no category is specified (homepage/all products)
     filtered = filtered.filter((p) => !p.category.isAdult)
   }
+  // When categorySlug is specified but isAdult is not, include ALL products from that category
+  // This allows adult category products to show when navigating directly to the adult category
 
   // Duration filter
   if (params.duration) {

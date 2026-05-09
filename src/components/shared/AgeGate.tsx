@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { AlertTriangle, Lock, CheckCircle } from 'lucide-react'
 
 export function AgeGate() {
-  const { ageGateOpen, setAgeVerified, setAgeGateOpen, pendingAdultNavigate, navigate, setPendingAdultNavigate } = useAppStore()
+  const { ageGateOpen, setAgeVerified, setAgeGateOpen, pendingAdultNavigate, navigate, setPendingAdultNavigate, setFilter } = useAppStore()
   const [step, setStep] = useState<'age' | 'pin' | 'success'>('age')
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
@@ -36,6 +36,10 @@ export function AgeGate() {
       setError('')
       // Execute pending navigation if there is one
       if (pendingAdultNavigate) {
+        // Set the category filter for consistency with normal navigation flow
+        if (pendingAdultNavigate.params?.categorySlug) {
+          setFilter('categorySlug', pendingAdultNavigate.params.categorySlug)
+        }
         navigate(pendingAdultNavigate.page, pendingAdultNavigate.params)
         setPendingAdultNavigate(null)
       }

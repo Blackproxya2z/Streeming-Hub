@@ -204,6 +204,16 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
           </Card>
 
           {/* How to Send Money Instructions */}
+          <div className="bg-red-50 dark:bg-red-950/40 rounded-xl p-4 mb-3 border-2 border-red-300 dark:border-red-700">
+            <p className="text-sm font-bold text-red-600 dark:text-red-400 mb-1 text-center">
+              ⚠️ শুধুমাত্র Send Money করবেন!
+            </p>
+            <p className="text-xs text-red-500 dark:text-red-400 text-center">
+              bKash/Nagad অ্যাপে <strong>&quot;Send Money&quot; / &quot;সেন্ড মানি&quot;</strong> অপশন সিলেক্ট করুন।<br/>
+              <strong>Payment বা Cash Out নয়!</strong> Only use Send Money option.
+            </p>
+          </div>
+
           <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4 mb-4 border border-blue-200 dark:border-blue-800">
             <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-2">
               📱 Send Money করার নিয়ম:
@@ -215,7 +225,7 @@ ${form.email ? `📧 Email: ${form.email}` : ''}
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-bold shrink-0">২.</span>
-                <span>অ্যাপ ওপেন হলে <strong>Send Money</strong> সিলেক্ট করুন</span>
+                <span>অ্যাপে <strong className="text-red-600 dark:text-red-400">&quot;Send Money&quot; / &quot;সেন্ড মানি&quot;</strong> সিলেক্ট করুন</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-bold shrink-0">৩.</span>

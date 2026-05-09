@@ -18,9 +18,20 @@ export function PaymentPage() {
     <section className="py-8 px-4">
       <div className="container mx-auto max-w-2xl">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Payment Information</h1>
-        <p className="text-muted-foreground text-sm mb-8">
+        <p className="text-muted-foreground text-sm mb-4">
           পেমেন্ট সংক্রান্ত তথ্য / Payment Instructions
         </p>
+
+        {/* ⚠️ IMPORTANT: Send Money Notice */}
+        <div className="bg-red-50 dark:bg-red-950/40 rounded-xl p-4 mb-6 border-2 border-red-300 dark:border-red-700">
+          <p className="text-base font-bold text-red-600 dark:text-red-400 mb-1 text-center">
+            ⚠️ শুধুমাত্র Send Money করবেন!
+          </p>
+          <p className="text-sm text-red-500 dark:text-red-400 text-center">
+            bKash/Nagad অ্যাপে <strong>&quot;Send Money&quot; / &quot;সেন্ড মানি&quot;</strong> অপশন সিলেক্ট করুন।<br/>
+            <strong>Payment বা Cash Out নয়!</strong> Only use Send Money option.
+          </p>
+        </div>
 
         {/* bKash */}
         <Card className="mb-6 border-0 shadow-sm">
