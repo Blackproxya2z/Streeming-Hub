@@ -41,7 +41,7 @@ function getGradient(name: string) {
 }
 
 export function ProductDetail() {
-  const { pageParams, navigate, ageVerified, setAgeGateOpen, setPendingAdultNavigate } = useAppStore()
+  const { pageParams, navigate, ageVerified, setAgeGateOpen } = useAppStore()
   const { data: product, isLoading } = useProduct(pageParams.productId)
   const relatedParams: Record<string, string> = {}
   if (product?.category?.slug) relatedParams.categorySlug = product.category.slug
@@ -58,10 +58,9 @@ export function ProductDetail() {
 
   useEffect(() => {
     if (needsAgeGate) {
-      setPendingAdultNavigate({ page: 'product', params: { productId: pageParams.productId } })
       setAgeGateOpen(true)
     }
-  }, [needsAgeGate, pageParams.productId, setPendingAdultNavigate, setAgeGateOpen])
+  }, [needsAgeGate, setAgeGateOpen])
 
   // If adult product and not verified, show a locked placeholder until age gate completes
   if (needsAgeGate) {
@@ -77,7 +76,6 @@ export function ProductDetail() {
           <Button
             className="bg-orange-500 hover:bg-orange-600 text-white"
             onClick={() => {
-              setPendingAdultNavigate({ page: 'product', params: { productId: pageParams.productId } })
               setAgeGateOpen(true)
             }}
           >

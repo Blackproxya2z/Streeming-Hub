@@ -13,7 +13,7 @@ import { Search, ShoppingBag, X, SlidersHorizontal, Lock, AlertTriangle } from '
 import { SEOHead } from '@/components/shared/SEOHead'
 
 export function ProductCatalog() {
-  const { filters, searchQuery, setSearchQuery, pageParams, setFilter, navigate, ageVerified, setAgeGateOpen, setPendingAdultNavigate } = useAppStore()
+  const { filters, searchQuery, setSearchQuery, pageParams, setFilter, navigate, ageVerified, setAgeGateOpen } = useAppStore()
   const categorySlug = pageParams.categorySlug || filters.categorySlug || ''
 
   const { data: categories } = useCategories()
@@ -40,24 +40,22 @@ export function ProductCatalog() {
   const products = shouldFetch ? (data?.products || []) : []
 
   const handleCategoryClick = useCallback((slug: string, isAdult?: boolean) => {
-    if (isAdult && !ageVerified) {
-      setPendingAdultNavigate({ page: 'category', params: { categorySlug: slug } })
-      setAgeGateOpen(true)
-      return
-    }
     setFilter('categorySlug', slug)
     if (slug) {
       navigate('category', { categorySlug: slug })
+      // If adult and not verified, open age gate dialog after navigating
+      if (isAdult && !ageVerified) {
+        setAgeGateOpen(true)
+      }
     } else {
       navigate('products')
     }
-  }, [setFilter, navigate, ageVerified, setAgeGateOpen, setPendingAdultNavigate])
+  }, [setFilter, navigate, ageVerified, setAgeGateOpen])
 
   // Handle verify button click for adult category inline prompt
   const handleVerifyClick = useCallback(() => {
-    setPendingAdultNavigate({ page: 'category', params: { categorySlug: categorySlug } })
     setAgeGateOpen(true)
-  }, [categorySlug, setPendingAdultNavigate, setAgeGateOpen])
+  }, [setAgeGateOpen])
 
   // Debounced search
   const [localSearch, setLocalSearch] = useState(searchQuery)

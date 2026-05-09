@@ -109,11 +109,11 @@ export function AgeGate() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-row gap-3 sm:gap-3">
-              <AlertDialogCancel className="flex-1" onClick={handleCancel}>
+              <AlertDialogCancel className="flex-1" onClick={(e) => { e.preventDefault(); handleCancel(); }}>
                 না, ফিরে যান
               </AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleAgeConfirm}
+                onClick={(e) => { e.preventDefault(); handleAgeConfirm(); }}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700"
               >
                 হ্যাঁ, আমি ১৮+
@@ -159,9 +159,9 @@ export function AgeGate() {
               </p>
             </div>
             <AlertDialogFooter className="flex-row gap-3 sm:gap-3 mt-2">
-              <AlertDialogCancel className="flex-1" onClick={handleCancel}>বাতিল</AlertDialogCancel>
+              <AlertDialogCancel className="flex-1" onClick={(e) => { e.preventDefault(); handleCancel(); }}>বাতিল</AlertDialogCancel>
               <AlertDialogAction
-                onClick={handlePinSubmit}
+                onClick={(e) => { e.preventDefault(); handlePinSubmit(); }}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                 disabled={pin.length === 0}
               >

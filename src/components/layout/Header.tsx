@@ -60,7 +60,7 @@ function getCategoryIcon(category: Category) {
 
 export function Header() {
   const { theme, setTheme } = useTheme()
-  const { navigate, setSearchQuery, searchQuery, setAgeGateOpen, ageVerified, setMobileMenuOpen, isMobileMenuOpen, setPendingAdultNavigate } = useAppStore()
+  const { navigate, setSearchQuery, searchQuery, setAgeGateOpen, ageVerified, setMobileMenuOpen, isMobileMenuOpen } = useAppStore()
   const { data: categories } = useCategories()
   const [searchOpen, setSearchOpen] = useState(false)
   const [localSearch, setLocalSearch] = useState('')
@@ -76,14 +76,12 @@ export function Header() {
   }
 
   const handleCategoryClick = (slug: string, isAdult: boolean) => {
-    if (isAdult && !ageVerified) {
-      setPendingAdultNavigate({ page: 'category', params: { categorySlug: slug } })
-      setAgeGateOpen(true)
-      setMobileMenuOpen(false)
-      return
-    }
     navigate('category', { categorySlug: slug })
     setMobileMenuOpen(false)
+    // If adult and not verified, open age gate dialog after navigating
+    if (isAdult && !ageVerified) {
+      setAgeGateOpen(true)
+    }
   }
 
   return (
