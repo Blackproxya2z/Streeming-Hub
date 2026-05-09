@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useAppStore } from '@/lib/store'
 import {
   AlertDialog,
@@ -20,6 +20,8 @@ export function AgeGate() {
   const [step, setStep] = useState<'age' | 'pin' | 'success'>('age')
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
+  // Track whether we're in the verification flow to prevent onOpenChange from canceling navigation
+  const isVerifying = useRef(false)
 
   const handleAgeConfirm = () => {
     setStep('pin')
@@ -29,8 +31,9 @@ export function AgeGate() {
 
   const handlePinSubmit = () => {
     if (pin === '69') {
+      // Mark that we're verifying so onOpenChange doesn't cancel
+      isVerifying.current = true
       setAgeVerified(true)
-      setAgeGateOpen(false)
       setStep('success')
       setPin('')
       setError('')
@@ -43,8 +46,13 @@ export function AgeGate() {
         navigate(pendingAdultNavigate.page, pendingAdultNavigate.params)
         setPendingAdultNavigate(null)
       }
+      // Close the dialog after a short delay to ensure navigation state is set
+      setTimeout(() => {
+        setAgeGateOpen(false)
+        isVerifying.current = false
+      }, 300)
       // Reset step after a delay for next time
-      setTimeout(() => setStep('age'), 500)
+      setTimeout(() => setStep('age'), 800)
     } else {
       setError('ভুল PIN। আবার চেষ্টা করুন / Wrong PIN. Try again.')
     }
@@ -60,6 +68,8 @@ export function AgeGate() {
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
+      // If we're in the verification flow, don't cancel
+      if (isVerifying.current) return
       handleCancel()
     }
   }

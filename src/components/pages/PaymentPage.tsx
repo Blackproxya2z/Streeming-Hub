@@ -1,18 +1,45 @@
 'use client'
 
+import { useState } from 'react'
 import { useAppStore } from '@/lib/store'
 import { useSettings } from '@/lib/hooks'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { CreditCard, Phone, MessageCircle, CheckCircle, AlertCircle } from 'lucide-react'
+import { CreditCard, Phone, MessageCircle, CheckCircle, AlertCircle, Copy, Check, Send } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 export function PaymentPage() {
   const { navigate } = useAppStore()
   const { data: settings } = useSettings()
+  const { toast } = useToast()
   const whatsappNumber = settings?.whatsappNumber || '+8801647236359'
   const bkashNumber = settings?.bkashNumber || settings?.paymentNumber || '01647236359'
   const nagadNumber = settings?.nagadNumber || settings?.paymentNumber || '01647236359'
+  const [copied, setCopied] = useState<string | null>(null)
+
+  const handleCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text)
+    setCopied(id)
+    setTimeout(() => setCopied(null), 2000)
+  }
+
+  const handleCopyAndOpen = (app: 'bkash' | 'nagad', number: string) => {
+    // Copy number to clipboard first (always works)
+    navigator.clipboard.writeText(number)
+    setCopied(app)
+    setTimeout(() => setCopied(null), 3000)
+
+    toast({
+      title: app === 'bkash' ? '✅ bKash নম্বর কপি হয়েছে!' : '✅ Nagad নম্বর কপি হয়েছে!',
+      description: 'এখন bKash/Nagad অ্যাপে "Send Money" সিলেক্ট করুন এবং নম্বর পেস্ট করুন।',
+    })
+
+    // Try to open the app on mobile
+    const link = document.createElement('a')
+    link.href = app === 'bkash' ? 'bkash://' : 'nagad://'
+    link.click()
+  }
 
   return (
     <section className="py-8 px-4">
@@ -50,22 +77,50 @@ export function PaymentPage() {
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span><strong>bKash Number:</strong> {bkashNumber}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 ml-auto"
+                  onClick={() => handleCopy(bkashNumber, 'bkash-copy')}
+                >
+                  {copied === 'bkash-copy' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
+                </Button>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <p className="font-semibold">Send Money করার নিয়ম:</p>
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>নিচের বাটনে ক্লিক করুন — নম্বর অটো কপি হবে</span>
+                </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                   <span><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!<br />Select <strong>Send Money</strong>, not Payment!</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>উপরের বিকাশ নম্বরে Send Money করুন।<br />Send Money to the bKash number above.</span>
+                  <span>নম্বর পেস্ট করুন এবং Send Money করুন।<br />Paste the number and Send Money.</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                   <span>Send Money করার পর Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।<br />After sending, share the last 3 digits of transaction ID via WhatsApp.</span>
                 </div>
               </div>
+              <Button
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg h-11"
+                onClick={() => handleCopyAndOpen('bkash', bkashNumber)}
+              >
+                {copied === 'bkash' ? (
+                  <>
+                    <Check className="h-4 w-4 mr-1.5" />
+                    নম্বর কপি হয়েছে! অ্যাপে পেস্ট করুন
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-1.5" />
+                    নম্বর কপি করুন + bKash অ্যাপ খুলুন
+                  </>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -87,22 +142,50 @@ export function PaymentPage() {
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span><strong>Nagad Number:</strong> {nagadNumber}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 ml-auto"
+                  onClick={() => handleCopy(nagadNumber, 'nagad-copy')}
+                >
+                  {copied === 'nagad-copy' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
+                </Button>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <p className="font-semibold">Send Money করার নিয়ম:</p>
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>নিচের বাটনে ক্লিক করুন — নম্বর অটো কপি হবে</span>
+                </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                   <span><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!<br />Select <strong>Send Money</strong>, not Payment!</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>উপরের নগদ নম্বরে Send Money করুন।<br />Send Money to the Nagad number above.</span>
+                  <span>নম্বর পেস্ট করুন এবং Send Money করুন।<br />Paste the number and Send Money.</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                   <span>Send Money করার পর Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।<br />After sending, share the last 3 digits of transaction ID via WhatsApp.</span>
                 </div>
               </div>
+              <Button
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg h-11"
+                onClick={() => handleCopyAndOpen('nagad', nagadNumber)}
+              >
+                {copied === 'nagad' ? (
+                  <>
+                    <Check className="h-4 w-4 mr-1.5" />
+                    নম্বর কপি হয়েছে! অ্যাপে পেস্ট করুন
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-1.5" />
+                    নম্বর কপি করুন + Nagad অ্যাপ খুলুন
+                  </>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>

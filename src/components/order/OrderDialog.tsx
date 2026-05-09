@@ -27,6 +27,7 @@ import {
   ExternalLink,
   ArrowRight,
 } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 import type { Product } from '@/lib/hooks'
 
 interface OrderDialogProps {
@@ -38,6 +39,7 @@ interface OrderDialogProps {
 
 export function OrderDialog({ open, onOpenChange, product, selectedPlan }: OrderDialogProps) {
   const { data: settings } = useSettings()
+  const { toast } = useToast()
   const whatsappNumber = settings?.whatsappNumber || '+8801647236359'
   const bkashNumber = settings?.bkashNumber || settings?.paymentNumber || '01647236359'
   const nagadNumber = settings?.nagadNumber || settings?.paymentNumber || '01647236359'
@@ -48,6 +50,24 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
     navigator.clipboard.writeText(text)
     setCopied(id)
     setTimeout(() => setCopied(null), 2000)
+  }
+
+  const handleCopyAndOpen = (app: 'bkash' | 'nagad', number: string) => {
+    // Copy number to clipboard first (always works)
+    navigator.clipboard.writeText(number)
+    setCopied(app)
+    setSelectedPayment(app)
+    setTimeout(() => setCopied(null), 3000)
+
+    toast({
+      title: app === 'bkash' ? '✅ bKash নম্বর কপি হয়েছে!' : '✅ Nagad নম্বর কপি হয়েছে!',
+      description: 'এখন bKash/Nagad অ্যাপে "Send Money" সিলেক্ট করুন এবং নম্বর পেস্ট করুন।',
+    })
+
+    // Try to open the app on mobile
+    const link = document.createElement('a')
+    link.href = app === 'bkash' ? 'bkash://' : 'nagad://'
+    link.click()
   }
 
   const priceOptions: { label: string; priceBDT: string }[] = (() => {
@@ -61,21 +81,6 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
   const selectedPrice = selectedPlan
     ? priceOptions.find(o => o.label === selectedPlan)?.priceBDT || product.basePriceBDT
     : product.basePriceBDT
-
-  // Extract numeric price for deep links
-  const numericPrice = parseFloat(selectedPrice.replace(/[^\d.]/g, '')) || 0
-
-  // bKash Send Money deep link
-  const getBkashURL = () => {
-    // bKash app deep link for Send Money
-    return `bkash://send_money?number=${bkashNumber}${numericPrice ? `&amount=${numericPrice}` : ''}`
-  }
-
-  // Nagad Send Money deep link
-  const getNagadURL = () => {
-    // Nagad app deep link for Send Money
-    return `nagad://send_money?number=${nagadNumber}${numericPrice ? `&amount=${numericPrice}` : ''}`
-  }
 
   // Build WhatsApp message
   const getWhatsAppURL = () => {
@@ -170,15 +175,15 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
               <div className="space-y-1.5 text-xs text-blue-600 dark:text-blue-400">
                 <div className="flex items-start gap-2">
                   <span className="font-bold shrink-0">১.</span>
-                  <span>নিচের bKash বা Nagad বাটনে ক্লিক করুন</span>
+                  <span>নিচের <strong>bKash</strong> বা <strong>Nagad</strong> বাটনে ক্লিক করুন</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="font-bold shrink-0">২.</span>
-                  <span>অ্যাপে <strong className="text-red-600 dark:text-red-400">&quot;Send Money&quot; / &quot;সেন্ড মানি&quot;</strong> সিলেক্ট করুন</span>
+                  <span>নম্বর অটো কপি হবে → অ্যাপে <strong className="text-red-600 dark:text-red-400">&quot;Send Money&quot;</strong> সিলেক্ট করুন</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="font-bold shrink-0">৩.</span>
-                  <span>নম্বর: <strong className="font-mono">{bkashNumber}</strong></span>
+                  <span>নম্বর পেস্ট করুন: <strong className="font-mono">{bkashNumber}</strong></span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="font-bold shrink-0">৪.</span>
@@ -210,9 +215,9 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                   size="sm"
                   variant="ghost"
                   className="h-7 px-2"
-                  onClick={() => handleCopy(bkashNumber, 'bkash')}
+                  onClick={() => handleCopy(bkashNumber, 'bkash-copy')}
                 >
-                  {copied === 'bkash' ? (
+                  {copied === 'bkash-copy' ? (
                     <Check className="h-4 w-4 text-emerald-500" />
                   ) : (
                     <Copy className="h-4 w-4 text-muted-foreground" />
@@ -220,17 +225,24 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                 </Button>
               </div>
 
-              {/* Open bKash App Button */}
-              <a href={getBkashURL()} target="_blank" rel="noopener noreferrer" className="block">
-                <Button
-                  size="sm"
-                  className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg h-10"
-                  onClick={() => setSelectedPayment('bkash')}
-                >
-                  <ExternalLink className="h-4 w-4 mr-1.5" />
-                  bKash অ্যাপে Send Money করুন
-                </Button>
-              </a>
+              {/* Copy Number & Open bKash App Button */}
+              <Button
+                size="sm"
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg h-11"
+                onClick={() => handleCopyAndOpen('bkash', bkashNumber)}
+              >
+                {copied === 'bkash' ? (
+                  <>
+                    <Check className="h-4 w-4 mr-1.5" />
+                    নম্বর কপি হয়েছে! অ্যাপে পেস্ট করুন
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-1.5" />
+                    নম্বর কপি করুন + bKash অ্যাপ খুলুন
+                  </>
+                )}
+              </Button>
             </div>
 
             {/* Nagad Send Money */}
@@ -252,9 +264,9 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                   size="sm"
                   variant="ghost"
                   className="h-7 px-2"
-                  onClick={() => handleCopy(nagadNumber, 'nagad')}
+                  onClick={() => handleCopy(nagadNumber, 'nagad-copy')}
                 >
-                  {copied === 'nagad' ? (
+                  {copied === 'nagad-copy' ? (
                     <Check className="h-4 w-4 text-emerald-500" />
                   ) : (
                     <Copy className="h-4 w-4 text-muted-foreground" />
@@ -262,17 +274,24 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                 </Button>
               </div>
 
-              {/* Open Nagad App Button */}
-              <a href={getNagadURL()} target="_blank" rel="noopener noreferrer" className="block">
-                <Button
-                  size="sm"
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg h-10"
-                  onClick={() => setSelectedPayment('nagad')}
-                >
-                  <ExternalLink className="h-4 w-4 mr-1.5" />
-                  Nagad অ্যাপে Send Money করুন
-                </Button>
-              </a>
+              {/* Copy Number & Open Nagad App Button */}
+              <Button
+                size="sm"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg h-11"
+                onClick={() => handleCopyAndOpen('nagad', nagadNumber)}
+              >
+                {copied === 'nagad' ? (
+                  <>
+                    <Check className="h-4 w-4 mr-1.5" />
+                    নম্বর কপি হয়েছে! অ্যাপে পেস্ট করুন
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-1.5" />
+                    নম্বর কপি করুন + Nagad অ্যাপ খুলুন
+                  </>
+                )}
+              </Button>
             </div>
           </div>
 
