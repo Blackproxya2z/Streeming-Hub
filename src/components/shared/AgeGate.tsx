@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useAppStore } from '@/lib/store'
 import {
   AlertDialog,
@@ -16,67 +16,84 @@ import { Input } from '@/components/ui/input'
 import { AlertTriangle, Lock, CheckCircle } from 'lucide-react'
 
 export function AgeGate() {
-  const { ageGateOpen, setAgeVerified, setAgeGateOpen, pendingAdultNavigate, navigate, setPendingAdultNavigate, setFilter } = useAppStore()
+  const ageGateOpen = useAppStore(s => s.ageGateOpen)
+  const setAgeVerified = useAppStore(s => s.setAgeVerified)
+  const setAgeGateOpen = useAppStore(s => s.setAgeGateOpen)
+  const pendingAdultNavigate = useAppStore(s => s.pendingAdultNavigate)
+  const navigate = useAppStore(s => s.navigate)
+  const setPendingAdultNavigate = useAppStore(s => s.setPendingAdultNavigate)
+  const setFilter = useAppStore(s => s.setFilter)
+  
   const [step, setStep] = useState<'age' | 'pin' | 'success'>('age')
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
-  // Track whether we're in the verification flow to prevent onOpenChange from canceling navigation
+  // Use ref to prevent any dialog close during verification
   const isVerifying = useRef(false)
 
-  const handleAgeConfirm = () => {
+  const handleAgeConfirm = useCallback(() => {
     setStep('pin')
     setPin('')
     setError('')
-  }
+  }, [])
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = useCallback(() => {
     if (pin === '69') {
-      // Mark that we're verifying so onOpenChange doesn't cancel
+      // Lock the dialog from closing during verification
       isVerifying.current = true
+
+      // Step 1: Mark age as verified (without closing dialog)
       setAgeVerified(true)
       setStep('success')
       setPin('')
       setError('')
-      // Execute pending navigation if there is one
-      if (pendingAdultNavigate) {
-        // Set the category filter for consistency with normal navigation flow
-        if (pendingAdultNavigate.params?.categorySlug) {
-          setFilter('categorySlug', pendingAdultNavigate.params.categorySlug)
+
+      // Step 2: Execute navigation if there's a pending one
+      const pending = useAppStore.getState().pendingAdultNavigate
+      if (pending) {
+        // Set the category filter
+        if (pending.params?.categorySlug) {
+          setFilter('categorySlug', pending.params.categorySlug)
         }
-        navigate(pendingAdultNavigate.page, pendingAdultNavigate.params)
+        // Navigate to the page
+        navigate(pending.page, pending.params)
+        // Clear the pending navigation
         setPendingAdultNavigate(null)
       }
-      // Close the dialog after a short delay to ensure navigation state is set
+
+      // Step 3: Close dialog AFTER navigation is set (with delay for safety)
       setTimeout(() => {
         setAgeGateOpen(false)
         isVerifying.current = false
-      }, 300)
-      // Reset step after a delay for next time
-      setTimeout(() => setStep('age'), 800)
+        // Reset step for next time
+        setTimeout(() => setStep('age'), 300)
+      }, 500)
     } else {
       setError('ভুল PIN। আবার চেষ্টা করুন / Wrong PIN. Try again.')
     }
-  }
+  }, [pin, setAgeVerified, setFilter, navigate, setPendingAdultNavigate, setAgeGateOpen])
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setAgeGateOpen(false)
     setPendingAdultNavigate(null)
     setStep('age')
     setPin('')
     setError('')
-  }
+  }, [setAgeGateOpen, setPendingAdultNavigate])
 
-  const handleOpenChange = (open: boolean) => {
+  const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
-      // If we're in the verification flow, don't cancel
+      // If we're in the verification flow, block the close
       if (isVerifying.current) return
       handleCancel()
     }
-  }
+  }, [handleCancel])
 
   return (
     <AlertDialog open={ageGateOpen} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md" onPointerDownOutside={(e) => {
+        // Prevent closing by clicking outside during verification
+        if (isVerifying.current) e.preventDefault()
+      }}>
         {step === 'age' ? (
           <>
             <AlertDialogHeader className="text-center">

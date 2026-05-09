@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Search, ShoppingBag, X, SlidersHorizontal } from 'lucide-react'
+import { Search, ShoppingBag, X, SlidersHorizontal, Lock, AlertTriangle } from 'lucide-react'
 import { SEOHead } from '@/components/shared/SEOHead'
 
 export function ProductCatalog() {
@@ -19,17 +19,25 @@ export function ProductCatalog() {
   const { data: categories } = useCategories()
   const currentCategory = (categories || []).find(c => c.slug === categorySlug)
 
+  // Check if current category is adult and user is not verified
+  const isAdultCategory = currentCategory?.isAdult === true
+  const needsVerification = isAdultCategory && !ageVerified
+
   const queryParams: Record<string, string> = {}
   if (searchQuery) queryParams.search = searchQuery
   if (categorySlug) queryParams.categorySlug = categorySlug
   if (filters.sort) queryParams.sort = filters.sort
-  // If viewing an adult category, pass isAdult=true to include those products
-  if (currentCategory?.isAdult && ageVerified) queryParams.isAdult = 'true'
+  // If viewing an adult category and verified, pass isAdult=true
+  if (isAdultCategory && ageVerified) queryParams.isAdult = 'true'
   // If viewing "All Products" and age is verified, include adult products too
   if (!categorySlug && ageVerified) queryParams.isAdult = 'true'
+  // When adult category but not verified, still fetch with isAdult=true so we can show count
+  // (the products won't display until verified)
 
-  const { data, isLoading } = useProducts(queryParams)
-  const products = data?.products || []
+  // Don't fetch if we need verification - show verify prompt instead
+  const shouldFetch = !needsVerification
+  const { data, isLoading } = useProducts(shouldFetch ? queryParams : {})
+  const products = shouldFetch ? (data?.products || []) : []
 
   const handleCategoryClick = useCallback((slug: string, isAdult?: boolean) => {
     if (isAdult && !ageVerified) {
@@ -44,6 +52,12 @@ export function ProductCatalog() {
       navigate('products')
     }
   }, [setFilter, navigate, ageVerified, setAgeGateOpen, setPendingAdultNavigate])
+
+  // Handle verify button click for adult category inline prompt
+  const handleVerifyClick = useCallback(() => {
+    setPendingAdultNavigate({ page: 'category', params: { categorySlug: categorySlug } })
+    setAgeGateOpen(true)
+  }, [categorySlug, setPendingAdultNavigate, setAgeGateOpen])
 
   // Debounced search
   const [localSearch, setLocalSearch] = useState(searchQuery)
@@ -66,19 +80,16 @@ export function ProductCatalog() {
         >
           All
         </Badge>
-        {categories.map(cat => {
-          // Show adult chip: always visible but with lock icon when not verified
-          return (
-            <Badge
-              key={cat.id}
-              variant={categorySlug === cat.slug ? 'default' : 'outline'}
-              className={`cursor-pointer whitespace-nowrap shrink-0 h-9 ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
-              onClick={() => handleCategoryClick(cat.slug, cat.isAdult)}
-            >
-              {cat.name} {cat.isAdult && !ageVerified ? '🔒' : cat.isAdult ? '🔓' : ''}
-            </Badge>
-          )
-        })}
+        {categories.map(cat => (
+          <Badge
+            key={cat.id}
+            variant={categorySlug === cat.slug ? 'default' : 'outline'}
+            className={`cursor-pointer whitespace-nowrap shrink-0 h-9 ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
+            onClick={() => handleCategoryClick(cat.slug, cat.isAdult)}
+          >
+            {cat.name} {cat.isAdult && !ageVerified ? '🔒' : cat.isAdult ? '🔓' : ''}
+          </Badge>
+        ))}
       </div>
     )
   }, [categories, categorySlug, handleCategoryClick, ageVerified])
@@ -129,44 +140,75 @@ export function ProductCatalog() {
         {/* Category chips */}
         {categoryChips}
 
-        {/* Product Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 items-start">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-32 sm:h-40 rounded-xl" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ))}
-          </div>
-        ) : products.length === 0 ? (
+        {/* Adult Category — Age Verification Required (inline fallback) */}
+        {needsVerification && (
           <div className="text-center py-16">
-            <ShoppingBag className="h-14 w-14 text-muted mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
-            <p className="text-muted-foreground text-sm mb-4">
-              Try adjusting your search or filters
+            <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
+              <Lock className="h-10 w-10 text-orange-500" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">🔒 Age Verification Required</h3>
+            <p className="text-muted-foreground text-sm mb-1">
+              এই সেকশনে শুধুমাত্র প্রাপ্তবয়স্কদের জন্য কন্টেন্ট রয়েছে।
             </p>
-            <Button variant="outline" onClick={() => {
-              setLocalSearch('')
-              setSearchQuery('')
-              setFilter('categorySlug', '')
-            }}>
-              Clear Filters
+            <p className="text-muted-foreground text-xs mb-6">
+              This section contains content intended for adults only.
+            </p>
+            <Button
+              size="lg"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl h-12 shadow-lg"
+              onClick={handleVerifyClick}
+            >
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              আমি ১৮+ — ভেরিফাই করুন
             </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 items-start">
-            {products.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+            <p className="text-[11px] text-muted-foreground mt-4">
+              PIN জানা না থাকলে WhatsApp-এ যোগাযোগ করুন
+            </p>
           </div>
         )}
 
-        {!isLoading && products.length > 0 && (
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            Showing {products.length} product{products.length !== 1 ? 's' : ''}
-          </p>
+        {/* Normal Product Grid (shown when verified or not adult) */}
+        {!needsVerification && (
+          <>
+            {isLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 items-start">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-32 sm:h-40 rounded-xl" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-16">
+                <ShoppingBag className="h-14 w-14 text-muted mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
+                <p className="text-muted-foreground text-sm mb-4">
+                  Try adjusting your search or filters
+                </p>
+                <Button variant="outline" onClick={() => {
+                  setLocalSearch('')
+                  setSearchQuery('')
+                  setFilter('categorySlug', '')
+                }}>
+                  Clear Filters
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 items-start">
+                {products.map(product => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
+
+            {!isLoading && products.length > 0 && (
+              <p className="text-center text-sm text-muted-foreground mt-6">
+                Showing {products.length} product{products.length !== 1 ? 's' : ''}
+              </p>
+            )}
+          </>
         )}
       </div>
     </section>

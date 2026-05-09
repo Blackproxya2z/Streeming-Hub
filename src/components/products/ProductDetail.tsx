@@ -17,6 +17,7 @@ import {
   Star,
   Zap,
   ArrowLeft,
+  Lock,
 } from 'lucide-react'
 import { ProductCard } from './ProductCard'
 import { OrderDialog } from '@/components/order/OrderDialog'
@@ -62,12 +63,28 @@ export function ProductDetail() {
     }
   }, [needsAgeGate, pageParams.productId, setPendingAdultNavigate, setAgeGateOpen])
 
+  // If adult product and not verified, show a locked placeholder until age gate completes
   if (needsAgeGate) {
     return (
       <section className="py-16 px-4 text-center">
-        <h1 className="text-xl sm:text-2xl font-bold mb-4">Age Verification Required</h1>
-        <p className="text-muted-foreground text-sm mb-4">Please complete the age verification to view this product.</p>
-        <Button onClick={() => navigate('home')}>Back to Home</Button>
+        <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
+          <Lock className="h-8 w-8 text-orange-500" />
+        </div>
+        <h1 className="text-xl sm:text-2xl font-bold mb-2">🔒 Age Verification Required</h1>
+        <p className="text-muted-foreground text-sm mb-4">এই প্রোডাক্ট দেখতে বয়স ভেরিফিকেশন প্রয়োজন।</p>
+        <p className="text-muted-foreground text-xs mb-4">Please complete the age verification to view this product.</p>
+        <div className="flex items-center justify-center gap-3">
+          <Button
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+            onClick={() => {
+              setPendingAdultNavigate({ page: 'product', params: { productId: pageParams.productId } })
+              setAgeGateOpen(true)
+            }}
+          >
+            ভেরিফাই করুন
+          </Button>
+          <Button variant="outline" onClick={() => navigate('home')}>ফিরে যান</Button>
+        </div>
       </section>
     )
   }

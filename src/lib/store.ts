@@ -82,7 +82,7 @@ export const useAppStore = create<AppState>()(
 
       resetFilters: () => set({ filters: { ...defaultFilters }, searchQuery: '' }),
 
-      setAgeVerified: (verified) => set({ ageVerified: verified, ageGateOpen: false }),
+      setAgeVerified: (verified) => set({ ageVerified: verified }),
       setAgeGateOpen: (open) => set({ ageGateOpen: open }),
       setPendingAdultNavigate: (nav) => set({ pendingAdultNavigate: nav }),
       setMobileMenuOpen: (open) => set({ isMobileMenuOpen: open }),
