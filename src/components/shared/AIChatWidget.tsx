@@ -21,6 +21,8 @@ import {
   Tag,
   ExternalLink,
   Loader2,
+  Sparkles,
+  Star,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
@@ -42,7 +44,7 @@ interface ChatResponse {
 
 const capabilities = [
   { icon: Search, label: 'খুঁজুন', action: 'আমি প্রোডাক্ট খুঁজতে চাই' },
-  { icon: Tag, label: 'ফিচার্ড', action: 'Show me all featured products' },
+  { icon: Star, label: 'ফিচার্ড', action: 'ফিচার্ড প্রোডাক্ট দেখাও' },
   { icon: CreditCard, label: 'দাম', action: 'সব প্রোডাক্ট এর দাম জানাও' },
   { icon: ShoppingCart, label: 'অর্ডার', action: 'আমি order করতে চাই' },
   { icon: HelpCircle, label: 'সাহায্য', action: 'আমাকে সাহায্য দরকার' },
@@ -50,10 +52,10 @@ const capabilities = [
 
 const typewriterMessages = [
   '👋 আমি কর্মচারী — বলুন কী লাগবে!',
-  '🎬 Netflix কত টাকা জানতে চান?',
-  '⭐ সেরা ডিল দেখুন — featured products!',
-  '💎 BD তে সেরা দাম গ্যারান্টি!',
-  '🛒 অর্ডার করতে চান? আমি গাইড করবো!',
+  '🎬 Netflix এর দাম জানতে চান?',
+  '⭐ সেরা ডিল দেখুন — Featured Products!',
+  '💎 বাংলাদেশে সেরা দাম গ্যারান্টি!',
+  '🛒 অর্ডার করতে চান? গাইড করবো!',
   '🔒 VPN প্ল্যান শুরু ৳১৪৯ থেকে',
   '⚡ মাত্র 5-20 মিনিটে ডেলিভারি!',
   '💳 bKash/Nagad পেমেন্ট সহজ!',
@@ -61,7 +63,7 @@ const typewriterMessages = [
 
 const KORMOCHARY_GREETING = `আসসালামু আলাইকুম! 🎉 Streaming Hub-এ স্বাগতম!
 
-আমি কর্মচারী, আপনার personal shopping assistant। বাংলাদেশে সেরা দামে প্রিমিয়াম সাবস্ক্রিপশন পেতে আমি সাহায্য করবো! 💯
+আমি কর্মচারী — আপনার পার্সোনাল শপিং অ্যাসিস্ট্যান্ট। বাংলাদেশে সেরা দামে প্রিমিয়াম সাবস্ক্রিপশন পেতে আমি সাহায্য করবো! 💯
 
 🎬 Netflix, Spotify, ChatGPT Plus
 🔒 VPN, AI Tools, আরও অনেক কিছু!
@@ -75,6 +77,13 @@ const quickActions = [
   { label: '🔒 VPN প্ল্যান', action: 'VPN প্ল্যান কত টাকা?' },
   { label: '📦 অর্ডার করুন', action: 'কীভাবে অর্ডার করবো?' },
   { label: '❓ সাহায্য', action: 'আমাকে সাহায্য দরকার' },
+]
+
+const trustIndicators = [
+  { icon: Shield, label: 'Warranty' },
+  { icon: Zap, label: '5-20 Min' },
+  { icon: Headphones, label: '24/7' },
+  { icon: BadgeCheck, label: 'Verified' },
 ]
 
 export function AIChatWidget() {
@@ -254,8 +263,8 @@ export function AIChatWidget() {
         {!isOpen && (
           <motion.div
             className="fixed z-[55] flex items-center gap-3
-              right-4 bottom-[80px]
-              sm:right-6 sm:bottom-[90px]"
+              right-4 bottom-[72px]
+              sm:right-6 sm:bottom-6"
             initial={{ opacity: 0, scale: 0.5, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.5, y: 20 }}
@@ -266,7 +275,7 @@ export function AIChatWidget() {
               initial={{ opacity: 0, x: 10, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.8 }}
-              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-xl px-4 py-2.5 max-w-[240px] cursor-pointer hover:shadow-xl hover:border-emerald-300/50 transition-all group/bubble relative"
+              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-2xl px-4 py-2.5 max-w-[260px] cursor-pointer hover:shadow-xl hover:border-emerald-300/50 transition-all group/bubble relative"
               onClick={() => setIsOpen(true)}
             >
               <div className="flex-1 min-w-0">
@@ -336,7 +345,7 @@ export function AIChatWidget() {
           <>
             {/* Mobile overlay backdrop */}
             <motion.div
-              className="fixed inset-0 z-[59] bg-black/40 backdrop-blur-sm sm:hidden"
+              className="fixed inset-0 z-[59] bg-black/50 backdrop-blur-sm sm:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -350,7 +359,9 @@ export function AIChatWidget() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 40, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              className="fixed z-[60] flex flex-col bg-background border border-border/50 shadow-2xl overflow-hidden inset-x-0 bottom-0 h-[80vh] rounded-t-2xl sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
+              className="fixed z-[60] flex flex-col bg-background border border-border/50 shadow-2xl overflow-hidden
+                inset-x-0 bottom-0 h-[85dvh] rounded-t-2xl
+                sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
             >
               {/* ===== HEADER ===== */}
               <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white p-4 flex items-center justify-between shrink-0 overflow-hidden">
@@ -414,20 +425,23 @@ export function AIChatWidget() {
 
               {/* ===== CAPABILITY CARDS ===== */}
               <div className="px-3 pt-3 pb-2 border-b border-border/30 bg-muted/20 shrink-0">
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-2 px-1">আমি কি কি করতে পারি</p>
-                <div className="flex items-center gap-1.5">
+                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 px-1 flex items-center gap-1">
+                  <Sparkles className="h-2.5 w-2.5 text-emerald-500" />
+                  আমি কি কি করতে পারি
+                </p>
+                <div className="flex items-center gap-1">
                   {capabilities.map((cap) => {
                     const Icon = cap.icon
                     return (
                       <button
                         key={cap.label}
-                        className="flex flex-col items-center gap-1 p-2 flex-1 min-w-0 rounded-lg hover:bg-muted/60 transition-colors cursor-pointer active:scale-95 min-h-[52px]"
+                        className="flex flex-col items-center gap-1 p-2 flex-1 min-w-0 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors cursor-pointer active:scale-95 min-h-[54px]"
                         onClick={() => {
                           setInput(cap.action)
                           sendMessage(cap.action)
                         }}
                       >
-                        <div className="h-7 w-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                        <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50 flex items-center justify-center">
                           <Icon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                         </div>
                         <span className="text-[10px] font-medium text-foreground text-center leading-tight truncate w-full">{cap.label}</span>
@@ -439,31 +453,30 @@ export function AIChatWidget() {
 
               {/* ===== TRUST INDICATORS ===== */}
               <div className="flex items-center justify-center gap-3 px-4 py-1.5 bg-emerald-50/50 dark:bg-emerald-950/20 border-b border-border/30 shrink-0">
-                <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
-                  <Shield className="h-2.5 w-2.5" />
-                  <span>Warranty</span>
-                </div>
-                <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
-                <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
-                  <Zap className="h-2.5 w-2.5" />
-                  <span>5-20 Min</span>
-                </div>
-                <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
-                <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
-                  <Headphones className="h-2.5 w-2.5" />
-                  <span>24/7</span>
-                </div>
-                <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
-                <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
-                  <BadgeCheck className="h-2.5 w-2.5" />
-                  <span>Verified</span>
-                </div>
+                {trustIndicators.map((item, idx) => {
+                  const Icon = item.icon
+                  return (
+                    <div key={item.label} className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">
+                        <Icon className="h-2.5 w-2.5" />
+                        <span>{item.label}</span>
+                      </div>
+                      {idx < trustIndicators.length - 1 && (
+                        <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800 ml-3" />
+                      )}
+                    </div>
+                  )
+                })}
               </div>
 
               {/* ===== MESSAGE AREA ===== */}
               <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto p-4 space-y-3 overscroll-contain scroll-smooth custom-scrollbar"
+                className="flex-1 overflow-y-auto p-4 space-y-3 overscroll-contain scroll-smooth"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgb(5 150 105 / 0.3) transparent',
+                }}
               >
                 {messages.map((msg, i) => (
                   <motion.div
@@ -548,11 +561,18 @@ export function AIChatWidget() {
               </div>
 
               {/* ===== QUICK ACTIONS ===== */}
-              <div className="px-3 py-2 flex gap-1.5 overflow-x-auto shrink-0 border-t border-border/30" style={{ scrollbarWidth: 'none' }}>
+              <div
+                className="px-3 py-2 flex gap-1.5 overflow-x-auto shrink-0 border-t border-border/30"
+                style={{ scrollbarWidth: 'none' }}
+              >
                 {quickActions.map(q => (
                   <button
                     key={q.label}
-                    className="cursor-pointer whitespace-nowrap text-[11px] shrink-0 hover:bg-emerald-50 dark:hover:bg-emerald-950 border border-border/60 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all active:scale-95 py-2 px-3 rounded-full bg-background"
+                    className="cursor-pointer whitespace-nowrap text-[11px] shrink-0
+                      hover:bg-emerald-50 dark:hover:bg-emerald-950/40
+                      border border-border/60 hover:border-emerald-300 dark:hover:border-emerald-700
+                      transition-all active:scale-95 py-2 px-3.5 rounded-full bg-background
+                      font-medium text-foreground/80 hover:text-emerald-700 dark:hover:text-emerald-400"
                     onClick={() => {
                       sendMessage(q.action)
                     }}
@@ -589,7 +609,9 @@ export function AIChatWidget() {
                   </Button>
                 </div>
                 {cooldown && (
-                  <p className="text-[10px] text-muted-foreground mt-1.5 text-center">একটু অপেক্ষা করুন...</p>
+                  <p className="text-[10px] text-muted-foreground mt-1.5 text-center animate-pulse">
+                    একটু অপেক্ষা করুন...
+                  </p>
                 )}
               </div>
             </motion.div>

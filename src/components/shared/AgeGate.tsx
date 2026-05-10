@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore } from '@/lib/store'
 import {
   Dialog,
@@ -11,8 +12,90 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { AlertTriangle, Lock, CheckCircle } from 'lucide-react'
+import { AlertTriangle, Lock, CheckCircle, Sparkles } from 'lucide-react'
 
+/* ────────────────────────────────────────────────
+   Easter-egg hint component — the "hide & seek" PIN
+   ──────────────────────────────────────────────── */
+function PinHint() {
+  const [revealed, setRevealed] = useState(false)
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <div className="flex flex-col items-center gap-1.5 mt-1">
+      {/* ── The subtle hint trigger ── */}
+      <button
+        type="button"
+        onClick={() => setRevealed(true)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        className="group relative flex items-center gap-1 text-[11px] text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors duration-500 cursor-pointer select-none focus:outline-none"
+        aria-label="Reveal PIN hint"
+      >
+        <motion.span
+          animate={{ rotate: hovered || revealed ? 15 : 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+          className="inline-block"
+        >
+          💡
+        </motion.span>
+        <span className="tracking-wide">
+          {revealed ? 'Found it!' : 'Need a hint?'}
+        </span>
+
+        {/* Tiny shimmer bar under text on hover */}
+        <motion.span
+          className="absolute -bottom-0.5 left-1/2 h-[1px] rounded-full bg-gradient-to-r from-transparent via-amber-400/60 to-transparent"
+          initial={{ width: 0, x: '-50%' }}
+          animate={{
+            width: hovered && !revealed ? '100%' : 0,
+            x: '-50%',
+          }}
+          transition={{ duration: 0.4, ease: 'easeInOut' }}
+        />
+      </button>
+
+      {/* ── The PIN reveal ── */}
+      <AnimatePresence>
+        {revealed && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.05 }}
+            className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/50 dark:border-amber-700/30"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+            <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+              Your PIN:
+            </span>
+            {/* Each digit animates in separately */}
+            {[6, 9].map((digit, i) => (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0, y: -12, rotateX: 90 }}
+                animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 500,
+                  damping: 20,
+                  delay: 0.15 + i * 0.12,
+                }}
+                className="inline-flex items-center justify-center h-6 w-5 rounded bg-amber-100 dark:bg-amber-900/50 text-sm font-bold font-mono text-amber-600 dark:text-amber-300 shadow-sm"
+              >
+                {digit}
+              </motion.span>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/* ────────────────────────────────────────────────
+   Main AgeGate component
+   ──────────────────────────────────────────────── */
 export function AgeGate() {
   const ageGateOpen = useAppStore(s => s.ageGateOpen)
   const setAgeVerified = useAppStore(s => s.setAgeVerified)
@@ -125,6 +208,9 @@ export function AgeGate() {
               <p className="text-xs text-muted-foreground text-center">
                 PIN জানা না থাকলে WhatsApp-এ যোগাযোগ করুন
               </p>
+
+              {/* ── Easter egg hint ── */}
+              <PinHint />
             </div>
             <div className="flex gap-3 mt-2">
               <Button
