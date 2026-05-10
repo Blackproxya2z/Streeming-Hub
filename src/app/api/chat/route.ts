@@ -45,6 +45,9 @@ function sanitizeText(text: string): string {
 
 type Intent =
   | 'greeting'
+  | 'thanks'
+  | 'goodbye'
+  | 'comparison'
   | 'featured'
   | 'specific_product'
   | 'category'
@@ -76,6 +79,39 @@ function detectIntent(message: string, history: Array<{ role: string; content: s
   const hasProductIntent = productRelatedWords.some((kw) => lower.includes(kw))
   if (hasGreeting && !hasProductIntent && lower.split(/\s+/).length <= 6) {
     return 'greeting'
+  }
+
+  // THANKS intent
+  const thanksKeywords = [
+    'thanks', 'thank you', 'thx', 'ty', 'ধন্যবাদ', 'ধন্যবাদী',
+    'shukriya', 'শুকরিয়া', 'valo hoyeche', 'valo laglo',
+    'helpful', 'onek valo', 'onek dhonnobad', 'thanks a lot',
+    'appreciate', 'great help', 'শুকর',
+  ]
+  if (thanksKeywords.some((kw) => lower.includes(kw)) && lower.split(/\s+/).length <= 8) {
+    return 'thanks'
+  }
+
+  // GOODBYE intent
+  const goodbyeKeywords = [
+    'bye', 'goodbye', 'see you', 'good night', 'goodnight',
+    'বাই', 'আলবিদা', 'যাই', 'আসি', 'বিদায়',
+    'shubho ratri', 'শুভ রাত্রি', 'good bye', 'take care',
+    'have a good day', 'khoda hafiz', 'খোদা হাফিজ',
+  ]
+  if (goodbyeKeywords.some((kw) => lower.includes(kw)) && lower.split(/\s+/).length <= 6) {
+    return 'goodbye'
+  }
+
+  // COMPARISON intent
+  const comparisonKeywords = [
+    'vs', 'versus', 'compare', 'comparison', 'difference between',
+    'better', 'which one', 'which is best', 'kon ta valo',
+    'kon ta better', 'তুলনা', 'কোনটা ভালো', 'কোনটা সেরা',
+    'mukhyo somoye', 'ami kon ta nibo', 'kon ta nibo',
+  ]
+  if (comparisonKeywords.some((kw) => lower.includes(kw))) {
+    return 'comparison'
   }
 
   // HOW TO USE intent
@@ -785,7 +821,7 @@ function generateOrderPaymentResponse(
         response += `📦 Your Product: ${foundProduct.name}\n💰 Price: ${parsePriceOptions(foundProduct)}\n\n`
       }
       response += `Step 1️⃣: Send Money to bKash — **01647236359**\n`
-      response += `Step 2️⃣: Send Transaction ID & screenshot to us\n`
+      response += `Step 2️⃣: Send Transaction ID, last digits, and your email to us\n`
       response += `Step 3️⃣: Get your subscription in 5-20 minutes! ⚡\n\n`
       response += `🔒 Full warranty on every order!\n\n`
       response += `📱 Or click the button below to order directly on WhatsApp! 👇`
@@ -880,6 +916,153 @@ function generatePriceInquiryResponse(
   return `💰 আমাদের প্রাইস রেঞ্জ:\n\n🎬 স্ট্রিমিং: ৳99 - ৳1,499\n🤖 AI Tools: ৳199 - ৳4,999\n🔒 VPN: ৳149 - ৳2,499\n📚 এডুকেশন: ৳199 - ৳2,999\n🎨 ডিজাইন: ৳199 - ৳3,499\n🎮 গেমিং: ৳99 - ৳999\n🎁 গিফট কার্ড: ৳500 - ৳5,000\n\n💡 কোন প্রোডাক্টের দাম জানতে চান বলুন — সঠিক মূল্য দেবো! 😊`
 }
 
+// ─── Thanks Response ──────────────────────────────────────────────────────
+
+function generateThanksResponse(
+  userMsg: string,
+  history: Array<{ role: string; content: string }>,
+  lang: 'bangla' | 'banglish' | 'english'
+): string {
+  // Check if user was asking about a product before
+  let recentProduct: Product | null = null
+  for (const msg of history.slice(-6).reverse()) {
+    const p = findSpecificProduct(msg.content)
+    if (p) { recentProduct = p; break }
+  }
+
+  if (lang === 'english') {
+    let response = `You're very welcome! 😊 I'm always here to help you find the best deals.\n\n`
+    if (recentProduct) {
+      const pName = recentProduct.category.isAdult ? sanitizeText(recentProduct.name) : recentProduct.name
+      response += `Whenever you're ready to order ${pName}, just let me know! I'll guide you through the whole process — it only takes a few minutes. ⚡\n\n`
+    }
+    response += `Got any more questions? Or want to explore more products? I'm here for you! 💚`
+    return response
+  }
+
+  if (lang === 'banglish') {
+    let response = `Apnar onek dhonnobad! 😊 Apnake help korte pai onek valo laglo.\n\n`
+    if (recentProduct) {
+      const pName = recentProduct.category.isAdult ? sanitizeText(recentProduct.name) : recentProduct.name
+      response += `${pName} order korte jokhon ready hobe, amake bolle din! Step by step guide korbo — kichu minute e hobe! ⚡\n\n`
+    }
+    response += `Ar kono question thakle bolle din! Ami sob somoy apnar jonno ache! 💚`
+    return response
+  }
+
+  let response = `আপনাকে অনেক ধন্যবাদ! 😊 আপনাকে সাহায্য করতে পেরে ভালো লাগলো।\n\n`
+  if (recentProduct) {
+    const pName = recentProduct.category.isAdult ? sanitizeText(recentProduct.name) : recentProduct.name
+    response += `${pName} অর্ডার করতে যখন রেডি হবেন, আমাকে বলুন! স্টেপ বাই স্টেপ গাইড করবো — কয়েক মিনিটেই হয়ে যাবে! ⚡\n\n`
+  }
+  response += `আর কোনো প্রশ্ন থাকলে বলুন! আমি সবসময় আপনার জন্য আছি! 💚`
+  return response
+}
+
+// ─── Goodbye Response ──────────────────────────────────────────────────────
+
+function generateGoodbyeResponse(lang: 'bangla' | 'banglish' | 'english'): string {
+  if (lang === 'english') {
+    return `Take care! 👋 It was great chatting with you.\n\nRemember — whenever you need a subscription at the best price in Bangladesh, I'm just one click away! 😊\n\n💳 Quick reminder: bKash Send Money to 01647236359 for instant delivery!\n\nHave a wonderful day! 💚`
+  }
+
+  if (lang === 'banglish') {
+    return `Apnar jonno valo chilo! 👋 Onek valo kotha holo apnar sathe.\n\nMone rakhben — jokhoni subscription lagbe best price e, ami ek click e ache! 😊\n\n💳 Mone rakhate: bKash e Send Money 01647236359 — instant delivery!\n\nApnar din valo kete! 💚`
+  }
+
+  return `ভালো থাকবেন! 👋 আপনার সাথে কথা হয়ে ভালো লাগলো।\n\nমনে রাখবেন — যখনই সাবস্ক্রিপশন লাগবে সেরা দামে, আমি এক ক্লিকেই আছি! 😊\n\n💳 মনে রাখতে: bKash এ Send Money 01647236359 — তাৎক্ষণিক ডেলিভারি!\n\nআপনার দিন ভালো কাটুক! 💚`
+}
+
+// ─── Comparison Response ──────────────────────────────────────────────────
+
+function generateComparisonResponse(
+  userMsg: string,
+  lang: 'bangla' | 'banglish' | 'english'
+): string {
+  // Try to find two products to compare
+  const vsMatch = userMsg.match(/(.+?)\s+(?:vs|versus|or|বনাম|against)\s+(.+)/i)
+  let product1: Product | null = null
+  let product2: Product | null = null
+
+  if (vsMatch) {
+    product1 = findSpecificProduct(vsMatch[1].trim())
+    product2 = findSpecificProduct(vsMatch[2].trim())
+  }
+
+  // If we can't find both, try finding from the message
+  if (!product1 || !product2) {
+    const searchResults = searchProducts(userMsg, 4)
+    if (searchResults.length >= 2) {
+      product1 = product1 || searchResults[0]
+      product2 = product2 || searchResults[1]
+    }
+  }
+
+  if (product1 && product2) {
+    const name1 = product1.category.isAdult ? sanitizeText(product1.name) : product1.name
+    const name2 = product2.category.isAdult ? sanitizeText(product2.name) : product2.name
+    const price1 = getCheapestPlan(product1)
+    const price2 = getCheapestPlan(product2)
+    const features1 = parseFeatures(product1).slice(0, 4)
+    const features2 = parseFeatures(product2).slice(0, 4)
+
+    if (lang === 'english') {
+      let response = `⚖️ ${name1} vs ${name2} — Let me help you decide!\n\n`
+      response += `📦 ${name1}:\n`
+      response += `  • Starting from: ${price1}\n`
+      response += `  • Warranty: ${product1.warranty || 'Full warranty'}\n`
+      response += `  • Delivery: ${product1.deliveryTime}\n`
+      if (features1.length > 0) response += `  • Features: ${features1.join(', ')}\n`
+      response += `\n📦 ${name2}:\n`
+      response += `  • Starting from: ${price2}\n`
+      response += `  • Warranty: ${product2.warranty || 'Full warranty'}\n`
+      response += `  • Delivery: ${product2.deliveryTime}\n`
+      if (features2.length > 0) response += `  • Features: ${features2.join(', ')}\n`
+      response += `\n💡 Both are great choices! Tell me your budget and what you need most — I'll recommend the best one for you! 😊`
+      return response
+    }
+
+    if (lang === 'banglish') {
+      let response = `⚖️ ${name1} vs ${name2} — Apnake help kori decide korte!\n\n`
+      response += `📦 ${name1}:\n`
+      response += `  • Shuru: ${price1} theke\n`
+      response += `  • Warranty: ${product1.warranty || 'Full warranty'}\n`
+      response += `  • Delivery: ${product1.deliveryTime}\n`
+      if (features1.length > 0) response += `  • Features: ${features1.join(', ')}\n`
+      response += `\n📦 ${name2}:\n`
+      response += `  • Shuru: ${price2} theke\n`
+      response += `  • Warranty: ${product2.warranty || 'Full warranty'}\n`
+      response += `  • Delivery: ${product2.deliveryTime}\n`
+      if (features2.length > 0) response += `  • Features: ${features2.join(', ')}\n`
+      response += `\n💡 Duitai valo! Apnar budget ki ar ki sabdik se bolle din — apnar jonno best ta recommend korbo! 😊`
+      return response
+    }
+
+    let response = `⚖️ ${name1} vs ${name2} — আপনাকে সাহায্য করি সিদ্ধান্ত নিতে!\n\n`
+    response += `📦 ${name1}:\n`
+    response += `  • শুরু: ${price1} থেকে\n`
+    response += `  • ওয়ারেন্টি: ${product1.warranty || 'ফুল ওয়ারেন্টি'}\n`
+    response += `  • ডেলিভারি: ${product1.deliveryTime}\n`
+    if (features1.length > 0) response += `  • ফিচার: ${features1.join(', ')}\n`
+    response += `\n📦 ${name2}:\n`
+    response += `  • শুরু: ${price2} থেকে\n`
+    response += `  • ওয়ারেন্টি: ${product2.warranty || 'ফুল ওয়ারেন্টি'}\n`
+    response += `  • ডেলিভারি: ${product2.deliveryTime}\n`
+    if (features2.length > 0) response += `  • ফিচার: ${features2.join(', ')}\n`
+    response += `\n💡 দুটোই চমৎকার! আপনার বাজেট কত এবং কী সবচেয়ে দরকার বলুন — আপনার জন্য সেরাটা সুপারিশ করবো! 😊`
+    return response
+  }
+
+  // Fallback — can't find specific products to compare
+  if (lang === 'english') {
+    return `⚖️ I'd love to help you compare! Could you tell me which two products you're deciding between?\n\nFor example: "Netflix vs Spotify" or "NordVPN vs ExpressVPN"\n\nI'll give you a detailed comparison with prices and features! 😊`
+  }
+  if (lang === 'banglish') {
+    return `⚖️ Compare korte help korbo! Kon dui product er moddhe decide korcen seta bolle din?\n\nExample: "Netflix vs Spotify" ba "NordVPN vs ExpressVPN"\n\nDetails compare kore debo price & features soho! 😊`
+  }
+  return `⚖️ তুলনা করতে সাহায্য করবো! আপনি কোন দুটি প্রোডাক্টের মধ্যে সিদ্ধান্ত নিচ্ছেন বলুন?\n\nউদাহরণ: "Netflix vs Spotify" বা "NordVPN vs ExpressVPN"\n\nদাম ও ফিচারসহ বিস্তারিত তুলনা করে দেবো! 😊`
+}
+
 // ─── Out of Scope Response ────────────────────────────────────────────────
 
 function generateOutOfScopeResponse(lang: 'bangla' | 'banglish' | 'english'): string {
@@ -953,6 +1136,21 @@ export async function POST(request: NextRequest) {
     switch (intent) {
       case 'greeting': {
         response = generateGreeting(lang)
+        break
+      }
+
+      case 'thanks': {
+        response = generateThanksResponse(userMsg, history, lang)
+        break
+      }
+
+      case 'goodbye': {
+        response = generateGoodbyeResponse(lang)
+        break
+      }
+
+      case 'comparison': {
+        response = generateComparisonResponse(userMsg, lang)
         break
       }
 

@@ -8,11 +8,7 @@ import {
   MessageCircle,
   X,
   Send,
-  Bot,
   User,
-  Sparkles,
-  Loader2,
-  ExternalLink,
   RotateCcw,
   BadgeCheck,
   Shield,
@@ -23,7 +19,8 @@ import {
   CreditCard,
   HelpCircle,
   Tag,
-  Package,
+  ExternalLink,
+  Loader2,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
@@ -44,14 +41,13 @@ interface ChatResponse {
 }
 
 const capabilities = [
-  { icon: Search, label: 'প্রোডাক্ট খুঁজুন', desc: 'Find products' },
-  { icon: Tag, label: 'ফিচার্ড', desc: 'Featured products' },
-  { icon: CreditCard, label: 'প্রাইস জানুন', desc: 'Get prices' },
-  { icon: ShoppingCart, label: 'অর্ডার করুন', desc: 'Place order' },
-  { icon: HelpCircle, label: 'সাহায্য নিন', desc: 'Get help' },
+  { icon: Search, label: 'খুঁজুন', action: 'আমি প্রোডাক্ট খুঁজতে চাই' },
+  { icon: Tag, label: 'ফিচার্ড', action: 'Show me all featured products' },
+  { icon: CreditCard, label: 'দাম', action: 'সব প্রোডাক্ট এর দাম জানাও' },
+  { icon: ShoppingCart, label: 'অর্ডার', action: 'আমি order করতে চাই' },
+  { icon: HelpCircle, label: 'সাহায্য', action: 'আমাকে সাহায্য দরকার' },
 ]
 
-// Rotating messages for the typewriter bubble
 const typewriterMessages = [
   '👋 আমি কর্মচারী — বলুন কী লাগবে!',
   '🎬 Netflix কত টাকা জানতে চান?',
@@ -71,6 +67,15 @@ const KORMOCHARY_GREETING = `আসসালামু আলাইকুম! �
 🔒 VPN, AI Tools, আরও অনেক কিছু!
 
 কী লাগবে বলুন — সেরা ডিল খুঁজে দেবো! 😊`
+
+const quickActions = [
+  { label: '⭐ Best Sellers', action: 'ফিচার্ড প্রোডাক্ট দেখাও' },
+  { label: '🎬 Netflix দাম', action: 'Netflix কত টাকা?' },
+  { label: '🤖 ChatGPT Plus', action: 'ChatGPT Plus কত টাকা?' },
+  { label: '🔒 VPN প্ল্যান', action: 'VPN প্ল্যান কত টাকা?' },
+  { label: '📦 অর্ডার করুন', action: 'কীভাবে অর্ডার করবো?' },
+  { label: '❓ সাহায্য', action: 'আমাকে সাহায্য দরকার' },
+]
 
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
@@ -92,14 +97,13 @@ export function AIChatWidget() {
   const lastSentRef = useRef<number>(0)
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Typewriter effect for the floating bubble
+  // Typewriter effect for the floating bubble (desktop only)
   useEffect(() => {
     if (isOpen) return
 
     const currentMessage = typewriterMessages[currentMsgIndex]
     let charIndex = 0
 
-    // Defer initial state setting to avoid synchronous setState in effect
     const initTimer = setTimeout(() => {
       setDisplayedText('')
       setIsTyping(true)
@@ -140,7 +144,7 @@ export function AIChatWidget() {
   // Focus input when opened
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 300)
+      setTimeout(() => inputRef.current?.focus(), 350)
     }
   }, [isOpen])
 
@@ -243,37 +247,26 @@ export function AIChatWidget() {
     ])
   }
 
-  // Quick action buttons — matches the spec's greeting options
-  const quickActions = [
-    { label: '⭐ Best Sellers', action: 'ফিচার্ড প্রোডাক্ট দেখাও' },
-    { label: '🎬 Netflix দাম', action: 'Netflix কত টাকা?' },
-    { label: '🤖 ChatGPT Plus', action: 'ChatGPT Plus কত টাকা?' },
-    { label: '🔒 VPN প্ল্যান', action: 'VPN প্ল্যান কত টাকা?' },
-    { label: '📦 অর্ডার করুন', action: 'কীভাবে অর্ডার করবো?' },
-    { label: '❓ সাহায্য', action: 'আমাকে সাহায্য দরকার' },
-  ]
-
   return (
     <>
-      {/* ===== Floating AI Button with Typewriter Bubble ===== */}
+      {/* ===== Floating Chat Button (Fixed Bottom-Right) ===== */}
       <AnimatePresence>
         {!isOpen && (
           <motion.div
-            className="fixed z-[55] flex items-center gap-2 sm:gap-3
-              top-[72px] right-3
-              sm:bottom-[88px] sm:right-6 sm:top-auto
-              lg:bottom-[88px] lg:right-6"
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            className="fixed z-[55] flex items-center gap-3
+              right-4 bottom-[80px]
+              sm:right-6 sm:bottom-[90px]"
+            initial={{ opacity: 0, scale: 0.5, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: 20 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           >
-            {/* Typewriter Message Bubble — visible on sm+ screens */}
+            {/* Typewriter Message Bubble — desktop only (to the LEFT of the button) */}
             <motion.div
               initial={{ opacity: 0, x: 10, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
-              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-xl px-4 py-2.5 max-w-[240px] cursor-pointer hover:shadow-xl hover:border-emerald-300/50 transition-all group/bubble"
+              transition={{ duration: 0.3, delay: 0.8 }}
+              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-xl px-4 py-2.5 max-w-[240px] cursor-pointer hover:shadow-xl hover:border-emerald-300/50 transition-all group/bubble relative"
               onClick={() => setIsOpen(true)}
             >
               <div className="flex-1 min-w-0">
@@ -284,7 +277,6 @@ export function AIChatWidget() {
                   )}
                 </p>
               </div>
-              {/* Live typing indicator dots */}
               {isTyping && (
                 <div className="flex items-center gap-[3px] shrink-0">
                   <span className="h-1 w-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
@@ -293,19 +285,20 @@ export function AIChatWidget() {
                 </div>
               )}
               {/* Speech bubble arrow pointing right toward the button */}
-              <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-0 h-0 
+              <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-0 h-0
                 border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent border-l-[9px] border-l-border/60" />
-              <div className="absolute -right-[5px] top-1/2 -translate-y-1/2 w-0 h-0 
+              <div className="absolute -right-[5px] top-1/2 -translate-y-1/2 w-0 h-0
                 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[7px] border-l-background" />
             </motion.div>
 
-            {/* The Main AI Button */}
+            {/* The Main Round AI Button */}
             <motion.button
               onClick={() => setIsOpen(true)}
               className="relative flex items-center justify-center
-                w-16 h-16 rounded-full p-1
-                sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 sm:rounded-full sm:gap-2.5
-                bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 
+                w-14 h-14
+                sm:w-[60px] sm:h-[60px]
+                rounded-full
+                bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500
                 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600
                 text-white shadow-lg hover:shadow-2xl
                 transition-all active:scale-90 group
@@ -317,170 +310,221 @@ export function AIChatWidget() {
               {/* Pulsing glow ring behind the button */}
               <span className="absolute inset-0 rounded-full bg-emerald-400/25 animate-ping [animation-duration:2.5s]" />
 
-              {/* Inner content — avatar image */}
-              <span className="relative flex items-center gap-2 z-10">
+              {/* Avatar image inside the button */}
+              <span className="relative z-10">
                 <Image
                   src={AVATAR_SRC}
                   alt="কর্মচারী"
-                  width={48}
-                  height={48}
-                  className="h-12 w-12 sm:h-9 sm:w-9 rounded-full object-cover ring-2 ring-white/30"
+                  width={44}
+                  height={44}
+                  className="h-[44px] w-[44px] sm:h-12 sm:w-12 rounded-full object-cover ring-2 ring-white/30"
                 />
-                <span className="hidden sm:inline text-sm font-bold tracking-wide drop-shadow-sm">কর্মচারী</span>
               </span>
 
               {/* Notification badge — top right */}
-              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-amber-400 border-[2.5px] border-background shadow-sm flex items-center justify-center">
+              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-amber-400 border-[2.5px] border-background shadow-sm flex items-center justify-center">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-800 animate-pulse" />
-              </span>
-
-              {/* Mobile: small live typing indicator below the circle */}
-              <span className="sm:hidden absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-[2px] bg-emerald-800/90 rounded-full px-2 py-0.5 shadow-md">
-                <span className="h-[3px] w-[3px] rounded-full bg-emerald-300 animate-bounce [animation-delay:0ms]" />
-                <span className="h-[3px] w-[3px] rounded-full bg-emerald-300 animate-bounce [animation-delay:150ms]" />
-                <span className="h-[3px] w-[3px] rounded-full bg-emerald-300 animate-bounce [animation-delay:300ms]" />
               </span>
             </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ===== Chat Window ===== */}
+      {/* ===== Chat Window (Fixed Bottom-Right) ===== */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed z-[60] flex flex-col bg-background border border-border/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm
-              top-[72px] right-3 left-3 w-auto
-              sm:bottom-6 sm:right-6 sm:left-auto sm:w-[420px] sm:top-auto
-              max-h-[75vh] sm:max-h-[75vh]"
-          >
-            {/* Header — কর্মচারী Branding */}
-            <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white p-4 flex items-center justify-between shrink-0 overflow-hidden">
-              <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/5" />
-              <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white/5" />
+          <>
+            {/* Mobile overlay backdrop */}
+            <motion.div
+              className="fixed inset-0 z-[59] bg-black/40 backdrop-blur-sm sm:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsOpen(false)}
+            />
 
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="relative">
-                  <Image
-                    src={AVATAR_SRC}
-                    alt="কর্মচারী"
-                    width={40}
-                    height={40}
-                    className="h-10 w-10 rounded-full object-cover ring-2 ring-white/30"
-                  />
-                  <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-sky-500 flex items-center justify-center ring-2 ring-emerald-500">
-                    <BadgeCheck className="h-2.5 w-2.5 text-white" />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-base tracking-tight">কর্মচারী</h3>
-                    <BadgeCheck className="h-4 w-4 text-sky-300" />
-                    <span className="text-[10px] font-medium bg-white/15 rounded-full px-2 py-0.5">AI Assistant</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-300 animate-pulse" />
-                    <p className="text-[11px] text-emerald-100 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 relative z-10">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-white/15 h-8 px-2.5 text-xs font-medium rounded-lg"
-                  onClick={clearChat}
-                >
-                  <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                  রিসেট
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/15 h-8 w-8 rounded-lg"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Capability Cards */}
-            <div className="px-4 pt-3 pb-2 border-b border-border/30 bg-muted/30 shrink-0">
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-2">আমি কি কি করতে পারি</p>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {capabilities.map((cap) => {
-                  const Icon = cap.icon
-                  return (
-                    <button
-                      key={cap.label}
-                      className="flex flex-col items-center gap-1 p-2.5 min-h-[44px] rounded-lg hover:bg-muted/60 transition-colors cursor-pointer active:scale-95"
-                      onClick={() => {
-                        const actionMap: Record<string, string> = {
-                          'প্রোডাক্ট খুঁজুন': 'আমি প্রোডাক্ট খুঁজতে চাই',
-                          'ফিচার্ড': 'Show me all featured products',
-                          'প্রাইস জানুন': 'সব প্রোডাক্ট এর দাম জানাও',
-                          'অর্ডার করুন': 'আমি order করতে চাই',
-                          'সাহায্য নিন': 'আমাকে সাহায্য দরকার',
-                        }
-                        const msg = actionMap[cap.label] || cap.label
-                        setInput(msg)
-                        sendMessage(msg)
-                      }}
-                    >
-                      <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                        <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <span className="text-[11px] font-medium text-foreground text-center leading-tight">{cap.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Trust Indicators Strip */}
-            <div className="flex items-center justify-center gap-3 px-4 py-1.5 bg-emerald-50/50 dark:bg-emerald-950/20 border-b border-border/30 shrink-0">
-              <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
-                <Shield className="h-2.5 w-2.5" />
-                <span>Warranty</span>
-              </div>
-              <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
-              <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
-                <Zap className="h-2.5 w-2.5" />
-                <span>5-20 Min</span>
-              </div>
-              <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
-              <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
-                <Headphones className="h-2.5 w-2.5" />
-                <span>24/7</span>
-              </div>
-              <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
-              <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
-                <BadgeCheck className="h-2.5 w-2.5" />
-                <span>Verified</span>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div
-              ref={scrollRef}
-              className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[120px] sm:min-h-[200px] overscroll-contain scroll-smooth custom-scrollbar"
-              style={{ maxHeight: 'calc(80vh - 280px)' }}
+            {/* Chat panel */}
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              className="fixed z-[60] flex flex-col bg-background border border-border/50 shadow-2xl overflow-hidden inset-x-0 bottom-0 h-[80vh] rounded-t-2xl sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
             >
-              {messages.map((msg, i) => (
-                <motion.div
-                  key={`${msg.timestamp}-${i}`}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {msg.role === 'assistant' && (
-                    <div className="relative shrink-0 mt-0.5">
+              {/* ===== HEADER ===== */}
+              <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white p-4 flex items-center justify-between shrink-0 overflow-hidden">
+                {/* Decorative circles */}
+                <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/5" />
+                <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
+                <div className="absolute top-2 right-20 w-10 h-10 rounded-full bg-white/5" />
+
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="relative">
+                    <Image
+                      src={AVATAR_SRC}
+                      alt="কর্মচারী"
+                      width={44}
+                      height={44}
+                      className="h-11 w-11 rounded-full object-cover ring-2 ring-white/30"
+                    />
+                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-sky-500 flex items-center justify-center ring-2 ring-emerald-500">
+                      <BadgeCheck className="h-2.5 w-2.5 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-bold text-base tracking-tight">কর্মচারী</h3>
+                      <BadgeCheck className="h-4 w-4 text-sky-300" />
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] font-semibold bg-white/15 text-white border-0 rounded-full px-2 py-0 h-5"
+                      >
+                        AI Assistant
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="h-2 w-2 rounded-full bg-green-300 animate-pulse" />
+                      <p className="text-[11px] text-emerald-100 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 relative z-10">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-white hover:bg-white/15 h-8 px-2.5 text-xs font-medium rounded-lg"
+                    onClick={clearChat}
+                    aria-label="Reset chat"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                    রিসেট
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/15 h-8 w-8 rounded-lg"
+                    onClick={() => setIsOpen(false)}
+                    aria-label="Close chat"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* ===== CAPABILITY CARDS ===== */}
+              <div className="px-3 pt-3 pb-2 border-b border-border/30 bg-muted/20 shrink-0">
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-2 px-1">আমি কি কি করতে পারি</p>
+                <div className="flex items-center gap-1.5">
+                  {capabilities.map((cap) => {
+                    const Icon = cap.icon
+                    return (
+                      <button
+                        key={cap.label}
+                        className="flex flex-col items-center gap-1 p-2 flex-1 min-w-0 rounded-lg hover:bg-muted/60 transition-colors cursor-pointer active:scale-95 min-h-[52px]"
+                        onClick={() => {
+                          setInput(cap.action)
+                          sendMessage(cap.action)
+                        }}
+                      >
+                        <div className="h-7 w-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                          <Icon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <span className="text-[10px] font-medium text-foreground text-center leading-tight truncate w-full">{cap.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* ===== TRUST INDICATORS ===== */}
+              <div className="flex items-center justify-center gap-3 px-4 py-1.5 bg-emerald-50/50 dark:bg-emerald-950/20 border-b border-border/30 shrink-0">
+                <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
+                  <Shield className="h-2.5 w-2.5" />
+                  <span>Warranty</span>
+                </div>
+                <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
+                <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
+                  <Zap className="h-2.5 w-2.5" />
+                  <span>5-20 Min</span>
+                </div>
+                <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
+                <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
+                  <Headphones className="h-2.5 w-2.5" />
+                  <span>24/7</span>
+                </div>
+                <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800" />
+                <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400">
+                  <BadgeCheck className="h-2.5 w-2.5" />
+                  <span>Verified</span>
+                </div>
+              </div>
+
+              {/* ===== MESSAGE AREA ===== */}
+              <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto p-4 space-y-3 overscroll-contain scroll-smooth custom-scrollbar"
+              >
+                {messages.map((msg, i) => (
+                  <motion.div
+                    key={`${msg.timestamp}-${i}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    {msg.role === 'assistant' && (
+                      <div className="relative shrink-0 mt-0.5">
+                        <Image
+                          src={AVATAR_SRC}
+                          alt="কর্মচারী"
+                          width={28}
+                          height={28}
+                          className="h-7 w-7 rounded-full object-cover ring-1 ring-emerald-200/50 dark:ring-emerald-800/50"
+                        />
+                        <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-sky-500 flex items-center justify-center ring-1 ring-background">
+                          <BadgeCheck className="h-2 w-2 text-white" />
+                        </div>
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[82%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed ${
+                        msg.role === 'user'
+                          ? 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white rounded-br-md shadow-md shadow-emerald-600/20'
+                          : 'bg-muted/70 dark:bg-muted/50 rounded-bl-md border border-border/30'
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                      {msg.whatsappUrl && (
+                        <a
+                          href={msg.whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-xs font-semibold transition-all shadow-sm hover:shadow-md active:scale-95"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          WhatsApp এ অর্ডার করুন
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                    {msg.role === 'user' && (
+                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-emerald-500/20">
+                        <User className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+
+                {/* Typing indicator */}
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex gap-2.5 justify-start"
+                  >
+                    <div className="relative shrink-0">
                       <Image
                         src={AVATAR_SRC}
                         alt="কর্মচারী"
@@ -492,110 +536,64 @@ export function AIChatWidget() {
                         <BadgeCheck className="h-2 w-2 text-white" />
                       </div>
                     </div>
-                  )}
-                  <div
-                    className={`max-w-[82%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed ${
-                      msg.role === 'user'
-                        ? 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white rounded-br-md shadow-md shadow-emerald-600/20'
-                        : 'bg-muted/80 rounded-bl-md border border-border/30'
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                    {msg.whatsappUrl && (
-                      <a
-                        href={msg.whatsappUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-xs font-semibold transition-all shadow-sm hover:shadow-md active:scale-95"
-                      >
-                        <MessageCircle className="h-3.5 w-3.5" />
-                        WhatsApp এ অর্ডার করুন
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                  </div>
-                  {msg.role === 'user' && (
-                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-emerald-500/20">
-                      <User className="h-3.5 w-3.5 text-white" />
+                    <div className="bg-muted/70 dark:bg-muted/50 rounded-2xl rounded-bl-md px-4 py-3 border border-border/30">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
+                      </div>
                     </div>
-                  )}
-                </motion.div>
-              ))}
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex gap-2.5 justify-start"
-                >
-                  <div className="relative shrink-0">
-                    <Image
-                      src={AVATAR_SRC}
-                      alt="কর্মচারী"
-                      width={28}
-                      height={28}
-                      className="h-7 w-7 rounded-full object-cover ring-1 ring-emerald-200/50 dark:ring-emerald-800/50"
-                    />
-                    <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-sky-500 flex items-center justify-center ring-1 ring-background">
-                      <BadgeCheck className="h-2 w-2 text-white" />
-                    </div>
-                  </div>
-                  <div className="bg-muted/80 rounded-2xl rounded-bl-md px-4 py-3 border border-border/30">
-                    <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            {/* Quick Actions */}
-            <div className="px-4 py-2 flex gap-2 overflow-x-auto shrink-0 border-t border-border/30 scrollbar-none">
-              {quickActions.map(q => (
-                <button
-                  key={q.label}
-                  className="cursor-pointer whitespace-nowrap text-[11px] shrink-0 hover:bg-emerald-50 dark:hover:bg-emerald-950 border border-border/60 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all active:scale-95 py-2.5 px-4 rounded-full bg-background"
-                  onClick={() => {
-                    sendMessage(q.action)
-                  }}
-                >
-                  {q.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Input — min 16px font to prevent iOS zoom */}
-            <div className="p-3 border-t border-border/30 shrink-0 bg-background/50">
-              <div className="flex gap-2 items-center">
-                <Input
-                  ref={inputRef}
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="বাংলা, বাংলিশ বা English এ লিখুন..."
-                  className="h-11 text-base rounded-xl border-border/50 focus-visible:ring-emerald-500/30"
-                  disabled={isLoading || cooldown}
-                  style={{ fontSize: '16px' }}
-                />
-                <Button
-                  size="icon"
-                  onClick={() => sendMessage()}
-                  disabled={!input.trim() || isLoading || cooldown}
-                  className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 h-11 w-11 rounded-xl shadow-md shadow-emerald-600/20 shrink-0"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
+                  </motion.div>
+                )}
               </div>
-              {cooldown && (
-                <p className="text-[10px] text-muted-foreground mt-1.5 text-center">একটু অপেক্ষা করুন...</p>
-              )}
-            </div>
-          </motion.div>
+
+              {/* ===== QUICK ACTIONS ===== */}
+              <div className="px-3 py-2 flex gap-1.5 overflow-x-auto shrink-0 border-t border-border/30" style={{ scrollbarWidth: 'none' }}>
+                {quickActions.map(q => (
+                  <button
+                    key={q.label}
+                    className="cursor-pointer whitespace-nowrap text-[11px] shrink-0 hover:bg-emerald-50 dark:hover:bg-emerald-950 border border-border/60 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all active:scale-95 py-2 px-3 rounded-full bg-background"
+                    onClick={() => {
+                      sendMessage(q.action)
+                    }}
+                  >
+                    {q.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* ===== INPUT AREA ===== */}
+              <div className="p-3 border-t border-border/30 shrink-0 bg-background/80 backdrop-blur-sm">
+                <div className="flex gap-2 items-center">
+                  <Input
+                    ref={inputRef}
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="বাংলা, বাংলিশ বা English এ লিখুন..."
+                    className="h-11 text-base rounded-xl border-border/50 focus-visible:ring-emerald-500/30"
+                    disabled={isLoading || cooldown}
+                    style={{ fontSize: '16px' }}
+                  />
+                  <Button
+                    size="icon"
+                    onClick={() => sendMessage()}
+                    disabled={!input.trim() || isLoading || cooldown}
+                    className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 h-11 w-11 rounded-xl shadow-md shadow-emerald-600/20 shrink-0"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                {cooldown && (
+                  <p className="text-[10px] text-muted-foreground mt-1.5 text-center">একটু অপেক্ষা করুন...</p>
+                )}
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
