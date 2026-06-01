@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import ZAI from 'z-ai-web-dev-sdk'
 import {
   searchProducts,
   searchByCategory,
@@ -8,6 +9,15 @@ import {
   findRelatedProducts,
   type Product,
 } from '@/lib/data'
+
+// ─── ZAI LLM Singleton ───────────────────────────────────────────────────
+
+let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null
+
+async function getZAI() {
+  if (!zaiInstance) zaiInstance = await ZAI.create()
+  return zaiInstance
+}
 
 // ─── Content Filter ────────────────────────────────────────────────────────
 
@@ -353,7 +363,147 @@ function buildWhatsAppUrl(orderDetails: {
   return `https://wa.me/8801647236359?text=${encodeURIComponent(lines.join('\n'))}`
 }
 
-// ─── PIN Inquiry Response ─────────────────────────────────────────────────
+// ─── Product Context Builder (for LLM system prompt) ─────────────────────
+
+function buildProductContext(userMsg: string): string {
+  const parts: string[] = []
+
+  // 1. Full catalog summary
+  const catalogSummary = getCatalogSummary()
+  parts.push('=== FULL PRODUCT CATALOG ===')
+  for (const cat of catalogSummary) {
+    const name = cat.isAdult ? sanitizeText(cat.name) : cat.name
+    parts.push(`\n📂 ${name} (${cat.productCount} products) — slug: ${cat.slug}`)
+    parts.push(`   Popular: ${cat.sampleProducts.slice(0, 4).join(', ')}`)
+  }
+
+  // 2. Specific product match
+  const specificProduct = findSpecificProduct(userMsg)
+  if (specificProduct) {
+    const pName = specificProduct.category.isAdult ? sanitizeText(specificProduct.name) : specificProduct.name
+    parts.push('\n=== SPECIFIC PRODUCT MATCH ===')
+    parts.push(`Name: ${pName}`)
+    parts.push(`Category: ${specificProduct.category.name}`)
+    parts.push(`Base Price: ৳${specificProduct.basePriceBDT}`)
+    parts.push(`Price Options:\n${parsePriceOptionsDetailed(specificProduct)}`)
+    parts.push(`Cheapest Plan: ${getCheapestPlan(specificProduct)}`)
+    const features = parseFeatures(specificProduct)
+    if (features.length > 0) {
+      parts.push(`Features: ${features.slice(0, 8).join(', ')}`)
+    }
+    parts.push(`Stock: ${specificProduct.stockStatus}`)
+    parts.push(`Warranty: ${specificProduct.warranty || 'Full warranty included'}`)
+    parts.push(`Delivery: ${specificProduct.deliveryTime}`)
+    if (specificProduct.region) parts.push(`Region: ${specificProduct.region}`)
+    if (specificProduct.accountType) parts.push(`Account Type: ${specificProduct.accountType}`)
+
+    // Related products
+    const related = findRelatedProducts(specificProduct.id, 3)
+    if (related.length > 0) {
+      const relatedStr = related.map((p) => {
+        const rName = p.category.isAdult ? sanitizeText(p.name) : p.name
+        return `${rName} (${getCheapestPlan(p)})`
+      }).join(', ')
+      parts.push(`Related Products: ${relatedStr}`)
+    }
+  }
+
+  // 3. Search results
+  const searchResults = searchProducts(userMsg, 6)
+  if (searchResults.length > 0 && !specificProduct) {
+    parts.push('\n=== SEARCH RESULTS ===')
+    searchResults.forEach((p, i) => {
+      const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
+      parts.push(`${i + 1}. ${pName} — From ${getCheapestPlan(p)} | Category: ${p.category.name} | Stock: ${p.stockStatus}`)
+    })
+  }
+
+  // 4. Category match
+  const categorySlug = detectCategorySlug(userMsg)
+  if (categorySlug) {
+    const { category, products, totalCount } = searchByCategory(categorySlug)
+    if (category && products.length > 0) {
+      const catName = category.isAdult ? sanitizeText(category.name) : category.name
+      parts.push(`\n=== CATEGORY: ${catName} (${totalCount} products) ===`)
+      products.slice(0, 8).forEach((p, i) => {
+        const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
+        const badge = p.isBestSeller ? ' 🔥BestSeller' : p.isFeatured ? ' ⭐Featured' : ''
+        parts.push(`${i + 1}. ${pName}${badge} — From ${getCheapestPlan(p)}`)
+      })
+    }
+  }
+
+  // 5. Featured products
+  const { products: featured } = getFeaturedProducts(8)
+  if (featured.length > 0) {
+    parts.push('\n=== FEATURED / BEST SELLERS ===')
+    featured.forEach((p, i) => {
+      const pName = p.category.isAdult ? sanitizeText(p.name) : p.name
+      const badge = p.isBestSeller ? '🔥' : p.isNewArrival ? '✨' : ''
+      parts.push(`${i + 1}. ${pName} ${badge} — From ${getCheapestPlan(p)}`)
+    })
+  }
+
+  return parts.join('\n')
+}
+
+// ─── LLM System Prompt Builder ───────────────────────────────────────────
+
+function buildSystemPrompt(userMsg: string, lang: 'bangla' | 'banglish' | 'english'): string {
+  const productContext = buildProductContext(userMsg)
+
+  const langInstruction =
+    lang === 'bangla'
+      ? 'You MUST respond in Bengali script (বাংলা). Write everything in proper Bengali.'
+      : lang === 'banglish'
+        ? 'You MUST respond in Banglish (Romanized Bengali). Write Bengali words using English letters. Example: "apnar jonno", "kinte chai", "onek valo".'
+        : 'You MUST respond in English.'
+
+  return `You are "কর্মচারী" (meaning: assistant/helper) — the AI customer support assistant for **Streaming Hub**, Bangladesh's #1 digital subscription store.
+
+== YOUR IDENTITY & PERSONALITY ==
+- Name: কর্মচারী (always reference yourself as কর্মচারী)
+- Personality: Professional, friendly, sales-oriented, helpful, and culturally aware
+- You are an expert on ALL Streaming Hub products, prices, features, and policies
+- You always try to convert conversations into sales in a natural, non-pushy way
+- You use appropriate emojis to make responses beautiful and organized
+- You keep responses concise but informative (not too long, not too short)
+
+== CRITICAL KNOWLEDGE ==
+- **RESTRICTED SECTION PIN: 69** — When users ask for the PIN, access code, or how to enter the restricted/VP/verified premium section, tell them the PIN is **69**. Always share this when asked.
+- Business Name: Streaming Hub
+- What we sell: Premium digital subscriptions (Netflix, Spotify, YouTube Premium, ChatGPT Plus, Midjourney, VPNs, Canva, Adobe, etc.)
+- Payment Methods: bKash and Nagad to number **01647236359**
+- WhatsApp Contact: **+8801647236359**
+- Delivery Time: **5-20 minutes** after payment
+- All products come with **full warranty** — free replacement if any issue
+- We have **200+ products** across **11 categories**
+
+== LANGUAGE RULES ==
+${langInstruction}
+- The user's detected language is: ${lang}
+- ALWAYS respond in the detected language
+- You can mix in English product names/brands naturally (Netflix, Spotify, etc.) regardless of language
+- Be culturally appropriate — use "Assalamu Alaikum" for greetings in Bangla/Banglish
+
+== PRODUCT DATA (USE ONLY THIS — NEVER MAKE UP PRODUCTS OR PRICES) ==
+${productContext}
+
+== RESPONSE RULES ==
+1. **NEVER fabricate products or prices** — Only mention products that exist in the catalog data above
+2. **Always include prices** when mentioning specific products (use ৳ symbol for BDT)
+3. **Use emojis** to organize and beautify responses (🎬🤖🔒🎮🎁📂💰📦🚚💳⚡💡🔥⭐✨)
+4. **Be sales-oriented** — After answering questions, naturally suggest ordering or related products
+5. **When user wants to order**, explain the process: Send money to bKash 01647236359 → Share TrxID → Get delivery in 5-20 minutes
+6. **Keep responses organized** with line breaks and bullet points
+7. **For PIN inquiries**: Tell them the PIN is 69, explain it's for the Verified Premium section, and remind them to keep it private from minors
+8. **For greetings**: Welcome them warmly, introduce yourself as কর্মচারী, and show what you can help with
+9. **For product inquiries**: Show pricing options, features, stock status, warranty, delivery time
+10. **For comparisons**: Compare prices, features, and give a recommendation
+11. **For out-of-scope questions**: Gently redirect to what Streaming Hub offers`
+}
+
+// ─── Fallback: PIN Inquiry Response ────────────────────────────────────────
 
 function generatePinInquiryResponse(lang: 'bangla' | 'banglish' | 'english'): string {
   if (lang === 'english') {
@@ -379,7 +529,7 @@ Ei PIN diye apni Verified Premium section e probesh korte parben. Age verificati
 ⚠️ দয়া করে নাবালকদের থেকে এই PIN গোপন রাখুন।`
 }
 
-// ─── Smart Sales Response Generators ──────────────────────────────────────
+// ─── Fallback: Smart Sales Response Generators ─────────────────────────────
 
 function generateGreeting(lang: 'bangla' | 'banglish' | 'english'): string {
   if (lang === 'english') {
@@ -711,7 +861,7 @@ function generateSearchFallback(query: string, lang: 'bangla' | 'banglish' | 'en
   return generateOutOfScopeResponse(lang)
 }
 
-// ─── How to Use Guide ────────────────────────────────────────────────────
+// ─── Fallback: How to Use Guide ────────────────────────────────────────────
 
 function generateHowToUseResponse(
   userMsg: string,
@@ -761,10 +911,10 @@ function generateHowToUseResponse(
   return response
 }
 
-// ─── Warranty & Delivery Info ────────────────────────────────────────────
+// ─── Fallback: Warranty & Delivery Info ────────────────────────────────────
 
 function generateWarrantyDeliveryResponse(
-  userMsg: string,
+  _userMsg: string,
   lang: 'bangla' | 'banglish' | 'english'
 ): string {
   if (lang === 'english') {
@@ -778,7 +928,7 @@ function generateWarrantyDeliveryResponse(
   return `🔒 ওয়ারেন্টি ও ডেলিভারি পলিসি\n\n✅ সব সাবস্ক্রিপশনে ফুল ওয়ারেন্টি\n✅ কোনো সমস্যা হলে ওয়ারেন্টি সময়ে ফ্রি রিপ্লেসমেন্ট\n✅ কোনো প্রশ্ন ছাড়াই রিপ্লেস করে দেবো\n\n🚚 ডেলিভারি সময়:\n  • বেশিরভাগ প্রোডাক্ট: 5-20 মিনিট\n  • কিছু প্রোডাক্ট: ২৪ ঘণ্টা পর্যন্ত\n  • অর্ডারের পর সঠিক সময় জানিয়ে দেবো\n\n💰 পেমেন্ট মাধ্যম:\n  • bKash: 01647236359\n  • Nagad: 01647236359\n\n📱 আর কোনো প্রশ্ন? অথবা অর্ডার করতে রেডি? 😊`
 }
 
-// ─── Order Payment Response ───────────────────────────────────────────────
+// ─── Fallback: Order Payment Response ──────────────────────────────────────
 
 function generateOrderPaymentResponse(
   userMsg: string,
@@ -941,7 +1091,7 @@ function generateOrderPaymentResponse(
   return { response, whatsappUrl }
 }
 
-// ─── Price Inquiry Response ───────────────────────────────────────────────
+// ─── Fallback: Price Inquiry Response ──────────────────────────────────────
 
 function generatePriceInquiryResponse(
   userMsg: string,
@@ -971,7 +1121,7 @@ function generatePriceInquiryResponse(
   return `💰 আমাদের প্রাইস রেঞ্জ\n\n🎬 স্ট্রিমিং: ৳99 - ৳1,499\n🤖 AI Tools: ৳199 - ৳4,999\n🔒 VPN: ৳149 - ৳2,499\n📚 এডুকেশন: ৳199 - ৳2,999\n🎨 ডিজাইন: ৳199 - ৳3,499\n🎮 গেমিং: ৳99 - ৳999\n🎁 গিফট কার্ড: ৳500 - ৳5,000\n\n💡 কোন প্রোডাক্টের দাম জানতে চান বলুন — সঠিক মূল্য দেবো! 😊`
 }
 
-// ─── Thanks Response ──────────────────────────────────────────────────────
+// ─── Fallback: Thanks Response ─────────────────────────────────────────────
 
 function generateThanksResponse(
   userMsg: string,
@@ -1014,7 +1164,7 @@ function generateThanksResponse(
   return response
 }
 
-// ─── Goodbye Response ──────────────────────────────────────────────────────
+// ─── Fallback: Goodbye Response ────────────────────────────────────────────
 
 function generateGoodbyeResponse(lang: 'bangla' | 'banglish' | 'english'): string {
   if (lang === 'english') {
@@ -1028,7 +1178,7 @@ function generateGoodbyeResponse(lang: 'bangla' | 'banglish' | 'english'): strin
   return `ভালো থাকবেন! 👋 আপনার সাথে কথা হয়ে ভালো লাগলো।\n\nমনে রাখবেন — যখনই সাবস্ক্রিপশন লাগবে সেরা দামে, আমি এক ক্লিকেই আছি! 😊\n\n💳 মনে রাখতে: bKash এ Send Money 01647236359 — তাৎক্ষণিক ডেলিভারি!\n\nআপনার দিন ভালো কাটুক! 💚`
 }
 
-// ─── Comparison Response ──────────────────────────────────────────────────
+// ─── Fallback: Comparison Response ─────────────────────────────────────────
 
 function generateComparisonResponse(
   userMsg: string,
@@ -1118,7 +1268,7 @@ function generateComparisonResponse(
   return `⚖️ তুলনা করতে সাহায্য করবো! আপনি কোন দুটি প্রোডাক্টের মধ্যে সিদ্ধান্ত নিচ্ছেন বলুন?\n\nউদাহরণ: "Netflix vs Spotify" বা "NordVPN vs ExpressVPN"\n\nদাম ও ফিচারসহ বিস্তারিত তুলনা করে দেবো! 😊`
 }
 
-// ─── Out of Scope Response ────────────────────────────────────────────────
+// ─── Fallback: Out of Scope Response ───────────────────────────────────────
 
 function generateOutOfScopeResponse(lang: 'bangla' | 'banglish' | 'english'): string {
   const catalogSummary = getCatalogSummary()
@@ -1167,12 +1317,128 @@ function generateOutOfScopeResponse(lang: 'bangla' | 'banglish' | 'english'): st
   return lines.join('\n')
 }
 
-// ─── POST Handler ─────────────────────────────────────────────────────────
+// ─── Fallback: Rule-Based Response Generator ──────────────────────────────
+
+function generateRuleBasedResponse(
+  intent: Intent,
+  userMsg: string,
+  history: Array<{ role: string; content: string }>,
+  lang: 'bangla' | 'banglish' | 'english'
+): { response: string; whatsappUrl?: string } {
+  switch (intent) {
+    case 'pin_inquiry': {
+      return { response: generatePinInquiryResponse(lang) }
+    }
+
+    case 'greeting': {
+      return { response: generateGreeting(lang) }
+    }
+
+    case 'thanks': {
+      return { response: generateThanksResponse(userMsg, history, lang) }
+    }
+
+    case 'goodbye': {
+      return { response: generateGoodbyeResponse(lang) }
+    }
+
+    case 'comparison': {
+      return { response: generateComparisonResponse(userMsg, lang) }
+    }
+
+    case 'featured': {
+      return { response: generateFeaturedResponse(lang) }
+    }
+
+    case 'specific_product': {
+      const product = findSpecificProduct(userMsg)
+      if (product) {
+        return { response: generateSpecificProductResponse(product, lang, intent) }
+      }
+      return { response: generateSearchFallback(userMsg, lang) }
+    }
+
+    case 'category': {
+      const categorySlug = detectCategorySlug(userMsg)
+      if (categorySlug) {
+        return { response: generateCategoryResponse(categorySlug, lang) }
+      }
+      return { response: generateSearchFallback(userMsg, lang) }
+    }
+
+    case 'all_products': {
+      return { response: generateAllProductsResponse(lang) }
+    }
+
+    case 'order_payment': {
+      const orderResult = generateOrderPaymentResponse(userMsg, history, lang)
+      return { response: orderResult.response, whatsappUrl: orderResult.whatsappUrl }
+    }
+
+    case 'how_to_use': {
+      return { response: generateHowToUseResponse(userMsg, lang) }
+    }
+
+    case 'warranty_delivery': {
+      return { response: generateWarrantyDeliveryResponse(userMsg, lang) }
+    }
+
+    case 'price_inquiry': {
+      return { response: generatePriceInquiryResponse(userMsg, lang) }
+    }
+
+    case 'search': {
+      const searchResults = searchProducts(userMsg)
+      return { response: generateSearchResponse(searchResults, lang) }
+    }
+
+    case 'out_of_scope':
+    default: {
+      return { response: generateOutOfScopeResponse(lang) }
+    }
+  }
+}
+
+// ─── Rate Limiting ────────────────────────────────────────────────────────
+
+const requestTimestamps = new Map<string, number[]>()
+
+function isRateLimited(sessionId: string): boolean {
+  const now = Date.now()
+  const windowMs = 60_000 // 1 minute
+  const maxRequests = 20
+
+  const timestamps = requestTimestamps.get(sessionId) || []
+  const recentTimestamps = timestamps.filter((t) => now - t < windowMs)
+
+  if (recentTimestamps.length >= maxRequests) {
+    return true
+  }
+
+  recentTimestamps.push(now)
+  requestTimestamps.set(sessionId, recentTimestamps)
+  return false
+}
+
+// ─── Order Intent Detection (for WhatsApp URL) ───────────────────────────
+
+function isOrderIntent(message: string): boolean {
+  const lower = message.toLowerCase()
+  const orderSignals = [
+    'order', 'buy', 'purchase', 'কিনতে চাই', 'অর্ডার',
+    'kinte chai', 'order korbo', 'lagbe', 'chai',
+    'payment', 'bkash', 'nagad', 'confirm',
+    'how to order', 'order kivabe',
+  ]
+  return orderSignals.some((kw) => lower.includes(kw))
+}
+
+// ─── POST Handler (LLM Primary + Rule-Based Fallback) ────────────────────
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { message, sessionId, history = [] } = body as {
+    const { message, sessionId = 'default', history = [] } = body as {
       message?: string; sessionId?: string;
       history?: Array<{ role: string; content: string }>
     }
@@ -1181,102 +1447,86 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 })
     }
 
+    // Rate limiting
+    if (isRateLimited(sessionId)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a moment.' },
+        { status: 429 }
+      )
+    }
+
     const userMsg = message.trim()
     const lang = detectLanguage(userMsg)
     const intent = detectIntent(userMsg, history)
 
     let response = ''
     let whatsappUrl: string | undefined
+    let usedLLM = false
 
-    switch (intent) {
-      case 'pin_inquiry': {
-        response = generatePinInquiryResponse(lang)
-        break
-      }
+    // ── Try LLM first ──
+    try {
+      const zai = await getZAI()
+      const systemPrompt = buildSystemPrompt(userMsg, lang)
 
-      case 'greeting': {
-        response = generateGreeting(lang)
-        break
-      }
+      // Build conversation messages for LLM (keep last 10 messages for context)
+      const conversationMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+        { role: 'system', content: systemPrompt },
+      ]
 
-      case 'thanks': {
-        response = generateThanksResponse(userMsg, history, lang)
-        break
-      }
-
-      case 'goodbye': {
-        response = generateGoodbyeResponse(lang)
-        break
-      }
-
-      case 'comparison': {
-        response = generateComparisonResponse(userMsg, lang)
-        break
-      }
-
-      case 'featured': {
-        response = generateFeaturedResponse(lang)
-        break
-      }
-
-      case 'specific_product': {
-        const product = findSpecificProduct(userMsg)
-        if (product) {
-          response = generateSpecificProductResponse(product, lang, intent)
-        } else {
-          response = generateSearchFallback(userMsg, lang)
+      // Add recent history
+      const recentHistory = history.slice(-10)
+      for (const msg of recentHistory) {
+        if (msg.role === 'user' || msg.role === 'assistant') {
+          conversationMessages.push({
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+          })
         }
-        break
       }
 
-      case 'category': {
-        const categorySlug = detectCategorySlug(userMsg)
-        if (categorySlug) {
-          response = generateCategoryResponse(categorySlug, lang)
-        } else {
-          response = generateSearchFallback(userMsg, lang)
+      // Add current user message
+      conversationMessages.push({ role: 'user', content: userMsg })
+
+      const completion = await zai.chat.completions.create({
+        messages: conversationMessages,
+        stream: false,
+      })
+
+      // Extract the response text from the LLM completion
+      const llmResponse =
+        completion?.choices?.[0]?.message?.content ||
+        completion?.choices?.[0]?.text ||
+        (typeof completion === 'string' ? completion : null)
+
+      if (llmResponse && typeof llmResponse === 'string' && llmResponse.trim().length > 0) {
+        response = sanitizeText(llmResponse.trim())
+        usedLLM = true
+      }
+    } catch (llmError) {
+      console.error('LLM failed, falling back to rule-based:', llmError)
+    }
+
+    // ── Fallback to rule-based if LLM didn't produce a response ──
+    if (!usedLLM) {
+      const ruleResult = generateRuleBasedResponse(intent, userMsg, history, lang)
+      response = sanitizeText(ruleResult.response)
+      whatsappUrl = ruleResult.whatsappUrl
+    }
+
+    // ── Generate WhatsApp URL if order intent detected and LLM was used ──
+    if (usedLLM && isOrderIntent(userMsg)) {
+      // Try to find a product from the conversation for the WhatsApp URL
+      let foundProduct: Product | null = findSpecificProduct(userMsg)
+      if (!foundProduct) {
+        for (const msg of history.slice(-6).reverse()) {
+          const p = findSpecificProduct(msg.content)
+          if (p) { foundProduct = p; break }
         }
-        break
       }
-
-      case 'all_products': {
-        response = generateAllProductsResponse(lang)
-        break
-      }
-
-      case 'order_payment': {
-        const orderResult = generateOrderPaymentResponse(userMsg, history, lang)
-        response = orderResult.response
-        whatsappUrl = orderResult.whatsappUrl
-        break
-      }
-
-      case 'how_to_use': {
-        response = generateHowToUseResponse(userMsg, lang)
-        break
-      }
-
-      case 'warranty_delivery': {
-        response = generateWarrantyDeliveryResponse(userMsg, lang)
-        break
-      }
-
-      case 'price_inquiry': {
-        response = generatePriceInquiryResponse(userMsg, lang)
-        break
-      }
-
-      case 'search': {
-        const searchResults = searchProducts(userMsg)
-        response = generateSearchResponse(searchResults, lang)
-        break
-      }
-
-      case 'out_of_scope':
-      default: {
-        response = generateOutOfScopeResponse(lang)
-        break
-      }
+      whatsappUrl = buildWhatsAppUrl({
+        productName: foundProduct?.name,
+        message: userMsg,
+      })
     }
 
     return NextResponse.json({
@@ -1284,6 +1534,7 @@ export async function POST(request: NextRequest) {
       intent,
       language: lang,
       whatsappUrl,
+      source: usedLLM ? 'llm' : 'rule-based',
     })
   } catch (error) {
     console.error('Chat API error:', error)

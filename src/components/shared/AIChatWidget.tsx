@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -14,18 +14,13 @@ import {
   Shield,
   Zap,
   Headphones,
-  ShoppingCart,
-  Search,
-  CreditCard,
-  HelpCircle,
-  Tag,
   ExternalLink,
   Loader2,
-  Sparkles,
-  Star,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const AVATAR_SRC = '/images/assistant-avatar.png'
 
@@ -42,13 +37,28 @@ interface ChatResponse {
   error?: string
 }
 
-const capabilities = [
-  { icon: Search, label: 'খুঁজুন', action: 'আমি প্রোডাক্ট খুঁজতে চাই' },
-  { icon: Star, label: 'ফিচার্ড', action: 'ফিচার্ড প্রোডাক্ট দেখাও' },
-  { icon: CreditCard, label: 'দাম', action: 'সব প্রোডাক্ট এর দাম জানাও' },
-  { icon: ShoppingCart, label: 'অর্ডার', action: 'আমি order করতে চাই' },
-  { icon: HelpCircle, label: 'সাহায্য', action: 'আমাকে সাহায্য দরকার' },
+// ─── Quick Actions ────────────────────────────────────────────────────────────
+
+const quickActions = [
+  { label: '⭐ Best Sellers', action: 'ফিচার্ড প্রোডাক্ট দেখাও' },
+  { label: '🎬 Netflix দাম', action: 'Netflix কত টাকা?' },
+  { label: '🤖 ChatGPT Plus', action: 'ChatGPT Plus কত টাকা?' },
+  { label: '🔒 VPN প্ল্যান', action: 'VPN প্ল্যান কত টাকা?' },
+  { label: '📦 অর্ডার করুন', action: 'কীভাবে অর্ডার করবো?' },
+  { label: '🔐 PIN', action: 'adult site er pin ki?' },
+  { label: '❓ সাহায্য', action: 'আমাকে সাহায্য দরকার' },
 ]
+
+// ─── Trust Indicators ─────────────────────────────────────────────────────────
+
+const trustIndicators = [
+  { icon: Shield, label: 'Warranty' },
+  { icon: Zap, label: '5-20 Min' },
+  { icon: Headphones, label: '24/7' },
+  { icon: BadgeCheck, label: 'Verified' },
+]
+
+// ─── Typewriter Messages ─────────────────────────────────────────────────────
 
 const typewriterMessages = [
   '👋 আমি কর্মচারী — বলুন কী লাগবে!',
@@ -56,10 +66,12 @@ const typewriterMessages = [
   '⭐ সেরা ডিল দেখুন — Featured Products!',
   '💎 বাংলাদেশে সেরা দাম গ্যারান্টি!',
   '🛒 অর্ডার করতে চান? গাইড করবো!',
-  '🔒 VPN প্ল্যান শুরু ৳১৪৯ থেকে',
+  '🔐 PIN জানতে চান? আমাকে জিজ্ঞেস করুন!',
   '⚡ মাত্র 5-20 মিনিটে ডেলিভারি!',
   '💳 bKash/Nagad পেমেন্ট সহজ!',
 ]
+
+// ─── Greeting Message ────────────────────────────────────────────────────────
 
 const KORMOCHARY_GREETING = `আসসালামু আলাইকুম! 🎉 Streaming Hub-এ স্বাগতম!
 
@@ -70,21 +82,112 @@ const KORMOCHARY_GREETING = `আসসালামু আলাইকুম! �
 
 কী লাগবে বলুন — সেরা ডিল খুঁজে দেবো! 😊`
 
-const quickActions = [
-  { label: '⭐ Best Sellers', action: 'ফিচার্ড প্রোডাক্ট দেখাও' },
-  { label: '🎬 Netflix দাম', action: 'Netflix কত টাকা?' },
-  { label: '🤖 ChatGPT Plus', action: 'ChatGPT Plus কত টাকা?' },
-  { label: '🔒 VPN প্ল্যান', action: 'VPN প্ল্যান কত টাকা?' },
-  { label: '📦 অর্ডার করুন', action: 'কীভাবে অর্ডার করবো?' },
-  { label: '❓ সাহায্য', action: 'আমাকে সাহায্য দরকার' },
-]
+// ─── formatMessage: Markdown-like text → React elements ──────────────────────
 
-const trustIndicators = [
-  { icon: Shield, label: 'Warranty' },
-  { icon: Zap, label: '5-20 Min' },
-  { icon: Headphones, label: '24/7' },
-  { icon: BadgeCheck, label: 'Verified' },
-]
+function formatMessage(text: string): ReactNode[] {
+  const lines = text.split('\n')
+  const elements: ReactNode[] = []
+
+  lines.forEach((line, lineIdx) => {
+    // Process each line for inline formatting
+    const processedLine = processInlineFormatting(line)
+
+    if (lineIdx < lines.length - 1) {
+      elements.push(
+        <span key={`line-${lineIdx}`}>
+          {processedLine}
+          <br />
+        </span>
+      )
+    } else {
+      elements.push(<span key={`line-${lineIdx}`}>{processedLine}</span>)
+    }
+  })
+
+  return elements
+}
+
+function processInlineFormatting(line: string): ReactNode[] {
+  const elements: ReactNode[] = []
+  let remaining = line
+
+  // Check if this is a bullet point line (• or -)
+  const bulletMatch = remaining.match(/^(\s*)([•\-])\s(.*)/)
+  if (bulletMatch) {
+    const [, indent, , content] = bulletMatch
+    elements.push(
+      <span key={`bullet-${indent.length}`} className="flex items-start gap-1.5 my-0.5">
+        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+        <span>{processInlineFormatting(content)}</span>
+      </span>
+    )
+    return elements
+  }
+
+  // Check if this is a numbered list item (1. 2. etc.)
+  const numberedMatch = remaining.match(/^(\s*)(\d+)[.)]\s(.*)/)
+  if (numberedMatch) {
+    const [, , num, content] = numberedMatch
+    elements.push(
+      <span key={`num-${num}`} className="flex items-start gap-1.5 my-0.5">
+        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold leading-none mt-px">
+          {num}
+        </span>
+        <span>{processInlineFormatting(content)}</span>
+      </span>
+    )
+    return elements
+  }
+
+  // Process inline: **bold** and links
+  let keyIdx = 0
+  while (remaining.length > 0) {
+    // Bold pattern: **text**
+    const boldMatch = remaining.match(/\*\*(.+?)\*\*/)
+    if (boldMatch && boldMatch.index !== undefined) {
+      // Text before the bold
+      if (boldMatch.index > 0) {
+        elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, boldMatch.index)}</span>)
+      }
+      elements.push(
+        <strong key={`b-${keyIdx++}`} className="font-semibold text-emerald-700 dark:text-emerald-400">
+          {boldMatch[1]}
+        </strong>
+      )
+      remaining = remaining.slice(boldMatch.index + boldMatch[0].length)
+      continue
+    }
+
+    // Link pattern: [text](url)
+    const linkMatch = remaining.match(/\[(.+?)\]\((.+?)\)/)
+    if (linkMatch && linkMatch.index !== undefined) {
+      if (linkMatch.index > 0) {
+        elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, linkMatch.index)}</span>)
+      }
+      elements.push(
+        <a
+          key={`a-${keyIdx++}`}
+          href={linkMatch[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+        >
+          {linkMatch[1]}
+        </a>
+      )
+      remaining = remaining.slice(linkMatch.index + linkMatch[0].length)
+      continue
+    }
+
+    // No more matches, push the rest
+    elements.push(<span key={`t-${keyIdx++}`}>{remaining}</span>)
+    break
+  }
+
+  return elements
+}
+
+// ─── Main Component ──────────────────────────────────────────────────────────
 
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
@@ -106,7 +209,7 @@ export function AIChatWidget() {
   const lastSentRef = useRef<number>(0)
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Typewriter effect for the floating bubble (desktop only)
+  // ── Typewriter effect for the floating bubble (desktop only) ──
   useEffect(() => {
     if (isOpen) return
 
@@ -139,7 +242,7 @@ export function AIChatWidget() {
     }
   }, [currentMsgIndex, isOpen])
 
-  // Auto-scroll to bottom
+  // ── Auto-scroll to bottom ──
   useEffect(() => {
     if (scrollRef.current) {
       requestAnimationFrame(() => {
@@ -150,13 +253,14 @@ export function AIChatWidget() {
     }
   }, [messages, isLoading])
 
-  // Focus input when opened
+  // ── Focus input when opened ──
   useEffect(() => {
     if (isOpen && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 350)
     }
   }, [isOpen])
 
+  // ── Send message handler ──
   const sendMessage = useCallback(async (overrideMessage?: string) => {
     const trimmed = (overrideMessage || input).trim()
     if (!trimmed || isLoading || cooldown) return
@@ -256,6 +360,10 @@ export function AIChatWidget() {
     ])
   }
 
+  // ──────────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ──────────────────────────────────────────────────────────────────────────────
+
   return (
     <>
       {/* ===== Floating Chat Button (Fixed Bottom-Right) ===== */}
@@ -316,7 +424,8 @@ export function AIChatWidget() {
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.9 }}
             >
-              {/* Pulsing glow ring behind the button */}
+              {/* Subtle glow animation */}
+              <span className="absolute inset-[-4px] rounded-full bg-emerald-400/20 animate-pulse [animation-duration:2s]" />
               <span className="absolute inset-0 rounded-full bg-emerald-400/25 animate-ping [animation-duration:2.5s]" />
 
               {/* Avatar image inside the button */}
@@ -423,35 +532,7 @@ export function AIChatWidget() {
                 </div>
               </div>
 
-              {/* ===== CAPABILITY CARDS ===== */}
-              <div className="px-3 pt-3 pb-2 border-b border-border/30 bg-muted/20 shrink-0">
-                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 px-1 flex items-center gap-1">
-                  <Sparkles className="h-2.5 w-2.5 text-emerald-500" />
-                  আমি কি কি করতে পারি
-                </p>
-                <div className="flex items-center gap-1">
-                  {capabilities.map((cap) => {
-                    const Icon = cap.icon
-                    return (
-                      <button
-                        key={cap.label}
-                        className="flex flex-col items-center gap-1 p-2 flex-1 min-w-0 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors cursor-pointer active:scale-95 min-h-[54px]"
-                        onClick={() => {
-                          setInput(cap.action)
-                          sendMessage(cap.action)
-                        }}
-                      >
-                        <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50 flex items-center justify-center">
-                          <Icon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                        </div>
-                        <span className="text-[10px] font-medium text-foreground text-center leading-tight truncate w-full">{cap.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* ===== TRUST INDICATORS ===== */}
+              {/* ===== TRUST INDICATORS BAR ===== */}
               <div className="flex items-center justify-center gap-3 px-4 py-1.5 bg-emerald-50/50 dark:bg-emerald-950/20 border-b border-border/30 shrink-0">
                 {trustIndicators.map((item, idx) => {
                   const Icon = item.icon
@@ -507,7 +588,11 @@ export function AIChatWidget() {
                           : 'bg-muted/70 dark:bg-muted/50 rounded-bl-md border border-border/30'
                       }`}
                     >
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                      {msg.role === 'assistant' ? (
+                        <div className="whitespace-pre-wrap">{formatMessage(msg.content)}</div>
+                      ) : (
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      )}
                       {msg.whatsappUrl && (
                         <a
                           href={msg.whatsappUrl}
