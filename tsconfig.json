@@ -41,6 +41,7 @@
     "examples",
     "scripts",
     "mini-services",
-    "skills"
+    "skills",
+    "prisma"
   ]
 }
