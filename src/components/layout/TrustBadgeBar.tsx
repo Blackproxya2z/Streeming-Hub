@@ -60,8 +60,8 @@ const badges = [
 export function TrustBadgeBar() {
   return (
     <div className="w-full border-b bg-background/80 backdrop-blur-sm" role="complementary" aria-label="Trust badges and guarantees">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center gap-3 sm:gap-4 py-2.5 overflow-x-auto scrollbar-none">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 py-2 sm:py-2.5 overflow-x-auto scrollbar-none">
           {badges.map((badge, i) => {
             const Icon = badge.icon
             return (
@@ -70,17 +70,17 @@ export function TrustBadgeBar() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
-                className="flex items-center gap-2 shrink-0"
+                className="flex items-center gap-1.5 sm:gap-2 shrink-0"
               >
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/50 ${badge.bg} transition-all hover:shadow-sm`}>
-                  <Icon className={`h-3.5 w-3.5 shrink-0 ${badge.color}`} />
+                <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-border/50 ${badge.bg} transition-all hover:shadow-sm`}>
+                  <Icon className={`h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 ${badge.color}`} />
                   <div className="flex flex-col leading-none">
-                    <span className="text-xs font-semibold text-foreground whitespace-nowrap">{badge.label}</span>
-                    <span className="text-[10px] text-muted-foreground whitespace-nowrap hidden sm:block">{badge.sublabel}</span>
+                    <span className="text-[10px] sm:text-xs font-semibold text-foreground whitespace-nowrap">{badge.label}</span>
+                    <span className="text-[9px] sm:text-[10px] text-muted-foreground whitespace-nowrap hidden sm:block">{badge.sublabel}</span>
                   </div>
                 </div>
                 {i < badges.length - 1 && (
-                  <div className="w-px h-6 bg-border/50 shrink-0 hidden lg:block" />
+                  <div className="w-px h-4 sm:h-6 bg-border/50 shrink-0 hidden lg:block" />
                 )}
               </motion.div>
             )

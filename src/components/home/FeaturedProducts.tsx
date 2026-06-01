@@ -31,6 +31,8 @@ const gradients = [
   'from-pink-400 to-rose-500',
   'from-blue-400 to-sky-500',
   'from-red-400 to-rose-500',
+  'from-emerald-400 to-teal-500',
+  'from-cyan-400 to-sky-500',
 ]
 
 function getGradient(name: string) {
@@ -54,6 +56,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
   const isExternalImage = hasImage && product.image.startsWith('http')
   const isCategoryImage = hasImage && product.image.startsWith('/images/categories/')
   const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
+  const isNumericPrice = !isNaN(parseFloat(product.basePriceBDT))
 
   const handleCardClick = () => {
     navigate('product', { productId: product.id })
@@ -81,7 +84,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
       >
         <CardContent className="p-0 flex flex-col h-full overflow-hidden">
           {/* Image */}
-          <div className={`relative h-36 sm:h-44 shrink-0 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center overflow-hidden`}>
+          <div className={`relative h-32 sm:h-40 md:h-44 shrink-0 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center overflow-hidden`}>
             {hasImage ? (
               <>
                 <Image
@@ -90,7 +93,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
                   fill
                   unoptimized={isExternalImage}
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  sizes="(max-width: 480px) 50vw, (max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
                 {isCategoryImage && (
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
@@ -101,7 +104,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
               </>
             ) : categoryImage ? (
               <>
-                <Image src={categoryImage} alt={product.category?.name || ''} fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
+                <Image src={categoryImage} alt={product.category?.name || ''} fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="(max-width: 480px) 50vw, (max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
                 <span className="absolute bottom-2 left-3 text-white font-bold text-sm drop-shadow-lg">{product.name}</span>
               </>
@@ -112,26 +115,30 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
             )}
             {product.isBestSeller && (
-              <Badge className="absolute top-2 left-2 bg-amber-500 text-white border-0 text-[11px] z-10 shadow-sm">
-                <Star className="h-3 w-3 mr-0.5" /> Best Seller
+              <Badge className="absolute top-1.5 left-1.5 bg-amber-500 text-white border-0 text-[10px] sm:text-[11px] z-10 shadow-sm px-1 sm:px-1.5">
+                <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" /> Best Seller
               </Badge>
             )}
             {product.isNewArrival && (
-              <Badge className="absolute top-2 right-2 bg-blue-600 text-white border-0 text-[11px] z-10 shadow-sm">
-                <Zap className="h-3 w-3 mr-0.5" /> New
+              <Badge className="absolute top-1.5 right-1.5 bg-blue-600 text-white border-0 text-[10px] sm:text-[11px] z-10 shadow-sm px-1 sm:px-1.5">
+                <Zap className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" /> New
               </Badge>
             )}
+            {/* Delivery time badge */}
+            <Badge className="absolute bottom-1.5 right-1.5 bg-black/60 text-white border-0 text-[9px] sm:text-[10px] px-1.5 py-0.5 backdrop-blur-sm">
+              <Clock className="h-2.5 w-2.5 mr-0.5" /> {product.deliveryTime || '5-20 min'}
+            </Badge>
           </div>
 
           {/* Content */}
-          <div className="p-3 sm:p-4 flex flex-col flex-1 min-h-0 gap-1.5">
-            <Badge variant="secondary" className="text-[11px] w-fit">
+          <div className="p-2.5 sm:p-3 md:p-4 flex flex-col flex-1 min-h-0 gap-1 sm:gap-1.5">
+            <Badge variant="secondary" className="text-[10px] sm:text-[11px] w-fit px-1.5 py-0">
               {product.category?.name}
             </Badge>
-            <h3 className="font-semibold text-sm line-clamp-1">{product.name}</h3>
-            <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
+            <h3 className="font-semibold text-xs sm:text-sm line-clamp-1">{product.name}</h3>
+            <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 hidden sm:block">{product.description}</p>
 
-            <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
+            <div className="flex flex-wrap gap-1 text-[10px] sm:text-xs text-muted-foreground">
               {product.duration && (
                 <span className="flex items-center gap-0.5 bg-muted rounded-md px-1.5 py-0.5">
                   <Timer className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> {product.duration}
@@ -146,30 +153,30 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
 
             <div className="mt-auto pt-1.5 sm:pt-2 border-t border-border/50">
               <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="font-bold text-sm sm:text-base text-blue-700 dark:text-blue-500">
-                  {formatPriceBDT(product.basePriceBDT)}
+                <span className={`font-bold text-sm sm:text-base ${isNumericPrice ? 'text-blue-700 dark:text-blue-500' : 'text-green-700 dark:text-green-500'}`}>
+                  {isNumericPrice ? formatPriceBDT(product.basePriceBDT) : product.basePriceBDT}
                 </span>
               </div>
-              <Badge className={`text-[11px] mt-1 mr-1 ${stockColor}`}>
+              <Badge className={`text-[10px] sm:text-[11px] mt-1 mr-1 ${stockColor}`}>
                 {product.stockStatus}
               </Badge>
             </div>
 
-            <div className="flex gap-1.5 sm:gap-2 mt-2">
+            <div className="flex gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
               <Button
                 size="sm"
-                className="flex-1 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-11 sm:h-10 rounded-lg font-medium"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-[11px] sm:text-xs h-9 sm:h-10 rounded-lg font-medium min-h-[36px]"
                 onClick={handleOrderClick}
               >
-                <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" /> Order
+                <MessageCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1" /> Order
               </Button>
               <Button
                 size="sm"
                 variant="outline"
-                className="flex-1 text-xs sm:text-sm h-11 sm:h-10 rounded-lg font-medium"
+                className="flex-1 text-[11px] sm:text-xs h-9 sm:h-10 rounded-lg font-medium min-h-[36px]"
                 onClick={handleDetailsClick}
               >
-                <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" /> Details
+                <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1" /> Details
               </Button>
             </div>
           </div>
@@ -185,15 +192,15 @@ export function FeaturedProducts() {
 
   if (isLoading) {
     return (
-      <section className="py-12 sm:py-16 px-4 bg-muted/30">
+      <section className="py-8 sm:py-12 md:py-16 px-3 sm:px-4 bg-muted/30">
         <div className="container mx-auto">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Featured Products</h2>
+          <div className="text-center mb-6 sm:mb-10">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">Featured Products</h2>
             <p className="text-muted-foreground text-sm">Loading products...</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 items-start">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4 items-start">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="rounded-2xl bg-muted animate-pulse h-64 sm:h-80" />
+              <div key={i} className="rounded-2xl bg-muted animate-pulse h-56 sm:h-72 md:h-80" />
             ))}
           </div>
         </div>
@@ -203,9 +210,9 @@ export function FeaturedProducts() {
 
   if (isError) {
     return (
-      <section className="py-12 sm:py-16 px-4 bg-muted/30">
+      <section className="py-8 sm:py-12 md:py-16 px-3 sm:px-4 bg-muted/30">
         <div className="container mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Featured Products</h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">Featured Products</h2>
           <p className="text-muted-foreground text-sm mb-4">Products are loading, please wait...</p>
           <Button onClick={() => refetch()} variant="outline" className="gap-2">
             <Clock className="h-4 w-4" /> Try Again
@@ -219,15 +226,15 @@ export function FeaturedProducts() {
   if (products.length === 0) return null
 
   return (
-    <section className="py-12 sm:py-16 px-4 bg-muted/30" id="featured" aria-labelledby="featured-heading">
+    <section className="py-8 sm:py-12 md:py-16 px-3 sm:px-4 bg-muted/30" id="featured" aria-labelledby="featured-heading">
       <div className="container mx-auto">
-        <div className="text-center mb-8 sm:mb-10">
-          <h2 id="featured-heading" className="text-2xl sm:text-3xl font-bold mb-3">Featured Products</h2>
+        <div className="text-center mb-6 sm:mb-10">
+          <h2 id="featured-heading" className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">Featured Products</h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
             Our most popular and recommended subscriptions at unbeatable prices
           </p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 items-start">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4 items-start">
           {products.slice(0, 8).map((product, index) => (
             <ProductCardMini key={product.id} product={product} index={index} />
           ))}

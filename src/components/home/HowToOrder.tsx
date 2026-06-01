@@ -57,15 +57,15 @@ const steps = [
 
 export function HowToOrder() {
   return (
-    <section className="py-12 sm:py-16 px-4 bg-muted/30" id="how-to-order" aria-labelledby="how-heading">
+    <section className="py-8 sm:py-12 md:py-16 px-3 sm:px-4 bg-muted/30" id="how-to-order" aria-labelledby="how-heading">
       <div className="container mx-auto">
-        <div className="text-center mb-10">
-          <h2 id="how-heading" className="text-2xl sm:text-3xl font-bold mb-3">How to Order</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+        <div className="text-center mb-6 sm:mb-10">
+          <h2 id="how-heading" className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">How to Order</h2>
+          <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
             Simple and easy ordering process — get your subscription in minutes
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           {steps.map((item, index) => (
             <motion.div
               key={item.step}
@@ -74,21 +74,21 @@ export function HowToOrder() {
               transition={{ duration: 0.4, delay: index * 0.1 }}
             >
               <Card className="h-full hover:shadow-lg transition-all duration-300 group border-0 shadow-sm relative">
-                <CardContent className="p-6">
-                  <div className="absolute top-4 right-4 text-6xl font-bold text-muted/10">
+                <CardContent className="p-4 sm:p-5 md:p-6">
+                  <div className="absolute top-3 sm:top-4 right-3 sm:right-4 text-4xl sm:text-5xl md:text-6xl font-bold text-muted/10">
                     {item.step}
                   </div>
-                  <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
-                    <item.icon className="h-6 w-6 text-white" />
+                  <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
+                    <item.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                  <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span className="text-[10px] sm:text-xs font-bold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
                       Step {item.step}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                  {'titleEn' in item && <p className="text-xs text-muted-foreground/60 mb-1">{item.titleEn}</p>}
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                  <h3 className="font-semibold text-base sm:text-lg mb-1 sm:mb-2">{item.title}</h3>
+                  {'titleEn' in item && <p className="text-[10px] sm:text-xs text-muted-foreground/60 mb-0.5 sm:mb-1">{item.titleEn}</p>}
+                  <p className="text-xs sm:text-sm text-muted-foreground">{item.description}</p>
                 </CardContent>
               </Card>
             </motion.div>

@@ -42,40 +42,40 @@ export function PaymentPage() {
   }
 
   return (
-    <section className="py-8 px-4">
+    <section className="py-4 sm:py-8 px-3 sm:px-4">
       <div className="container mx-auto max-w-2xl">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Payment Information</h1>
-        <p className="text-muted-foreground text-sm mb-4">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1.5 sm:mb-2">Payment Information</h1>
+        <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4">
           পেমেন্ট সংক্রান্ত তথ্য / Payment Instructions
         </p>
 
         {/* ⚠️ IMPORTANT: Send Money Notice */}
-        <div className="bg-red-50 dark:bg-red-950/40 rounded-xl p-4 mb-6 border-2 border-red-300 dark:border-red-700">
-          <p className="text-base font-bold text-red-600 dark:text-red-400 mb-1 text-center">
+        <div className="bg-red-50 dark:bg-red-950/40 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 border-2 border-red-300 dark:border-red-700">
+          <p className="text-sm sm:text-base font-bold text-red-600 dark:text-red-400 mb-1 text-center">
             ⚠️ শুধুমাত্র Send Money করবেন!
           </p>
-          <p className="text-sm text-red-500 dark:text-red-400 text-center">
+          <p className="text-xs sm:text-sm text-red-500 dark:text-red-400 text-center">
             bKash/Nagad অ্যাপে <strong>&quot;Send Money&quot; / &quot;সেন্ড মানি&quot;</strong> অপশন সিলেক্ট করুন।<br/>
             <strong>Payment বা Cash Out নয়!</strong> Only use Send Money option.
           </p>
         </div>
 
         {/* bKash */}
-        <Card className="mb-6 border-0 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-12 w-12 rounded-xl bg-pink-100 dark:bg-pink-950 flex items-center justify-center">
-                <CreditCard className="h-6 w-6 text-pink-600" />
+        <Card className="mb-4 sm:mb-6 border-0 shadow-sm">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-pink-100 dark:bg-pink-950 flex items-center justify-center">
+                <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-pink-600" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-pink-600">bKash Send Money</h2>
-                <p className="text-sm text-muted-foreground">বিকাশ সেন্ড মানি</p>
+                <h2 className="text-base sm:text-lg font-bold text-pink-600">bKash Send Money</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground">বিকাশ সেন্ড মানি</p>
               </div>
             </div>
-            <Separator className="mb-4" />
-            <div className="space-y-3 text-sm">
+            <Separator className="mb-3 sm:mb-4" />
+            <div className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
               <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                 <span><strong>bKash Number:</strong> {bkashNumber}</span>
                 <Button
                   size="sm"
@@ -86,27 +86,27 @@ export function PaymentPage() {
                   {copied === 'bkash-copy' ? <Check className="h-4 w-4 text-blue-600" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <p className="font-semibold">Send Money করার নিয়ম:</p>
+              <div className="bg-muted/50 rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2">
+                <p className="font-semibold text-xs sm:text-sm">Send Money করার নিয়ম:</p>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                  <span>নিচের বাটনে ক্লিক করুন — নম্বর অটো কপি হবে</span>
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span className="text-[11px] sm:text-xs">নিচের বাটনে ক্লিক করুন — নম্বর অটো কপি হবে</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                  <span><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!<br />Select <strong>Send Money</strong>, not Payment!</span>
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span className="text-[11px] sm:text-xs"><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                  <span>নম্বর পেস্ট করুন এবং Send Money করুন।<br />Paste the number and Send Money.</span>
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span className="text-[11px] sm:text-xs">নম্বর পেস্ট করুন এবং Send Money করুন।</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                  <span>Send Money করার পর Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।<br />After sending, share the last 3 digits of transaction ID via WhatsApp.</span>
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span className="text-[11px] sm:text-xs">Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।</span>
                 </div>
               </div>
               <Button
-                className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg h-11"
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg h-10 sm:h-11 text-xs sm:text-sm"
                 onClick={() => handleCopyAndOpen('bkash', bkashNumber)}
               >
                 {copied === 'bkash' ? (
@@ -126,21 +126,21 @@ export function PaymentPage() {
         </Card>
 
         {/* Nagad */}
-        <Card className="mb-6 border-0 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-12 w-12 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
-                <CreditCard className="h-6 w-6 text-orange-600" />
+        <Card className="mb-4 sm:mb-6 border-0 shadow-sm">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
+                <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-orange-600">Nagad Send Money</h2>
-                <p className="text-sm text-muted-foreground">নগদ সেন্ড মানি</p>
+                <h2 className="text-base sm:text-lg font-bold text-orange-600">Nagad Send Money</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground">নগদ সেন্ড মানি</p>
               </div>
             </div>
-            <Separator className="mb-4" />
-            <div className="space-y-3 text-sm">
+            <Separator className="mb-3 sm:mb-4" />
+            <div className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
               <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                 <span><strong>Nagad Number:</strong> {nagadNumber}</span>
                 <Button
                   size="sm"
@@ -151,27 +151,27 @@ export function PaymentPage() {
                   {copied === 'nagad-copy' ? <Check className="h-4 w-4 text-blue-600" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <p className="font-semibold">Send Money করার নিয়ম:</p>
+              <div className="bg-muted/50 rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2">
+                <p className="font-semibold text-xs sm:text-sm">Send Money করার নিয়ম:</p>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                  <span>নিচের বাটনে ক্লিক করুন — নম্বর অটো কপি হবে</span>
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span className="text-[11px] sm:text-xs">নিচের বাটনে ক্লিক করুন — নম্বর অটো কপি হবে</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                  <span><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!<br />Select <strong>Send Money</strong>, not Payment!</span>
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span className="text-[11px] sm:text-xs"><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                  <span>নম্বর পেস্ট করুন এবং Send Money করুন।<br />Paste the number and Send Money.</span>
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span className="text-[11px] sm:text-xs">নম্বর পেস্ট করুন এবং Send Money করুন।</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                  <span>Send Money করার পর Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।<br />After sending, share the last 3 digits of transaction ID via WhatsApp.</span>
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span className="text-[11px] sm:text-xs">Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।</span>
                 </div>
               </div>
               <Button
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg h-11"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg h-10 sm:h-11 text-xs sm:text-sm"
                 onClick={() => handleCopyAndOpen('nagad', nagadNumber)}
               >
                 {copied === 'nagad' ? (
@@ -191,28 +191,28 @@ export function PaymentPage() {
         </Card>
 
         {/* Important Notes */}
-        <Card className="mb-6 border-0 shadow-sm border-l-4 border-l-amber-500">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertCircle className="h-5 w-5 text-amber-500" />
-              <h2 className="font-bold text-amber-600">Important Notes / গুরুত্বপূর্ণ তথ্য</h2>
+        <Card className="mb-4 sm:mb-6 border-0 shadow-sm border-l-4 border-l-amber-500">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
+              <h2 className="font-bold text-sm sm:text-base text-amber-600">Important Notes / গুরুত্বপূর্ণ তথ্য</h2>
             </div>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                <span><strong>Send Money First:</strong> পেমেন্ট ফার্স্ট — আগে Send Money, তারপর ডেলিভারি। Payment first, then delivery.</span>
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                <span><strong>Send Money First:</strong> পেমেন্ট ফার্স্ট — আগে Send Money, তারপর ডেলিভারি।</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                <span><strong>Delivery Time:</strong> 5-20 minutes after payment confirmation. পেমেন্ট নিশ্চিত হওয়ার ৫-২০ মিনিটের মধ্যে ডেলিভারি।</span>
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                <span><strong>Delivery Time:</strong> 5-20 minutes after payment confirmation.</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                <span><strong>Warranty:</strong> All subscriptions come with warranty. সকল সাবস্ক্রিপশনে ওয়ারেন্টি আছে।</span>
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                <span><strong>Warranty:</strong> All subscriptions come with warranty.</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                <span><strong>Support:</strong> Contact us on WhatsApp for any issues. যেকোনো সমস্যায় WhatsApp-এ যোগাযোগ করুন।</span>
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                <span><strong>Support:</strong> Contact us on WhatsApp for any issues.</span>
               </li>
             </ul>
           </CardContent>
@@ -220,18 +220,17 @@ export function PaymentPage() {
 
         {/* Contact */}
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-6 text-center">
-            <h2 className="font-bold mb-4">Need Help? / সাহায্য দরকার?</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Contact us on WhatsApp for any payment-related queries.<br />
-              পেমেন্ট সংক্রান্ত যেকোনো প্রশ্নে WhatsApp-এ যোগাযোগ করুন।
+          <CardContent className="p-4 sm:p-6 text-center">
+            <h2 className="font-bold mb-3 sm:mb-4 text-sm sm:text-base">Need Help? / সাহায্য দরকার?</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+              Contact us on WhatsApp for any payment-related queries.
             </p>
             <a
               href={`https://wa.me/${whatsappNumber.replace('+', '')}`}
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button className="bg-green-600 hover:bg-green-700">
+              <Button className="bg-green-600 hover:bg-green-700 h-10 sm:h-auto text-xs sm:text-sm">
                 <MessageCircle className="h-4 w-4 mr-2" /> Chat on WhatsApp
               </Button>
             </a>

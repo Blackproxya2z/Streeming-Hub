@@ -89,11 +89,11 @@ export function CategoryCards() {
 
   if (isLoading) {
     return (
-      <section className="py-12 sm:py-16 px-4">
+      <section className="py-8 sm:py-12 md:py-16 px-3 sm:px-4">
         <div className="container mx-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="h-36 rounded-2xl bg-muted animate-pulse" />
+              <div key={i} className="h-28 sm:h-32 md:h-36 rounded-2xl bg-muted animate-pulse" />
             ))}
           </div>
         </div>
@@ -102,15 +102,15 @@ export function CategoryCards() {
   }
 
   return (
-    <section className="py-12 sm:py-16 px-4" id="categories" aria-labelledby="categories-heading">
+    <section className="py-8 sm:py-12 md:py-16 px-3 sm:px-4" id="categories" aria-labelledby="categories-heading">
       <div className="container mx-auto">
-        <div className="text-center mb-8 sm:mb-10">
-          <h2 id="categories-heading" className="text-2xl sm:text-3xl font-bold mb-3">Browse by Category</h2>
+        <div className="text-center mb-6 sm:mb-10">
+          <h2 id="categories-heading" className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">Browse by Category</h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
             Find the perfect subscription for your needs from our wide range of categories
           </p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
           {(categories || []).map((cat, index) => {
             const Icon = getCategoryIcon(cat)
             const gradient = getCategoryGradient(cat)
@@ -130,7 +130,7 @@ export function CategoryCards() {
                 >
                   <CardContent className="p-0 relative">
                     {/* Background image */}
-                    <div className="relative h-28 sm:h-32 overflow-hidden">
+                    <div className="relative h-24 sm:h-28 md:h-32 lg:h-36 overflow-hidden">
                       {hasImage ? (
                         <>
                           <Image
@@ -138,23 +138,23 @@ export function CategoryCards() {
                             alt={cat.name}
                             fill
                             className="object-cover transition-transform duration-500 group-hover:scale-110"
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                            sizes="(max-width: 480px) 50vw, (max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
                         </>
                       ) : (
                         <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
                       )}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-3">
-                        <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                          <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-2 sm:p-3">
+                        <div className={`h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                          <Icon className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
                         </div>
-                        <h3 className="font-semibold text-xs sm:text-sm mt-2 flex items-center gap-1 text-center drop-shadow-md line-clamp-1">
+                        <h3 className="font-semibold text-[11px] sm:text-xs md:text-sm mt-1.5 sm:mt-2 flex items-center gap-1 text-center drop-shadow-md line-clamp-1">
                           {cat.name}
-                          {cat.isAdult && <Lock className="h-3 w-3 text-amber-300" />}
+                          {cat.isAdult && <Lock className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-amber-300" />}
                         </h3>
                         {cat._count && (
-                          <p className="text-[11px] text-white/80 mt-0.5">
+                          <p className="text-[10px] sm:text-[11px] text-white/80 mt-0.5">
                             {cat._count.products} products
                           </p>
                         )}
