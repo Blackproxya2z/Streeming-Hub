@@ -12,12 +12,12 @@ export function AnnouncementBar() {
     : defaultText
 
   return (
-    <div className="bg-gradient-to-r from-blue-800 via-blue-600 to-blue-800 text-white py-2 overflow-hidden relative">
+    <div className="bg-gradient-to-r from-teal-800 via-emerald-700 to-teal-800 text-white py-1.5 sm:py-2 overflow-hidden relative">
       {/* Scrolling marquee */}
       <div className="flex items-center animate-marquee whitespace-nowrap">
         <div className="flex items-center gap-8 px-4">
           {[1, 2, 3].map((i) => (
-            <span key={i} className="flex items-center gap-2 text-sm font-medium">
+            <span key={i} className="flex items-center gap-2 text-xs sm:text-sm font-medium">
               <Megaphone className="h-3.5 w-3.5 shrink-0" />
               {text}
             </span>
@@ -25,7 +25,7 @@ export function AnnouncementBar() {
         </div>
         <div className="flex items-center gap-8 px-4">
           {[1, 2, 3].map((i) => (
-            <span key={`dup-${i}`} className="flex items-center gap-2 text-sm font-medium">
+            <span key={`dup-${i}`} className="flex items-center gap-2 text-xs sm:text-sm font-medium">
               <Megaphone className="h-3.5 w-3.5 shrink-0" />
               {text}
             </span>

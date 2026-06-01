@@ -11,7 +11,7 @@ const steps = [
     title: 'পণ্য বাছাই করুন',
     titleEn: 'Choose Your Product',
     description: 'আমাদের ক্যাটালগ থেকে আপনার পছন্দের সাবস্ক্রিপশন বাছাই করুন।',
-    color: 'from-blue-700 to-blue-800',
+    color: 'from-blue-500 to-sky-600',
   },
   {
     step: 2,
@@ -27,7 +27,7 @@ const steps = [
     title: 'WhatsApp-এ কনফার্ম করুন',
     titleEn: 'Confirm on WhatsApp',
     description: 'Send Money করার পর WhatsApp-এ মেসেজ পাঠান। Transaction ID-এর শেষ ৩ ডিজিট দিন।',
-    color: 'from-blue-500 to-sky-600',
+    color: 'from-teal-500 to-emerald-600',
   },
   {
     step: 4,
@@ -43,7 +43,7 @@ const steps = [
     title: 'একাউন্ট ব্যবহার করুন',
     titleEn: 'Login & Enjoy',
     description: 'আপনার সাবস্ক্রিপশন একাউন্টের ডিটেইলস WhatsApp-এ পাবেন। লগইন করে উপভোগ করুন!',
-    color: 'from-green-500 to-blue-800',
+    color: 'from-green-500 to-emerald-600',
   },
   {
     step: 6,
@@ -51,7 +51,7 @@ const steps = [
     title: 'সাপোর্ট পান',
     titleEn: '24/7 Support',
     description: 'কোনো সমস্যা হলে WhatsApp-এ যোগাযোগ করুন। আমরা সবসময় সাহায্য করতে প্রস্তুত!',
-    color: 'from-pink-500 to-rose-600',
+    color: 'from-rose-500 to-pink-600',
   },
 ]
 
@@ -65,7 +65,7 @@ export function HowToOrder() {
             Simple and easy ordering process — get your subscription in minutes
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
           {steps.map((item, index) => (
             <motion.div
               key={item.step}
@@ -74,21 +74,21 @@ export function HowToOrder() {
               transition={{ duration: 0.4, delay: index * 0.1 }}
             >
               <Card className="h-full hover:shadow-lg transition-all duration-300 group border-0 shadow-sm relative">
-                <CardContent className="p-4 sm:p-5 md:p-6">
+                <CardContent className="p-5 sm:p-6">
                   <div className="absolute top-3 sm:top-4 right-3 sm:right-4 text-4xl sm:text-5xl md:text-6xl font-bold text-muted/10">
                     {item.step}
                   </div>
-                  <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
+                  <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
                     <item.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                    <span className="text-[10px] sm:text-xs font-bold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                    <span className="text-[11px] sm:text-xs font-bold text-muted-foreground bg-muted rounded-full px-2.5 py-0.5">
                       Step {item.step}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-base sm:text-lg mb-1 sm:mb-2">{item.title}</h3>
-                  {'titleEn' in item && <p className="text-[10px] sm:text-xs text-muted-foreground/60 mb-0.5 sm:mb-1">{item.titleEn}</p>}
-                  <p className="text-xs sm:text-sm text-muted-foreground">{item.description}</p>
+                  <h3 className="font-semibold text-base sm:text-lg mb-0.5">{item.title}</h3>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground/60 mb-1">{item.titleEn}</p>
+                  <p className="text-sm sm:text-base text-muted-foreground">{item.description}</p>
                 </CardContent>
               </Card>
             </motion.div>

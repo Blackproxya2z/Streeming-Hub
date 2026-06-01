@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { SlidersHorizontal } from 'lucide-react'
+import { SlidersHorizontal, X } from 'lucide-react'
 
 const sortOptions = [
   { value: 'popular', label: 'Popular' },
@@ -24,7 +24,7 @@ export function ProductFiltersMobile() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="h-10 w-10 shrink-0">
+        <Button variant="outline" size="icon" className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 relative">
           <SlidersHorizontal className="h-4 w-4" />
           {activeFilterCount > 0 && (
             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
@@ -35,7 +35,7 @@ export function ProductFiltersMobile() {
       </SheetTrigger>
       <SheetContent side="bottom" className="rounded-t-2xl">
         <SheetHeader>
-          <SheetTitle>Filters</SheetTitle>
+          <SheetTitle>Filters & Sort</SheetTitle>
         </SheetHeader>
         <div className="mt-4 space-y-4 pb-6">
           {/* Sort */}
@@ -45,7 +45,7 @@ export function ProductFiltersMobile() {
               value={filters.sort || 'popular'}
               onValueChange={v => setFilter('sort', v === 'popular' ? '' : v)}
             >
-              <SelectTrigger className="h-10">
+              <SelectTrigger className="h-10 sm:h-11">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -74,9 +74,41 @@ export function ProductFiltersMobile() {
   )
 }
 
-// Keep desktop export for compatibility but return null
+// Desktop sort dropdown - visible on md+ screens
 export function ProductFiltersDesktop() {
-  return null
+  const { filters, setFilter, resetFilters } = useAppStore()
+  const activeFilterCount = filters.sort && filters.sort !== 'popular' ? 1 : 0
+
+  return (
+    <div className="hidden md:flex items-center gap-2">
+      <Select
+        value={filters.sort || 'popular'}
+        onValueChange={v => setFilter('sort', v === 'popular' ? '' : v)}
+      >
+        <SelectTrigger className="h-10 sm:h-11 w-[160px] text-sm">
+          <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
+          <SelectValue placeholder="Sort by" />
+        </SelectTrigger>
+        <SelectContent>
+          {sortOptions.map(opt => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {activeFilterCount > 0 && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 text-xs"
+          onClick={resetFilters}
+        >
+          <X className="h-3 w-3 mr-1" /> Clear
+        </Button>
+      )}
+    </div>
+  )
 }
 
 export function ProductFilters() {

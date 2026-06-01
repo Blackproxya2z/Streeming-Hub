@@ -7,7 +7,7 @@ import { formatPriceBDT } from '@/lib/price'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MessageCircle, Shield, Zap, Star, Clock } from 'lucide-react'
+import { MessageCircle, Shield, Zap, Star, Clock, Eye } from 'lucide-react'
 import { OrderDialog } from '@/components/order/OrderDialog'
 import type { Product } from '@/lib/hooks'
 
@@ -18,7 +18,6 @@ const gradients = [
   'from-pink-400 to-rose-500',
   'from-blue-400 to-sky-500',
   'from-red-400 to-rose-500',
-  'from-indigo-400 to-blue-500',
   'from-emerald-400 to-teal-500',
   'from-cyan-400 to-sky-500',
 ]
@@ -31,11 +30,29 @@ function getGradient(name: string) {
   return gradients[Math.abs(hash) % gradients.length]
 }
 
-interface ProductCardProps {
-  product: Product
+const categoryImages: Record<string, string> = {
+  'streaming': '/images/categories/streaming.png',
+  'ai-tools': '/images/categories/ai-tools.png',
+  'educational': '/images/categories/educational.png',
+  'design-creative': '/images/categories/design-creative.png',
+  'productivity': '/images/categories/productivity.png',
+  'cloud-storage': '/images/categories/cloud-storage.png',
+  'vpn': '/images/categories/vpn.png',
+  'gift-cards': '/images/categories/gift-cards.png',
+  'gaming-topup': '/images/categories/gaming-topup.png',
+  'multi-collection': '/images/categories/multi-collection.png',
+  'adult': '/images/categories/adult.png',
 }
 
-export const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
+interface ProductCardProps {
+  product: Product
+  /** Show both Order + Details buttons (featured layout). Default: true */
+  showDetails?: boolean
+  /** Variant: 'default' for catalog, 'compact' for related products */
+  variant?: 'default' | 'compact'
+}
+
+export const ProductCard = memo(function ProductCard({ product, showDetails = true, variant = 'default' }: ProductCardProps) {
   const { navigate } = useAppStore()
   const [orderOpen, setOrderOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string | undefined>()
@@ -45,6 +62,13 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
   const hasImage = !!product.image
   const isExternalImage = hasImage && product.image!.startsWith('http')
   const isCategoryImage = hasImage && product.image!.startsWith('/images/categories/')
+  const categoryImage = product.category?.slug ? categoryImages[product.category.slug] : null
+  const isNumericPrice = !isNaN(parseFloat(product.basePriceBDT))
+
+  const stockColor =
+    product.stockStatus === 'Available' ? 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-400' :
+    product.stockStatus === 'Limited Stock' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400' :
+    'text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400'
 
   const handleOrderClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -55,26 +79,24 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
     navigate('product', { productId: product.id })
   }
 
-  // Parse price options to show first one as the plan
-  const priceOptions: { label: string; priceBDT: string }[] = (() => {
-    try {
-      return JSON.parse(product.priceOptions || '[]')
-    } catch {
-      return []
-    }
-  })()
+  const handleDetailsClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    navigate('product', { productId: product.id })
+  }
 
-  const isNumericPrice = !isNaN(parseFloat(product.basePriceBDT))
+  const isCompact = variant === 'compact'
 
   return (
     <>
       <Card
-        className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 overflow-hidden h-full flex flex-col rounded-xl border shadow-sm cursor-pointer"
+        className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 overflow-hidden h-full flex flex-col rounded-xl border shadow-sm cursor-pointer active:scale-[0.98]"
         onClick={handleCardClick}
       >
         <CardContent className="p-0 flex flex-col h-full overflow-hidden">
-          {/* Image */}
-          <div className={`relative h-28 sm:h-36 md:h-40 shrink-0 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center overflow-hidden`}>
+          {/* Image Section */}
+          <div className={`relative shrink-0 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center overflow-hidden ${
+            isCompact ? 'h-28 sm:h-36 md:h-40' : 'h-36 sm:h-44 md:h-48'
+          }`}>
             {hasImage ? (
               <>
                 <Image
@@ -86,73 +108,108 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
                   sizes="(max-width: 480px) 50vw, (max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
                 {isCategoryImage && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/40 to-black/20 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-white drop-shadow-lg">{initials}</span>
-                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+                )}
+                {/* Overlay gradient for text readability */}
+                {!isCategoryImage && hasImage && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 )}
               </>
+            ) : categoryImage ? (
+              <>
+                <Image src={categoryImage} alt={product.category?.name || ''} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 480px) 50vw, (max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+              </>
             ) : (
-              <span className="text-3xl font-bold text-white/70">{initials}</span>
+              <span className="text-3xl sm:text-4xl font-bold text-white/70">{initials}</span>
             )}
+
             {/* Badges */}
             {(product.isBestSeller || product.isNewArrival) && (
-              <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10">
+              <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
                 {product.isBestSeller && (
-                  <Badge className="bg-amber-500 text-white border-0 text-[10px] sm:text-[11px] px-1 sm:px-1.5 py-0.5">
-                    <Star className="h-2.5 w-2.5 mr-0.5" /> Best
+                  <Badge className="bg-amber-500 text-white border-0 text-[11px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-sm">
+                    <Star className="h-3 w-3 mr-0.5" /> Best
                   </Badge>
                 )}
                 {product.isNewArrival && (
-                  <Badge className="bg-blue-600 text-white border-0 text-[10px] sm:text-[11px] px-1 sm:px-1.5 py-0.5">
-                    <Zap className="h-2.5 w-2.5 mr-0.5" /> New
+                  <Badge className="bg-sky-600 text-white border-0 text-[11px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-sm">
+                    <Zap className="h-3 w-3 mr-0.5" /> New
                   </Badge>
                 )}
               </div>
             )}
-            {/* Delivery badge on image */}
-            <Badge className="absolute bottom-1.5 right-1.5 bg-black/60 text-white border-0 text-[9px] sm:text-[10px] px-1.5 py-0.5 backdrop-blur-sm">
-              <Clock className="h-2.5 w-2.5 mr-0.5" /> {product.deliveryTime}
+
+            {/* Delivery badge */}
+            <Badge className="absolute bottom-2 right-2 bg-black/60 text-white border-0 text-[11px] sm:text-xs px-2 py-0.5 backdrop-blur-sm z-10">
+              <Clock className="h-3 w-3 mr-0.5" /> {product.deliveryTime || '5-20 min'}
             </Badge>
           </div>
 
-          {/* Content — Responsive & Compact */}
-          <div className="p-2.5 sm:p-3 flex flex-col flex-1 min-h-0 gap-1">
+          {/* Content Section */}
+          <div className="p-3 sm:p-4 flex flex-col flex-1 min-h-0 gap-1.5 sm:gap-2">
             {/* Category badge */}
-            <Badge variant="secondary" className="text-[10px] sm:text-[11px] w-fit px-1.5 py-0">
+            <Badge variant="secondary" className="text-[11px] sm:text-xs w-fit px-2 py-0.5">
               {product.category?.name}
             </Badge>
 
-            <h3 className="font-semibold text-xs sm:text-sm line-clamp-1 leading-tight">{product.name}</h3>
+            {/* Product Name */}
+            <h3 className="font-semibold text-sm sm:text-base line-clamp-1 leading-tight">{product.name}</h3>
 
-            {product.warranty && (
-              <div className="flex items-center gap-0.5 text-[10px] sm:text-[11px] text-blue-700 dark:text-blue-500 line-clamp-1">
-                <Shield className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" /> {product.warranty}
-              </div>
+            {/* Description - visible on sm+ and in default variant */}
+            {!isCompact && product.description && (
+              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 hidden sm:block">{product.description}</p>
             )}
 
-            {/* Duration */}
-            {product.duration && (
-              <p className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-1">{product.duration}</p>
-            )}
+            {/* Duration & Warranty row */}
+            <div className="flex flex-wrap gap-1.5 text-[11px] sm:text-xs text-muted-foreground">
+              {product.duration && (
+                <span className="flex items-center gap-1 bg-muted rounded-md px-1.5 sm:px-2 py-0.5">
+                  <Clock className="h-3 w-3" /> {product.duration}
+                </span>
+              )}
+              {product.warranty && (
+                <span className="flex items-center gap-1 bg-muted rounded-md px-1.5 sm:px-2 py-0.5">
+                  <Shield className="h-3 w-3 text-blue-600 dark:text-blue-500" /> {product.warranty}
+                </span>
+              )}
+            </div>
 
-            {/* Price */}
-            <div className="mt-auto pt-1.5 sm:pt-2">
-              <div className="flex items-baseline gap-1">
-                <span className={`font-bold text-sm sm:text-base ${isNumericPrice ? 'text-blue-700 dark:text-blue-500' : 'text-green-700 dark:text-green-500'}`}>
+            {/* Price + Stock row */}
+            <div className="mt-auto pt-1.5 sm:pt-2 border-t border-border/50">
+              <div className="flex items-baseline justify-between gap-1.5">
+                <span className={`font-bold text-base sm:text-lg ${isNumericPrice ? 'text-blue-700 dark:text-blue-500' : 'text-green-700 dark:text-green-500'}`}>
                   {isNumericPrice ? formatPriceBDT(product.basePriceBDT) : product.basePriceBDT}
                 </span>
+                {product.stockStatus && (
+                  <Badge className={`text-[10px] sm:text-[11px] ${stockColor}`}>
+                    {product.stockStatus}
+                  </Badge>
+                )}
               </div>
             </div>
 
-            {/* Order Now Button */}
-            <div className="mt-1.5 sm:mt-2">
+            {/* Action Buttons */}
+            <div className={`flex gap-2 mt-1.5 sm:mt-2 ${showDetails ? '' : ''}`}>
               <Button
                 size="sm"
-                className="w-full bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-9 sm:h-10 rounded-lg font-medium min-h-[36px] sm:min-h-[40px]"
+                className={`bg-green-600 hover:bg-green-700 text-xs sm:text-sm rounded-lg font-medium min-h-[40px] ${
+                  showDetails ? 'flex-1' : 'w-full'
+                }`}
                 onClick={handleOrderClick}
               >
-                <MessageCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1" /> Order Now
+                <MessageCircle className="h-3.5 w-3.5 mr-1" /> Order
               </Button>
+              {showDetails && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 text-xs sm:text-sm rounded-lg font-medium min-h-[40px]"
+                  onClick={handleDetailsClick}
+                >
+                  <Eye className="h-3.5 w-3.5 mr-1" /> Details
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>

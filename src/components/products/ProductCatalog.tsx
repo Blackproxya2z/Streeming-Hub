@@ -4,12 +4,12 @@ import { useMemo, useCallback, useState, useEffect } from 'react'
 import { useProducts, useCategories } from '@/lib/hooks'
 import { useAppStore } from '@/lib/store'
 import { ProductCard } from './ProductCard'
-import { ProductFiltersMobile } from './ProductFilters'
+import { ProductFiltersMobile, ProductFiltersDesktop } from './ProductFilters'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Search, ShoppingBag, X, SlidersHorizontal, Lock, AlertTriangle } from 'lucide-react'
+import { Search, ShoppingBag, X, Lock, AlertTriangle, SlidersHorizontal } from 'lucide-react'
 import { SEOHead } from '@/components/shared/SEOHead'
 
 export function ProductCatalog() {
@@ -71,16 +71,16 @@ export function ProductCatalog() {
       <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
         <Badge
           variant={!categorySlug ? 'default' : 'outline'}
-          className="cursor-pointer whitespace-nowrap shrink-0 h-8 sm:h-9 text-xs sm:text-sm"
+          className="cursor-pointer whitespace-nowrap shrink-0 h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4"
           onClick={() => handleCategoryClick('')}
         >
-          All
+          All Products
         </Badge>
         {categories.map(cat => (
           <Badge
             key={cat.id}
             variant={categorySlug === cat.slug ? 'default' : 'outline'}
-            className={`cursor-pointer whitespace-nowrap shrink-0 h-8 sm:h-9 text-xs sm:text-sm ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
+            className={`cursor-pointer whitespace-nowrap shrink-0 h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 ${cat.isAdult ? 'border-orange-400 text-orange-600 dark:text-orange-400' : ''}`}
             onClick={() => handleCategoryClick(cat.slug, cat.isAdult)}
           >
             {cat.name} {cat.isAdult && !ageVerified ? '🔒' : cat.isAdult ? '🔓' : ''}
@@ -91,7 +91,7 @@ export function ProductCatalog() {
   }, [categories, categorySlug, handleCategoryClick, ageVerified])
 
   return (
-    <section className="py-3 sm:py-6 px-3 sm:px-4">
+    <section className="py-4 sm:py-6 px-3 sm:px-4">
       <div className="container mx-auto">
         {/* SEO for catalog/category page */}
         <SEOHead
@@ -100,26 +100,31 @@ export function ProductCatalog() {
           keywords={currentCategory ? [currentCategory.name, `${currentCategory.name} Bangladesh`, `buy ${currentCategory.name} BD`] : ['buy subscription online', 'digital subscription catalog', 'Netflix price Bangladesh', 'Spotify premium BD']}
         />
         {/* Header */}
-        <div className="mb-3 sm:mb-4">
+        <div className="mb-4 sm:mb-5">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
             {currentCategory ? currentCategory.name : 'All Products'}
           </h1>
           {!currentCategory && (
-            <p className="text-muted-foreground text-xs sm:text-sm mt-1">
+            <p className="text-muted-foreground text-sm sm:text-base mt-1">
               Browse our complete collection of digital subscriptions
+            </p>
+          )}
+          {currentCategory && (
+            <p className="text-muted-foreground text-sm sm:text-base mt-1">
+              {currentCategory.name} — best prices in Bangladesh with full warranty
             </p>
           )}
         </div>
 
         {/* Search + Filter bar */}
-        <div className="flex gap-2 mb-3 sm:mb-4">
+        <div className="flex gap-2 mb-4 sm:mb-5">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search products..."
               value={localSearch}
               onChange={e => setLocalSearch(e.target.value)}
-              className="pl-9 h-9 sm:h-10 text-sm"
+              className="pl-10 h-10 sm:h-11 text-sm sm:text-base"
             />
             {localSearch && (
               <button
@@ -131,6 +136,7 @@ export function ProductCatalog() {
             )}
           </div>
           <ProductFiltersMobile />
+          <ProductFiltersDesktop />
         </div>
 
         {/* Category chips */}
@@ -167,12 +173,12 @@ export function ProductCatalog() {
         {!needsVerification && (
           <>
             {isLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 items-start">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 items-start">
                 {Array.from({ length: 12 }).map((_, i) => (
                   <div key={i} className="space-y-2">
-                    <Skeleton className="h-28 sm:h-36 md:h-40 rounded-xl" />
-                    <Skeleton className="h-3 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
+                    <Skeleton className="h-36 sm:h-44 md:h-48 rounded-xl" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
                   </div>
                 ))}
               </div>
@@ -192,15 +198,15 @@ export function ProductCatalog() {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 items-start">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 items-start">
                 {products.map(product => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} product={product} showDetails={true} />
                 ))}
               </div>
             )}
 
             {!isLoading && products.length > 0 && (
-              <p className="text-center text-xs sm:text-sm text-muted-foreground mt-4 sm:mt-6">
+              <p className="text-center text-xs sm:text-sm text-muted-foreground mt-6 sm:mt-8">
                 Showing {products.length} product{products.length !== 1 ? 's' : ''}
               </p>
             )}

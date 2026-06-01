@@ -17,8 +17,8 @@ const badges = [
     icon: Shield,
     label: 'Full Warranty',
     sublabel: 'গ্যারান্টি সহ',
-    color: 'text-blue-700 dark:text-blue-500',
-    bg: 'bg-blue-50 dark:bg-blue-950/50',
+    color: 'text-teal-700 dark:text-teal-500',
+    bg: 'bg-teal-50 dark:bg-teal-950/50',
   },
   {
     icon: Zap,
@@ -52,8 +52,8 @@ const badges = [
     icon: BadgeCheck,
     label: '1000+ Customers',
     sublabel: 'বিশ্বস্ত ক্রেতা',
-    color: 'text-sky-700 dark:text-sky-500',
-    bg: 'bg-sky-50 dark:bg-sky-950/50',
+    color: 'text-emerald-700 dark:text-emerald-500',
+    bg: 'bg-emerald-50 dark:bg-emerald-950/50',
   },
 ]
 
@@ -72,10 +72,10 @@ export function TrustBadgeBar() {
                 transition={{ duration: 0.3, delay: i * 0.05 }}
                 className="flex items-center gap-1.5 sm:gap-2 shrink-0"
               >
-                <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-border/50 ${badge.bg} transition-all hover:shadow-sm`}>
-                  <Icon className={`h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 ${badge.color}`} />
+                <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-border/50 ${badge.bg} transition-all hover:shadow-sm`}>
+                  <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 ${badge.color}`} />
                   <div className="flex flex-col leading-none">
-                    <span className="text-[10px] sm:text-xs font-semibold text-foreground whitespace-nowrap">{badge.label}</span>
+                    <span className="text-[11px] sm:text-xs font-semibold text-foreground whitespace-nowrap">{badge.label}</span>
                     <span className="text-[9px] sm:text-[10px] text-muted-foreground whitespace-nowrap hidden sm:block">{badge.sublabel}</span>
                   </div>
                 </div>

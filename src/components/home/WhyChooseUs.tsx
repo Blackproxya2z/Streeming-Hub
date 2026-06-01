@@ -8,38 +8,44 @@ const features = [
   {
     icon: Zap,
     title: 'Fast Delivery',
+    titleBn: 'দ্রুত ডেলিভারি',
     description: 'Get your subscription delivered within 5-20 minutes after payment confirmation.',
     gradient: 'from-amber-500 to-orange-600',
   },
   {
     icon: DollarSign,
     title: 'Affordable Price',
+    titleBn: 'সেরা দাম',
     description: 'Best prices in Bangladesh market. We offer competitive rates on all subscriptions.',
-    gradient: 'from-blue-700 to-blue-800',
+    gradient: 'from-teal-500 to-emerald-600',
   },
   {
     icon: Shield,
     title: 'Warranty Available',
+    titleBn: 'ওয়ারেন্টি আছে',
     description: 'Full warranty on all subscriptions. Get replacement or refund if any issues occur.',
     gradient: 'from-blue-500 to-sky-600',
   },
   {
     icon: Mail,
     title: 'Own Mail Option',
+    titleBn: 'নিজের মেইল',
     description: 'Get your subscription with your own email address for full control and security.',
     gradient: 'from-purple-500 to-violet-600',
   },
   {
     icon: MessageCircle,
     title: 'WhatsApp Support',
+    titleBn: 'WhatsApp সাপোর্ট',
     description: '24/7 customer support via WhatsApp. Quick response and instant assistance.',
-    gradient: 'from-green-500 to-blue-800',
+    gradient: 'from-green-500 to-emerald-600',
   },
   {
     icon: CreditCard,
     title: 'bKash/Nagad Payment',
+    titleBn: 'bKash/Nagad পেমেন্ট',
     description: 'Easy payment through bKash and Nagad. Safe and convenient local payment methods.',
-    gradient: 'from-pink-500 to-rose-600',
+    gradient: 'from-rose-500 to-pink-600',
   },
 ]
 
@@ -53,7 +59,7 @@ export function WhyChooseUs() {
             We provide the best digital subscription experience in Bangladesh
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
@@ -62,12 +68,13 @@ export function WhyChooseUs() {
               transition={{ duration: 0.4, delay: index * 0.1 }}
             >
               <Card className="h-full hover:shadow-lg transition-all duration-300 group border-0 shadow-sm">
-                <CardContent className="p-4 sm:p-5 md:p-6">
-                  <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
+                <CardContent className="p-5 sm:p-6">
+                  <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
                     <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-base sm:text-lg mb-1.5 sm:mb-2">{feature.title}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{feature.description}</p>
+                  <h3 className="font-semibold text-base sm:text-lg mb-0.5">{feature.title}</h3>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2">{feature.titleBn}</p>
+                  <p className="text-sm sm:text-base text-muted-foreground">{feature.description}</p>
                 </CardContent>
               </Card>
             </motion.div>

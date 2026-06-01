@@ -13,12 +13,12 @@ export function HeroSection() {
   const whatsappNumber = settings?.whatsappNumber || '+8801647236359'
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-blue-800 via-blue-700 to-indigo-800 text-white" aria-label="Hero Banner — Premium Subscriptions at Best Price in Bangladesh">
+    <section className="relative overflow-hidden bg-gradient-to-br from-teal-800 via-emerald-700 to-green-800 text-white" aria-label="Hero Banner — Premium Subscriptions at Best Price in Bangladesh">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-sky-500/10 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-blue-500/5 blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-green-500/5 blur-3xl" />
         {/* Animated floating orbs */}
         <motion.div
           animate={{ y: [-10, 10, -10], x: [-5, 5, -5] }}
@@ -28,12 +28,12 @@ export function HeroSection() {
         <motion.div
           animate={{ y: [10, -10, 10], x: [5, -5, 5] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-20 left-[10%] w-32 h-32 rounded-full bg-sky-300/10 blur-xl"
+          className="absolute bottom-20 left-[10%] w-32 h-32 rounded-full bg-emerald-300/10 blur-xl"
         />
         <motion.div
           animate={{ y: [-15, 15, -15] }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[60%] right-[25%] w-16 h-16 rounded-full bg-blue-300/8 blur-lg"
+          className="absolute top-[60%] right-[25%] w-16 h-16 rounded-full bg-green-300/8 blur-lg"
         />
         {/* Grid pattern */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
@@ -42,15 +42,15 @@ export function HeroSection() {
         }} />
       </div>
 
-      <div className="container mx-auto px-3 sm:px-4 py-12 sm:py-16 md:py-20 lg:py-28 relative z-10">
+      <div className="container mx-auto px-3 sm:px-4 py-14 sm:py-18 md:py-22 lg:py-28 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur text-xs sm:text-sm font-medium mb-4 sm:mb-6 border border-white/10">
-              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-300" />
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-white/10 backdrop-blur text-xs sm:text-sm font-medium mb-5 sm:mb-6 border border-white/10">
+              <Sparkles className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-amber-300" />
               Trusted by 1000+ customers in Bangladesh
             </div>
           </motion.div>
@@ -59,17 +59,17 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-4 sm:mb-6"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-5 sm:mb-6"
           >
             Premium Subscriptions
-            <span className="block text-blue-200">at the Best Price in BD</span>
+            <span className="block text-emerald-200">at the Best Price in BD</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base sm:text-lg md:text-xl text-blue-100 mb-6 sm:mb-8 md:mb-10 max-w-2xl mx-auto"
+            className="text-base sm:text-lg md:text-xl text-emerald-100 mb-7 sm:mb-9 md:mb-10 max-w-2xl mx-auto"
           >
             OTT, AI tools, education, VPN, software, gaming top-up & more — delivered in 5-20 minutes with full warranty.
           </motion.p>
@@ -83,9 +83,9 @@ export function HeroSection() {
             <Button
               size="lg"
               onClick={() => navigate('products')}
-              className="w-full sm:w-auto bg-white text-blue-800 hover:bg-blue-50 font-semibold text-sm sm:text-base px-6 sm:px-8 h-11 sm:h-12 rounded-xl shadow-lg shadow-blue-900/20 transition-all hover:shadow-xl hover:shadow-blue-900/30"
+              className="w-full sm:w-auto bg-white text-emerald-800 hover:bg-emerald-50 font-semibold text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-13 rounded-xl shadow-lg shadow-emerald-900/20 transition-all hover:shadow-xl hover:shadow-emerald-900/30"
             >
-              <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <ShoppingBag className="h-5 w-5 sm:h-5.5 sm:w-5.5 mr-2" />
               Shop Now
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
@@ -98,9 +98,9 @@ export function HeroSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 font-semibold text-sm sm:text-base px-6 sm:px-8 h-11 sm:h-12 rounded-xl backdrop-blur-sm"
+                className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 font-semibold text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-13 rounded-xl backdrop-blur-sm"
               >
-                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                <MessageCircle className="h-5 w-5 sm:h-5.5 sm:w-5.5 mr-2" />
                 Order on WhatsApp
               </Button>
             </a>
@@ -111,33 +111,33 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-8 sm:mt-10 md:mt-12"
+            className="mt-9 sm:mt-11 md:mt-12"
           >
-            <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8 flex-wrap">
-              <div className="flex items-center gap-1.5 sm:gap-2 text-blue-100">
-                <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-white/10 flex items-center justify-center">
-                  <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-200" />
+            <div className="flex items-center justify-center gap-5 sm:gap-7 md:gap-9 flex-wrap">
+              <div className="flex items-center gap-2 sm:gap-2.5 text-emerald-100">
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-white/10 flex items-center justify-center">
+                  <Shield className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-emerald-200" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[10px] sm:text-xs text-blue-200/70">Secure</p>
+                  <p className="text-[10px] sm:text-xs text-emerald-200/70">Secure</p>
                   <p className="text-xs sm:text-sm font-semibold">Warranty</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-2 text-blue-100">
-                <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-white/10 flex items-center justify-center">
-                  <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-200" />
+              <div className="flex items-center gap-2 sm:gap-2.5 text-emerald-100">
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-white/10 flex items-center justify-center">
+                  <Zap className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-emerald-200" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[10px] sm:text-xs text-blue-200/70">Fast</p>
+                  <p className="text-[10px] sm:text-xs text-emerald-200/70">Fast</p>
                   <p className="text-xs sm:text-sm font-semibold">5-20 Min</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-2 text-blue-100">
-                <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-white/10 flex items-center justify-center">
-                  <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-200" />
+              <div className="flex items-center gap-2 sm:gap-2.5 text-emerald-100">
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-white/10 flex items-center justify-center">
+                  <Clock className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-emerald-200" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[10px] sm:text-xs text-blue-200/70">24/7</p>
+                  <p className="text-[10px] sm:text-xs text-emerald-200/70">24/7</p>
                   <p className="text-xs sm:text-sm font-semibold">Support</p>
                 </div>
               </div>
@@ -149,19 +149,19 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-8 sm:mt-10 grid grid-cols-3 gap-2 sm:gap-3 md:gap-6 max-w-xs sm:max-w-sm mx-auto bg-white/5 rounded-2xl p-3 sm:p-4 backdrop-blur-sm border border-white/10"
+            className="mt-8 sm:mt-10 grid grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-xs sm:max-w-sm mx-auto bg-white/5 rounded-2xl p-4 sm:p-5 backdrop-blur-sm border border-white/10"
           >
             <div className="text-center">
               <p className="text-xl sm:text-2xl md:text-3xl font-bold">200+</p>
-              <p className="text-[10px] sm:text-xs md:text-sm text-blue-200">Products</p>
+              <p className="text-[10px] sm:text-xs md:text-sm text-emerald-200">Products</p>
             </div>
             <div className="text-center border-x border-white/10">
               <p className="text-xl sm:text-2xl md:text-3xl font-bold">11</p>
-              <p className="text-[10px] sm:text-xs md:text-sm text-blue-200">Categories</p>
+              <p className="text-[10px] sm:text-xs md:text-sm text-emerald-200">Categories</p>
             </div>
             <div className="text-center">
               <p className="text-xl sm:text-2xl md:text-3xl font-bold">5-20</p>
-              <p className="text-[10px] sm:text-xs md:text-sm text-blue-200">Min Delivery</p>
+              <p className="text-[10px] sm:text-xs md:text-sm text-emerald-200">Min Delivery</p>
             </div>
           </motion.div>
         </div>

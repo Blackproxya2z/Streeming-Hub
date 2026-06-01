@@ -91,15 +91,15 @@ export function ProductDetail() {
 
   const relatedProducts = (relatedData?.products || [])
     .filter(p => p.id !== product?.id)
-    .slice(0, 4)
+    .slice(0, 6)
 
   if (isLoading) {
     return (
       <section className="py-4 sm:py-6 px-4">
-        <div className="container mx-auto max-w-4xl">
+        <div className="container mx-auto max-w-5xl">
           <div className="h-8 w-24 sm:w-28 bg-muted rounded-lg mb-6 animate-pulse" />
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
-            <div className="h-44 sm:h-56 bg-muted rounded-2xl animate-pulse" />
+            <div className="h-48 sm:h-64 md:h-80 bg-muted rounded-2xl animate-pulse" />
             <div className="space-y-3">
               <div className="h-6 bg-muted rounded w-3/4 animate-pulse" />
               <div className="h-4 bg-muted rounded w-full animate-pulse" />
@@ -170,8 +170,8 @@ export function ProductDetail() {
   } : undefined
 
   return (
-    <section className="py-3 sm:py-6 px-3 sm:px-4">
-      <div className="container mx-auto max-w-4xl">
+    <section className="py-4 sm:py-6 px-3 sm:px-4">
+      <div className="container mx-auto max-w-5xl">
         {/* Product SEO */}
         {product && (
           <SEOHead
@@ -194,10 +194,10 @@ export function ProductDetail() {
         </Button>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-5 sm:gap-8">
           {/* Image — 2 cols */}
           <div className="md:col-span-2">
-            <div className={`relative rounded-2xl overflow-hidden h-48 sm:h-56 md:h-72 lg:h-80 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center md:sticky md:top-20`}>
+            <div className={`relative rounded-2xl overflow-hidden h-56 sm:h-72 md:h-80 lg:h-96 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center md:sticky md:top-20`}>
               {hasImage ? (
                 <>
                   <Image
@@ -218,73 +218,88 @@ export function ProductDetail() {
               ) : (
                 <span className="text-5xl sm:text-6xl font-bold text-white/60">{initials}</span>
               )}
+              {/* Badges on image */}
+              {(product.isBestSeller || product.isNewArrival) && (
+                <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                  {product.isBestSeller && (
+                    <Badge className="bg-amber-500 text-white border-0 text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
+                      <Star className="h-3.5 w-3.5 mr-1" /> Best Seller
+                    </Badge>
+                  )}
+                  {product.isNewArrival && (
+                    <Badge className="bg-sky-600 text-white border-0 text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
+                      <Zap className="h-3.5 w-3.5 mr-1" /> New
+                    </Badge>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Details — 3 cols */}
-          <div className="md:col-span-3 space-y-3 sm:space-y-4">
+          <div className="md:col-span-3 space-y-4 sm:space-y-5">
             {/* Title + Badges */}
             <div>
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                <Badge variant="secondary" className="text-[11px] sm:text-xs">{product.category?.name}</Badge>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
+                <Badge variant="secondary" className="text-xs sm:text-sm">{product.category?.name}</Badge>
                 {product.isBestSeller && (
-                  <Badge className="bg-amber-500 text-white border-0 text-[11px] sm:text-xs">
+                  <Badge className="bg-amber-500 text-white border-0 text-xs sm:text-sm">
                     <Star className="h-3 w-3 mr-0.5" /> Best Seller
                   </Badge>
                 )}
                 {product.isNewArrival && (
-                  <Badge className="bg-blue-600 text-white border-0 text-[11px] sm:text-xs">
+                  <Badge className="bg-sky-600 text-white border-0 text-xs sm:text-sm">
                     <Zap className="h-3 w-3 mr-0.5" /> New
                   </Badge>
                 )}
               </div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{product.name}</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">{product.description}</p>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{product.name}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground mt-2 leading-relaxed">{product.description}</p>
             </div>
 
             {/* Quick Info Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {product.duration && (
-                <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-2.5 sm:px-3 py-2">
-                  <Timer className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0" />
+                <div className="flex items-center gap-2.5 bg-muted/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
+                  <Timer className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-[10px] sm:text-[11px] text-muted-foreground">Duration</p>
-                    <p className="text-xs sm:text-sm font-medium truncate">{product.duration}</p>
+                    <p className="text-[11px] sm:text-xs text-muted-foreground">Duration</p>
+                    <p className="text-sm sm:text-base font-medium truncate">{product.duration}</p>
                   </div>
                 </div>
               )}
               {product.accountType && (
-                <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-2.5 sm:px-3 py-2">
-                  <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500 shrink-0" />
+                <div className="flex items-center gap-2.5 bg-muted/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
+                  <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-[10px] sm:text-[11px] text-muted-foreground">Account Type</p>
-                    <p className="text-xs sm:text-sm font-medium truncate">{product.accountType}</p>
+                    <p className="text-[11px] sm:text-xs text-muted-foreground">Account Type</p>
+                    <p className="text-sm sm:text-base font-medium truncate">{product.accountType}</p>
                   </div>
                 </div>
               )}
               {product.warranty && (
-                <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-2.5 sm:px-3 py-2">
-                  <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0" />
+                <div className="flex items-center gap-2.5 bg-muted/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
+                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-[10px] sm:text-[11px] text-muted-foreground">Warranty</p>
-                    <p className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-500 truncate">{product.warranty}</p>
+                    <p className="text-[11px] sm:text-xs text-muted-foreground">Warranty</p>
+                    <p className="text-sm sm:text-base font-medium text-blue-700 dark:text-blue-500 truncate">{product.warranty}</p>
                   </div>
                 </div>
               )}
-              <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-2.5 sm:px-3 py-2">
-                <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500 shrink-0" />
+              <div className="flex items-center gap-2.5 bg-muted/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-[10px] sm:text-[11px] text-muted-foreground">Delivery</p>
-                  <p className="text-xs sm:text-sm font-medium">{product.deliveryTime}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground">Delivery</p>
+                  <p className="text-sm sm:text-base font-medium">{product.deliveryTime}</p>
                 </div>
               </div>
             </div>
 
             {/* Price Section */}
-            <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-3 sm:p-4">
-              <p className="text-[11px] sm:text-xs text-muted-foreground mb-1">Starting from</p>
+            <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4 sm:p-5">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-1">Starting from</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-700 dark:text-blue-500">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-700 dark:text-blue-500">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
               </div>
@@ -293,23 +308,23 @@ export function ProductDetail() {
             {/* Price Options */}
             {priceOptions.length > 0 && (
               <div>
-                <h3 className="font-semibold text-sm mb-2">Choose Your Plan</h3>
-                <div className="grid gap-2">
+                <h3 className="font-semibold text-sm sm:text-base mb-3">Choose Your Plan</h3>
+                <div className="grid gap-2 sm:gap-3">
                   {priceOptions.map((opt, i) => (
                     <button
                       key={i}
                       type="button"
                       onClick={() => handlePlanClick(opt)}
-                      className="flex items-center justify-between bg-background border rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors group text-left"
+                      className="flex items-center justify-between bg-background border rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors group text-left"
                     >
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-400' : 'bg-muted text-muted-foreground'}`}>
+                      <div className="flex items-center gap-2.5 sm:gap-3">
+                        <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-400' : 'bg-muted text-muted-foreground'}`}>
                           {i + 1}
                         </div>
-                        <span className="text-xs sm:text-sm font-medium">{opt.label}</span>
+                        <span className="text-sm sm:text-base font-medium">{opt.label}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm sm:text-base text-blue-700 dark:text-blue-500">
+                        <span className="font-bold text-base sm:text-lg text-blue-700 dark:text-blue-500">
                           {formatPriceBDT(opt.priceBDT)}
                         </span>
                       </div>
@@ -323,17 +338,17 @@ export function ProductDetail() {
             <Button
               size="lg"
               onClick={handleOrderNow}
-              className="w-full bg-green-600 hover:bg-green-700 font-semibold rounded-xl h-11 sm:h-12 text-sm sm:text-base shadow-lg shadow-green-600/20 min-h-[44px]"
+              className="w-full bg-green-600 hover:bg-green-700 font-semibold rounded-xl h-12 sm:h-14 text-base sm:text-lg shadow-lg shadow-green-600/20 min-h-[44px]"
             >
-              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" /> Order Now
+              <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 mr-2" /> Order Now
             </Button>
 
             {/* Features — compact */}
             {features.length > 0 && (
-              <div className="flex flex-wrap gap-1 sm:gap-1.5">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {features.map((feature, i) => (
-                  <span key={i} className="inline-flex items-center gap-1 text-[11px] sm:text-xs bg-muted/70 rounded-full px-2 sm:px-2.5 py-0.5 sm:py-1">
-                    <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-blue-600" />
+                  <span key={i} className="inline-flex items-center gap-1 text-xs sm:text-sm bg-muted/70 rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5">
+                    <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-blue-600" />
                     {feature}
                   </span>
                 ))}
@@ -343,28 +358,28 @@ export function ProductDetail() {
         </div>
 
         {/* How to Order — Simple 3 Steps */}
-        <div className="mt-6 sm:mt-8 bg-muted/40 rounded-2xl p-4 sm:p-5">
-          <h2 className="font-bold text-sm sm:text-base mb-3 sm:mb-4">অর্ডার করার নিয়ম / How to Order</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="mt-8 sm:mt-12 bg-muted/40 rounded-2xl p-5 sm:p-6 md:p-8">
+          <h2 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-6">অর্ডার করার নিয়ম / How to Order</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="flex flex-col items-center text-center gap-2">
-              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 font-bold text-xs sm:text-sm">1</div>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 font-bold text-sm sm:text-base">1</div>
               <div>
-                <p className="text-xs sm:text-sm font-medium">Send Money</p>
-                <p className="text-[10px] sm:text-[11px] text-muted-foreground">bKash / Nagad দিয়ে</p>
+                <p className="text-sm sm:text-base font-medium">Send Money</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">bKash / Nagad দিয়ে</p>
               </div>
             </div>
             <div className="flex flex-col items-center text-center gap-2">
-              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-600 font-bold text-xs sm:text-sm">2</div>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-600 font-bold text-sm sm:text-base">2</div>
               <div>
-                <p className="text-xs sm:text-sm font-medium">WhatsApp মেসেজ</p>
-                <p className="text-[10px] sm:text-[11px] text-muted-foreground">অর্ডার কনফার্ম করুন</p>
+                <p className="text-sm sm:text-base font-medium">WhatsApp মেসেজ</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">অর্ডার কনফার্ম করুন</p>
               </div>
             </div>
             <div className="flex flex-col items-center text-center gap-2">
-              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-purple-600 font-bold text-xs sm:text-sm">3</div>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-purple-600 font-bold text-sm sm:text-base">3</div>
               <div>
-                <p className="text-xs sm:text-sm font-medium">ডেলিভারি নিন</p>
-                <p className="text-[10px] sm:text-[11px] text-muted-foreground">৫-২০ মিনিটে</p>
+                <p className="text-sm sm:text-base font-medium">ডেলিভারি নিন</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">৫-২০ মিনিটে</p>
               </div>
             </div>
           </div>
@@ -372,11 +387,11 @@ export function ProductDetail() {
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <div className="mt-6 sm:mt-8">
-            <h2 className="font-bold text-sm sm:text-base mb-3 sm:mb-4">You may also like</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 items-start">
-              {relatedProducts.map(p => (
-                <ProductCard key={p.id} product={p} />
+          <div className="mt-8 sm:mt-12">
+            <h2 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-5">You may also like</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-4 items-start">
+              {relatedProducts.slice(0, 3).map(p => (
+                <ProductCard key={p.id} product={p} showDetails={true} variant="compact" />
               ))}
             </div>
           </div>

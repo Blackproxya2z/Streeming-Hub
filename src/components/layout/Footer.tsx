@@ -17,10 +17,10 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-gradient-to-br from-blue-700 to-blue-800 flex items-center justify-center" aria-hidden="true">
+              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-gradient-to-br from-teal-600 to-emerald-700 flex items-center justify-center" aria-hidden="true">
                 <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
-              <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-800 to-indigo-800 bg-clip-text text-transparent" itemProp="name">
+              <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-teal-700 to-emerald-700 bg-clip-text text-transparent" itemProp="name">
                 Streaming Hub
               </span>
             </div>
@@ -34,36 +34,36 @@ export function Footer() {
           {/* Quick Links */}
           <div className="space-y-3 sm:space-y-4">
             <h2 className="font-semibold text-xs sm:text-sm uppercase tracking-wider">Quick Links</h2>
-            <nav className="flex flex-col gap-1.5 sm:gap-2" aria-label="Footer navigation">
-              <button onClick={() => navigate('home')} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Home</button>
-              <button onClick={() => navigate('products')} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors text-left">All Products</button>
-              <button onClick={() => navigate('payment')} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Payment Number</button>
-              <button onClick={() => navigate('reviews')} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Customer Reviews</button>
-              <button onClick={() => navigate('terms')} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Terms & Conditions</button>
-              <button onClick={() => navigate('privacy')} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Privacy Policy</button>
-              <button onClick={() => navigate('contact')} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Contact Us</button>
+            <nav className="flex flex-col gap-2 sm:gap-2.5" aria-label="Footer navigation">
+              <button onClick={() => navigate('home')} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Home</button>
+              <button onClick={() => navigate('products')} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">All Products</button>
+              <button onClick={() => navigate('payment')} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Payment Number</button>
+              <button onClick={() => navigate('reviews')} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Customer Reviews</button>
+              <button onClick={() => navigate('terms')} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Terms & Conditions</button>
+              <button onClick={() => navigate('privacy')} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Privacy Policy</button>
+              <button onClick={() => navigate('contact')} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">Contact Us</button>
             </nav>
           </div>
 
           {/* Contact */}
           <div className="space-y-3 sm:space-y-4">
             <h2 className="font-semibold text-xs sm:text-sm uppercase tracking-wider">Contact Us</h2>
-            <div className="flex flex-col gap-2 sm:gap-3">
+            <div className="flex flex-col gap-2.5 sm:gap-3">
               <a
                 href={`https://wa.me/${whatsappNumber.replace('+', '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
+                <MessageCircle className="h-4 w-4 text-green-500" />
                 WhatsApp: {whatsappNumber}
               </a>
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CreditCard className="h-4 w-4 text-teal-600" />
                 Payment: {paymentNumber}
               </div>
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4 text-amber-500" />
                 Delivery: 5–20 minutes
               </div>
             </div>
@@ -72,21 +72,21 @@ export function Footer() {
           {/* Trust Badges */}
           <div className="space-y-3 sm:space-y-4">
             <h2 className="font-semibold text-xs sm:text-sm uppercase tracking-wider">Why Trust Us</h2>
-            <div className="flex flex-col gap-2 sm:gap-3">
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
+            <div className="flex flex-col gap-2.5 sm:gap-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Shield className="h-4 w-4 text-teal-600" />
                 Warranty Available
               </div>
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4 text-amber-500" />
                 Fast Delivery
               </div>
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CreditCard className="h-4 w-4 text-blue-500" />
                 Secure Payment
               </div>
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Phone className="h-4 w-4 text-green-500" />
                 24/7 Support
               </div>
             </div>
@@ -96,7 +96,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-            <p className="text-[11px] sm:text-xs text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               © {new Date().getFullYear()} Streaming Hub. All rights reserved.
             </p>
             <div className="flex items-center gap-3 sm:gap-4">
@@ -106,8 +106,8 @@ export function Footer() {
               >
                 Admin
               </button>
-              <p className="text-[11px] sm:text-xs text-muted-foreground flex items-center gap-1">
-                Made with <Heart className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-red-500 fill-red-500" /> in Bangladesh
+              <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
+                Made with <Heart className="h-3 w-3 text-red-500 fill-red-500" /> in Bangladesh
               </p>
             </div>
           </div>

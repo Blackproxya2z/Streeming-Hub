@@ -86,32 +86,32 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" role="banner">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between gap-4">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="flex h-14 sm:h-16 items-center justify-between gap-3 sm:gap-4">
           {/* Logo */}
           <button
             onClick={() => navigate('home')}
-            className="flex items-center gap-2.5 shrink-0"
+            className="flex items-center gap-2 sm:gap-2.5 shrink-0"
             aria-label="Streaming Hub — Go to homepage"
           >
             <Image
               src="/logo.jpg"
               alt="Streaming Hub Logo"
-              width={44}
-              height={44}
-              className="h-10 w-10 sm:h-11 sm:w-11 rounded-full object-cover ring-2 ring-blue-500/30 shadow-md shadow-blue-600/10"
+              width={40}
+              height={40}
+              className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover ring-2 ring-teal-500/30 shadow-md shadow-teal-600/10"
               priority
             />
             <div className="hidden sm:flex flex-col">
               <div className="flex items-center gap-1">
-                <span className="text-lg font-bold bg-gradient-to-r from-blue-800 to-indigo-800 bg-clip-text text-transparent leading-tight">
+                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-teal-700 to-emerald-700 bg-clip-text text-transparent leading-tight">
                   Streaming Hub
                 </span>
                 <BadgeCheck className="h-4 w-4 text-sky-500 shrink-0" />
               </div>
               <span className="text-[10px] text-muted-foreground font-medium -mt-0.5">BD&apos;s #1 Subscription Store</span>
             </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-blue-800 to-indigo-800 bg-clip-text text-transparent sm:hidden flex items-center gap-1">
+            <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-teal-700 to-emerald-700 bg-clip-text text-transparent sm:hidden flex items-center gap-1">
               SH
               <BadgeCheck className="h-3.5 w-3.5 text-sky-500" />
             </span>
@@ -165,7 +165,7 @@ export function Header() {
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {/* Payment Methods - Desktop only */}
             <div className="hidden xl:flex items-center gap-1.5 mr-2">
               <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-rose-50 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-800/30">
@@ -195,21 +195,22 @@ export function Header() {
 
             {/* Search */}
             {searchOpen ? (
-              <form onSubmit={handleSearch} className="flex items-center gap-2">
+              <form onSubmit={handleSearch} className="flex items-center gap-1.5 sm:gap-2">
                 <Input
                   autoFocus
                   value={localSearch}
                   onChange={e => setLocalSearch(e.target.value)}
                   placeholder="Search products..."
-                  className="w-32 sm:w-40 md:w-64 h-9"
+                  className="w-28 sm:w-40 md:w-64 h-9 sm:h-10 text-sm"
                 />
-                <Button type="submit" size="sm" variant="ghost">
+                <Button type="submit" size="sm" variant="ghost" className="h-9 w-9">
                   <Search className="h-4 w-4" />
                 </Button>
                 <Button
                   type="button"
                   size="sm"
                   variant="ghost"
+                  className="h-9 w-9"
                   onClick={() => { setSearchOpen(false); setLocalSearch('') }}
                 >
                   <X className="h-4 w-4" />
@@ -220,9 +221,9 @@ export function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setSearchOpen(true)}
-                className="h-11 w-11"
+                className="h-10 w-10 sm:h-11 sm:w-11"
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
               </Button>
             )}
 
@@ -231,7 +232,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="h-11 w-11"
+              className="h-10 w-10 sm:h-11 sm:w-11"
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -241,25 +242,25 @@ export function Header() {
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden h-11 w-11">
+                <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10 sm:h-11 sm:w-11">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[85vw] max-w-80 p-0">
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <div className="flex flex-col h-full">
-                  <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-950 dark:to-sky-950">
+                  <div className="p-4 border-b bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-950 dark:to-emerald-950">
                     <div className="flex items-center gap-2">
                       <Image
                         src="/logo.jpg"
                         alt="Streaming Hub Logo"
                         width={36}
                         height={36}
-                        className="h-9 w-9 rounded-full object-cover ring-2 ring-blue-500/30"
+                        className="h-9 w-9 rounded-full object-cover ring-2 ring-teal-500/30"
                       />
                       <div>
                         <div className="flex items-center gap-1">
-                          <span className="text-lg font-bold bg-gradient-to-r from-blue-800 to-indigo-800 bg-clip-text text-transparent">
+                          <span className="text-lg font-bold bg-gradient-to-r from-teal-700 to-emerald-700 bg-clip-text text-transparent">
                             Streaming Hub
                           </span>
                           <BadgeCheck className="h-4 w-4 text-sky-500" />
@@ -281,11 +282,11 @@ export function Header() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex-1 overflow-y-auto p-4">
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                     <nav className="flex flex-col gap-1">
                       <Button
                         variant="ghost"
-                        className="justify-start"
+                        className="justify-start h-11"
                         onClick={() => { navigate('home'); setMobileMenuOpen(false) }}
                       >
                         <Home className="h-4 w-4 mr-2" />
@@ -293,7 +294,7 @@ export function Header() {
                       </Button>
                       <Button
                         variant="ghost"
-                        className="justify-start"
+                        className="justify-start h-11"
                         onClick={() => { navigate('products'); setMobileMenuOpen(false) }}
                       >
                         <ShoppingBag className="h-4 w-4 mr-2" />
@@ -307,7 +308,7 @@ export function Header() {
                           <Button
                             key={cat.id}
                             variant="ghost"
-                            className={`justify-start ${cat.isAdult ? 'text-orange-500' : ''}`}
+                            className={`justify-start h-11 ${cat.isAdult ? 'text-orange-500' : ''}`}
                             onClick={() => handleCategoryClick(cat.slug, cat.isAdult)}
                           >
                             <Icon className="h-4 w-4 mr-2" />
@@ -324,35 +325,35 @@ export function Header() {
                       <div className="h-px bg-border my-2" />
                       <Button
                         variant="ghost"
-                        className="justify-start"
+                        className="justify-start h-11"
                         onClick={() => { navigate('payment'); setMobileMenuOpen(false) }}
                       >
                         Payment Info
                       </Button>
                       <Button
                         variant="ghost"
-                        className="justify-start"
+                        className="justify-start h-11"
                         onClick={() => { navigate('reviews'); setMobileMenuOpen(false) }}
                       >
                         Customer Reviews
                       </Button>
                       <Button
                         variant="ghost"
-                        className="justify-start"
+                        className="justify-start h-11"
                         onClick={() => { navigate('terms'); setMobileMenuOpen(false) }}
                       >
                         Terms & Conditions
                       </Button>
                       <Button
                         variant="ghost"
-                        className="justify-start"
+                        className="justify-start h-11"
                         onClick={() => { navigate('privacy'); setMobileMenuOpen(false) }}
                       >
                         Privacy Policy
                       </Button>
                       <Button
                         variant="ghost"
-                        className="justify-start"
+                        className="justify-start h-11"
                         onClick={() => { navigate('contact'); setMobileMenuOpen(false) }}
                       >
                         Contact Us
