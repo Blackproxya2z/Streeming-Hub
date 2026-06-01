@@ -11,7 +11,7 @@ const steps = [
     title: 'পণ্য বাছাই করুন',
     titleEn: 'Choose Your Product',
     description: 'আমাদের ক্যাটালগ থেকে আপনার পছন্দের সাবস্ক্রিপশন বাছাই করুন।',
-    color: 'from-emerald-500 to-teal-600',
+    color: 'from-blue-700 to-blue-800',
   },
   {
     step: 2,
@@ -27,7 +27,7 @@ const steps = [
     title: 'WhatsApp-এ কনফার্ম করুন',
     titleEn: 'Confirm on WhatsApp',
     description: 'Send Money করার পর WhatsApp-এ মেসেজ পাঠান। Transaction ID-এর শেষ ৩ ডিজিট দিন।',
-    color: 'from-blue-500 to-cyan-600',
+    color: 'from-blue-500 to-sky-600',
   },
   {
     step: 4,
@@ -43,7 +43,7 @@ const steps = [
     title: 'একাউন্ট ব্যবহার করুন',
     titleEn: 'Login & Enjoy',
     description: 'আপনার সাবস্ক্রিপশন একাউন্টের ডিটেইলস WhatsApp-এ পাবেন। লগইন করে উপভোগ করুন!',
-    color: 'from-green-500 to-emerald-600',
+    color: 'from-green-500 to-blue-800',
   },
   {
     step: 6,

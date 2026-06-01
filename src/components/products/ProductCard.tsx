@@ -12,11 +12,11 @@ import { OrderDialog } from '@/components/order/OrderDialog'
 import type { Product } from '@/lib/hooks'
 
 const gradients = [
-  'from-emerald-400 to-teal-500',
+  'from-blue-600 to-sky-600',
   'from-amber-400 to-orange-500',
   'from-purple-400 to-violet-500',
   'from-pink-400 to-rose-500',
-  'from-blue-400 to-cyan-500',
+  'from-blue-400 to-sky-500',
   'from-red-400 to-rose-500',
   'from-indigo-400 to-blue-500',
 ]
@@ -99,7 +99,7 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
                   </Badge>
                 )}
                 {product.isNewArrival && (
-                  <Badge className="bg-emerald-500 text-white border-0 text-[11px] px-1.5 py-0.5">
+                  <Badge className="bg-blue-600 text-white border-0 text-[11px] px-1.5 py-0.5">
                     <Zap className="h-2.5 w-2.5 mr-0.5" /> New
                   </Badge>
                 )}
@@ -112,7 +112,7 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
             <h3 className="font-semibold text-sm line-clamp-1">{product.name}</h3>
 
             {product.warranty && (
-              <div className="flex items-center gap-0.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+              <div className="flex items-center gap-0.5 text-[11px] text-blue-700 dark:text-blue-500">
                 <Shield className="h-3 w-3" /> {product.warranty}
               </div>
             )}
@@ -127,7 +127,7 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
             {/* Price */}
             <div className="mt-auto pt-2">
               <div className="flex items-baseline gap-1.5">
-                <span className="font-bold text-base text-emerald-600 dark:text-emerald-400">
+                <span className="font-bold text-base text-blue-700 dark:text-blue-500">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
               </div>

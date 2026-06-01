@@ -117,7 +117,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, indent, , content] = bulletMatch
     elements.push(
       <span key={`bullet-${indent.length}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-blue-500" />
         <span>{processInlineFormatting(content)}</span>
       </span>
     )
@@ -130,7 +130,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, , num, content] = numberedMatch
     elements.push(
       <span key={`num-${num}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold leading-none mt-px">
+        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-500 flex items-center justify-center text-[10px] font-bold leading-none mt-px">
           {num}
         </span>
         <span>{processInlineFormatting(content)}</span>
@@ -150,7 +150,7 @@ function processInlineFormatting(line: string): ReactNode[] {
         elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, boldMatch.index)}</span>)
       }
       elements.push(
-        <strong key={`b-${keyIdx++}`} className="font-semibold text-emerald-700 dark:text-emerald-400">
+        <strong key={`b-${keyIdx++}`} className="font-semibold text-blue-800 dark:text-blue-500">
           {boldMatch[1]}
         </strong>
       )
@@ -170,7 +170,7 @@ function processInlineFormatting(line: string): ReactNode[] {
           href={linkMatch[2]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+          className="text-blue-700 dark:text-blue-500 underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-400 transition-colors"
         >
           {linkMatch[1]}
         </a>
@@ -383,22 +383,22 @@ export function AIChatWidget() {
               initial={{ opacity: 0, x: 10, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.8 }}
-              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-2xl px-4 py-2.5 max-w-[260px] cursor-pointer hover:shadow-xl hover:border-emerald-300/50 transition-all group/bubble relative"
+              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-2xl px-4 py-2.5 max-w-[260px] cursor-pointer hover:shadow-xl hover:border-blue-300/50 transition-all group/bubble relative"
               onClick={() => setIsOpen(true)}
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground leading-snug">
                   {displayedText}
                   {isTyping && (
-                    <span className="inline-block w-[2px] h-4 bg-emerald-500 ml-0.5 align-middle animate-pulse" />
+                    <span className="inline-block w-[2px] h-4 bg-blue-600 ml-0.5 align-middle animate-pulse" />
                   )}
                 </p>
               </div>
               {isTyping && (
                 <div className="flex items-center gap-[3px] shrink-0">
-                  <span className="h-1 w-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
-                  <span className="h-1 w-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
-                  <span className="h-1 w-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
+                  <span className="h-1 w-1 rounded-full bg-blue-600 animate-bounce [animation-delay:0ms]" />
+                  <span className="h-1 w-1 rounded-full bg-blue-600 animate-bounce [animation-delay:150ms]" />
+                  <span className="h-1 w-1 rounded-full bg-blue-600 animate-bounce [animation-delay:300ms]" />
                 </div>
               )}
               {/* Speech bubble arrow pointing right toward the button */}
@@ -415,18 +415,18 @@ export function AIChatWidget() {
                 w-14 h-14
                 sm:w-[60px] sm:h-[60px]
                 rounded-full
-                bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500
-                hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600
+                bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500
+                hover:from-blue-800 hover:via-blue-600 hover:to-sky-600
                 text-white shadow-lg hover:shadow-2xl
                 transition-all active:scale-90 group
-                ring-2 ring-emerald-400/20"
+                ring-2 ring-blue-400/20"
               aria-label="Chat with কর্মচারী — AI Assistant"
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.9 }}
             >
               {/* Subtle glow animation */}
-              <span className="absolute inset-[-4px] rounded-full bg-emerald-400/20 animate-pulse [animation-duration:2s]" />
-              <span className="absolute inset-0 rounded-full bg-emerald-400/25 animate-ping [animation-duration:2.5s]" />
+              <span className="absolute inset-[-4px] rounded-full bg-blue-500/20 animate-pulse [animation-duration:2s]" />
+              <span className="absolute inset-0 rounded-full bg-blue-500/25 animate-ping [animation-duration:2.5s]" />
 
               {/* Avatar image inside the button */}
               <span className="relative z-10">
@@ -473,7 +473,7 @@ export function AIChatWidget() {
                 sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
             >
               {/* ===== HEADER ===== */}
-              <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white p-4 flex items-center justify-between shrink-0 overflow-hidden">
+              <div className="relative bg-gradient-to-r from-blue-800 via-blue-700 to-sky-600 text-white p-4 flex items-center justify-between shrink-0 overflow-hidden">
                 {/* Decorative circles */}
                 <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/5" />
                 <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
@@ -488,7 +488,7 @@ export function AIChatWidget() {
                       height={44}
                       className="h-11 w-11 rounded-full object-cover ring-2 ring-white/30"
                     />
-                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-sky-500 flex items-center justify-center ring-2 ring-emerald-500">
+                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-sky-500 flex items-center justify-center ring-2 ring-blue-500">
                       <BadgeCheck className="h-2.5 w-2.5 text-white" />
                     </div>
                   </div>
@@ -505,7 +505,7 @@ export function AIChatWidget() {
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="h-2 w-2 rounded-full bg-green-300 animate-pulse" />
-                      <p className="text-[11px] text-emerald-100 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
+                      <p className="text-[11px] text-blue-100 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
                     </div>
                   </div>
                 </div>
@@ -533,17 +533,17 @@ export function AIChatWidget() {
               </div>
 
               {/* ===== TRUST INDICATORS BAR ===== */}
-              <div className="flex items-center justify-center gap-3 px-4 py-1.5 bg-emerald-50/50 dark:bg-emerald-950/20 border-b border-border/30 shrink-0">
+              <div className="flex items-center justify-center gap-3 px-4 py-1.5 bg-blue-50/50 dark:bg-blue-950/20 border-b border-border/30 shrink-0">
                 {trustIndicators.map((item, idx) => {
                   const Icon = item.icon
                   return (
                     <div key={item.label} className="flex items-center gap-1">
-                      <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">
+                      <div className="flex items-center gap-1 text-[10px] text-blue-800 dark:text-blue-500 font-medium">
                         <Icon className="h-2.5 w-2.5" />
                         <span>{item.label}</span>
                       </div>
                       {idx < trustIndicators.length - 1 && (
-                        <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800 ml-3" />
+                        <div className="w-px h-3 bg-blue-200 dark:bg-blue-800 ml-3" />
                       )}
                     </div>
                   )
@@ -574,7 +574,7 @@ export function AIChatWidget() {
                           alt="কর্মচারী"
                           width={28}
                           height={28}
-                          className="h-7 w-7 rounded-full object-cover ring-1 ring-emerald-200/50 dark:ring-emerald-800/50"
+                          className="h-7 w-7 rounded-full object-cover ring-1 ring-blue-200/50 dark:ring-blue-800/50"
                         />
                         <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-sky-500 flex items-center justify-center ring-1 ring-background">
                           <BadgeCheck className="h-2 w-2 text-white" />
@@ -584,7 +584,7 @@ export function AIChatWidget() {
                     <div
                       className={`max-w-[82%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white rounded-br-md shadow-md shadow-emerald-600/20'
+                          ? 'bg-gradient-to-br from-blue-800 to-indigo-800 text-white rounded-br-md shadow-md shadow-blue-700/20'
                           : 'bg-muted/70 dark:bg-muted/50 rounded-bl-md border border-border/30'
                       }`}
                     >
@@ -607,7 +607,7 @@ export function AIChatWidget() {
                       )}
                     </div>
                     {msg.role === 'user' && (
-                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-emerald-500/20">
+                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-700 to-indigo-700 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-blue-600/20">
                         <User className="h-3.5 w-3.5 text-white" />
                       </div>
                     )}
@@ -628,7 +628,7 @@ export function AIChatWidget() {
                         alt="কর্মচারী"
                         width={28}
                         height={28}
-                        className="h-7 w-7 rounded-full object-cover ring-1 ring-emerald-200/50 dark:ring-emerald-800/50"
+                        className="h-7 w-7 rounded-full object-cover ring-1 ring-blue-200/50 dark:ring-blue-800/50"
                       />
                       <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-sky-500 flex items-center justify-center ring-1 ring-background">
                         <BadgeCheck className="h-2 w-2 text-white" />
@@ -636,9 +636,9 @@ export function AIChatWidget() {
                     </div>
                     <div className="bg-muted/70 dark:bg-muted/50 rounded-2xl rounded-bl-md px-4 py-3 border border-border/30">
                       <div className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
+                        <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce [animation-delay:0ms]" />
+                        <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce [animation-delay:150ms]" />
+                        <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce [animation-delay:300ms]" />
                       </div>
                     </div>
                   </motion.div>
@@ -654,10 +654,10 @@ export function AIChatWidget() {
                   <button
                     key={q.label}
                     className="cursor-pointer whitespace-nowrap text-[11px] shrink-0
-                      hover:bg-emerald-50 dark:hover:bg-emerald-950/40
-                      border border-border/60 hover:border-emerald-300 dark:hover:border-emerald-700
+                      hover:bg-blue-50 dark:hover:bg-blue-950/40
+                      border border-border/60 hover:border-blue-300 dark:hover:border-blue-700
                       transition-all active:scale-95 py-2 px-3.5 rounded-full bg-background
-                      font-medium text-foreground/80 hover:text-emerald-700 dark:hover:text-emerald-400"
+                      font-medium text-foreground/80 hover:text-blue-800 dark:hover:text-blue-500"
                     onClick={() => {
                       sendMessage(q.action)
                     }}
@@ -676,7 +676,7 @@ export function AIChatWidget() {
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="বাংলা, বাংলিশ বা English এ লিখুন..."
-                    className="h-11 text-base rounded-xl border-border/50 focus-visible:ring-emerald-500/30"
+                    className="h-11 text-base rounded-xl border-border/50 focus-visible:ring-blue-500/30"
                     disabled={isLoading || cooldown}
                     style={{ fontSize: '16px' }}
                   />
@@ -684,7 +684,7 @@ export function AIChatWidget() {
                     size="icon"
                     onClick={() => sendMessage()}
                     disabled={!input.trim() || isLoading || cooldown}
-                    className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 h-11 w-11 rounded-xl shadow-md shadow-emerald-600/20 shrink-0"
+                    className="bg-gradient-to-r from-blue-800 to-indigo-800 hover:from-blue-900 hover:to-indigo-900 h-11 w-11 rounded-xl shadow-md shadow-blue-700/20 shrink-0"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

@@ -15,13 +15,13 @@ const features = [
     icon: DollarSign,
     title: 'Affordable Price',
     description: 'Best prices in Bangladesh market. We offer competitive rates on all subscriptions.',
-    gradient: 'from-emerald-500 to-teal-600',
+    gradient: 'from-blue-700 to-blue-800',
   },
   {
     icon: Shield,
     title: 'Warranty Available',
     description: 'Full warranty on all subscriptions. Get replacement or refund if any issues occur.',
-    gradient: 'from-blue-500 to-cyan-600',
+    gradient: 'from-blue-500 to-sky-600',
   },
   {
     icon: Mail,
@@ -33,7 +33,7 @@ const features = [
     icon: MessageCircle,
     title: 'WhatsApp Support',
     description: '24/7 customer support via WhatsApp. Quick response and instant assistance.',
-    gradient: 'from-green-500 to-emerald-600',
+    gradient: 'from-green-500 to-blue-800',
   },
   {
     icon: CreditCard,

@@ -86,7 +86,7 @@ export function AdminPanel() {
                 {loginError && (
                   <p className="text-sm text-red-500">Incorrect password</p>
                 )}
-                <Button onClick={handleLogin} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={handleLogin} className="w-full bg-blue-700 hover:bg-blue-800">
                   Login
                 </Button>
               </div>
@@ -220,7 +220,7 @@ function ProductsTab() {
         <CardTitle>Products ({uniqueProducts.length})</CardTitle>
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm() }}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+            <Button size="sm" className="bg-blue-700 hover:bg-blue-800">
               <Plus className="h-4 w-4 mr-1" /> Add Product
             </Button>
           </DialogTrigger>
@@ -274,7 +274,7 @@ function ProductsTab() {
                 <label className="flex items-center gap-2"><input type="checkbox" checked={form.isNewArrival} onChange={e => setForm({...form, isNewArrival: e.target.checked})} /> New Arrival</label>
               </div>
               <div><Label>Order</Label><Input type="number" value={form.order} onChange={e => setForm({...form, order: parseInt(e.target.value) || 0})} /></div>
-              <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={handleSave} className="bg-blue-700 hover:bg-blue-800">
                 {editing ? 'Update Product' : 'Create Product'}
               </Button>
             </div>
@@ -358,7 +358,7 @@ function CategoriesTab() {
         <CardTitle>Categories ({(categories || []).length})</CardTitle>
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm() }}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="h-4 w-4 mr-1" /> Add</Button>
+            <Button size="sm" className="bg-blue-700 hover:bg-blue-800"><Plus className="h-4 w-4 mr-1" /> Add</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>{editing ? 'Edit Category' : 'Add Category'}</DialogTitle></DialogHeader>
@@ -369,7 +369,7 @@ function CategoriesTab() {
               <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} /></div>
               <label className="flex items-center gap-2"><input type="checkbox" checked={form.isAdult} onChange={e => setForm({...form, isAdult: e.target.checked})} /> Adult Category</label>
               <div><Label>Order</Label><Input type="number" value={form.order} onChange={e => setForm({...form, order: parseInt(e.target.value) || 0})} /></div>
-              <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700">{editing ? 'Update' : 'Create'}</Button>
+              <Button onClick={handleSave} className="bg-blue-700 hover:bg-blue-800">{editing ? 'Update' : 'Create'}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -431,7 +431,7 @@ function ReviewsTab() {
         <CardTitle>Reviews ({(reviews || []).length})</CardTitle>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="h-4 w-4 mr-1" /> Add</Button>
+            <Button size="sm" className="bg-blue-700 hover:bg-blue-800"><Plus className="h-4 w-4 mr-1" /> Add</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Add Review</DialogTitle></DialogHeader>
@@ -440,7 +440,7 @@ function ReviewsTab() {
               <div><Label>Rating</Label><Input type="number" min={1} max={5} value={form.rating} onChange={e => setForm({...form, rating: parseInt(e.target.value) || 5})} /></div>
               <div><Label>Review Text</Label><Textarea value={form.text} onChange={e => setForm({...form, text: e.target.value})} rows={3} /></div>
               <div><Label>Product</Label><Input value={form.product} onChange={e => setForm({...form, product: e.target.value})} /></div>
-              <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700">Create Review</Button>
+              <Button onClick={handleSave} className="bg-blue-700 hover:bg-blue-800">Create Review</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -551,7 +551,7 @@ function SettingsTab() {
         <div><Label>Admin Password</Label><Input type="password" value={getValue('adminPassword')} onChange={e => handleChange('adminPassword', e.target.value)} /></div>
         <div><Label>bKash Number</Label><Input value={getValue('bkashNumber')} onChange={e => handleChange('bkashNumber', e.target.value)} /></div>
         <div><Label>Nagad Number</Label><Input value={getValue('nagadNumber')} onChange={e => handleChange('nagadNumber', e.target.value)} /></div>
-        <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700">Save Settings</Button>
+        <Button onClick={handleSave} className="bg-blue-700 hover:bg-blue-800">Save Settings</Button>
       </CardContent>
     </Card>
   )
@@ -583,14 +583,14 @@ function BannersTab() {
         <CardTitle>Banners ({banners.length})</CardTitle>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="h-4 w-4 mr-1" /> Add</Button>
+            <Button size="sm" className="bg-blue-700 hover:bg-blue-800"><Plus className="h-4 w-4 mr-1" /> Add</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Add Banner</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-4">
               <div><Label>Text</Label><Input value={form.text} onChange={e => setForm({...form, text: e.target.value})} /></div>
               <label className="flex items-center gap-2"><input type="checkbox" checked={form.isActive} onChange={e => setForm({...form, isActive: e.target.checked})} /> Active</label>
-              <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700">Create Banner</Button>
+              <Button onClick={handleSave} className="bg-blue-700 hover:bg-blue-800">Create Banner</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -609,7 +609,7 @@ function BannersTab() {
               {banners.map(b => (
                 <TableRow key={b.id}>
                   <TableCell>{b.text}</TableCell>
-                  <TableCell>{b.isActive ? <Badge className="bg-emerald-500 text-xs">Active</Badge> : <Badge variant="secondary" className="text-xs">Inactive</Badge>}</TableCell>
+                  <TableCell>{b.isActive ? <Badge className="bg-blue-600 text-xs">Active</Badge> : <Badge variant="secondary" className="text-xs">Inactive</Badge>}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{new Date(b.createdAt).toLocaleDateString()}</TableCell>
                 </TableRow>
               ))}

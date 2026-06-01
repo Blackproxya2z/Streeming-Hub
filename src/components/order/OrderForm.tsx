@@ -106,8 +106,8 @@ export function OrderForm() {
           <div className="text-center py-8">
             {/* Success animation */}
             <div className="relative mx-auto mb-6">
-              <div className="h-20 w-20 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center mx-auto">
-                <CheckCircle className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
+              <div className="h-20 w-20 rounded-full bg-blue-100 dark:bg-blue-950 flex items-center justify-center mx-auto">
+                <CheckCircle className="h-10 w-10 text-blue-700 dark:text-blue-500" />
               </div>
               <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-green-500 flex items-center justify-center animate-bounce">
                 <CheckCircle className="h-4 w-4 text-white" />
@@ -139,7 +139,7 @@ export function OrderForm() {
                   )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Price</span>
-                    <span className="font-bold text-emerald-600">{formatPriceBDT(product?.basePriceBDT || '')}</span>
+                    <span className="font-bold text-blue-700">{formatPriceBDT(product?.basePriceBDT || '')}</span>
                   </div>
                   {form.paymentMethod && (
                     <div className="flex justify-between">
@@ -208,7 +208,7 @@ export function OrderForm() {
                   <p className="font-semibold text-sm">{product?.name || pageParams.productName}</p>
                   {form.plan && <p className="text-xs text-muted-foreground">{form.plan}</p>}
                 </div>
-                <span className="font-bold text-emerald-600">{formatPriceBDT(product?.basePriceBDT || '')}</span>
+                <span className="font-bold text-blue-700">{formatPriceBDT(product?.basePriceBDT || '')}</span>
               </div>
             </CardContent>
           </Card>
@@ -268,7 +268,7 @@ export function OrderForm() {
                   className="h-8 px-2"
                   onClick={() => handleCopy(bkashNumber, 'bkash-copy')}
                 >
-                  {copied === 'bkash-copy' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                  {copied === 'bkash-copy' ? <Check className="h-4 w-4 text-blue-600" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
               <Button
@@ -311,7 +311,7 @@ export function OrderForm() {
                   className="h-8 px-2"
                   onClick={() => handleCopy(nagadNumber, 'nagad-copy')}
                 >
-                  {copied === 'nagad-copy' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                  {copied === 'nagad-copy' ? <Check className="h-4 w-4 text-blue-600" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
               <Button
@@ -368,7 +368,7 @@ export function OrderForm() {
           <Button
             size="lg"
             onClick={handlePaymentDone}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 font-semibold rounded-xl h-12 text-base"
+            className="w-full bg-blue-700 hover:bg-blue-800 font-semibold rounded-xl h-12 text-base"
           >
             <CheckCircle className="h-5 w-5 mr-2" />
             আমি Send Money করেছি
@@ -400,14 +400,14 @@ export function OrderForm() {
           <Card className="border shadow-sm mb-6">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center shrink-0">
-                  <ShoppingBagIcon className="h-6 w-6 text-emerald-600" />
+                <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center shrink-0">
+                  <ShoppingBagIcon className="h-6 w-6 text-blue-700" />
                 </div>
                 <div className="min-w-0">
                   <h2 className="font-bold text-sm">{product.name}</h2>
                   <p className="text-xs text-muted-foreground">{product.category?.name}</p>
                 </div>
-                <span className="ml-auto font-bold text-emerald-600 whitespace-nowrap">
+                <span className="ml-auto font-bold text-blue-700 whitespace-nowrap">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
               </div>
@@ -421,12 +421,12 @@ export function OrderForm() {
                       onClick={() => handleChange('plan', `${opt.label} — ${formatPriceBDT(opt.priceBDT)}`)}
                       className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
                         form.plan === `${opt.label} — ${formatPriceBDT(opt.priceBDT)}`
-                          ? 'bg-emerald-100 dark:bg-emerald-900 border border-emerald-300 dark:border-emerald-700'
+                          ? 'bg-blue-100 dark:bg-blue-900 border border-blue-300 dark:border-blue-700'
                           : 'bg-muted/50 hover:bg-muted border border-transparent'
                       }`}
                     >
                       <span>{opt.label}</span>
-                      <span className="font-semibold text-emerald-600">{formatPriceBDT(opt.priceBDT)}</span>
+                      <span className="font-semibold text-blue-700">{formatPriceBDT(opt.priceBDT)}</span>
                     </button>
                   ))}
                 </div>
@@ -505,7 +505,7 @@ export function OrderForm() {
             size="lg"
             onClick={handleProceed}
             disabled={!form.customerName || !form.customerWhatsApp}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 font-semibold rounded-xl h-12 text-base mt-2 disabled:opacity-50"
+            className="w-full bg-blue-700 hover:bg-blue-800 font-semibold rounded-xl h-12 text-base mt-2 disabled:opacity-50"
           >
             <CreditCard className="h-5 w-5 mr-2" />
             Send Money পেজে যান

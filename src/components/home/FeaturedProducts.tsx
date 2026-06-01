@@ -25,11 +25,11 @@ const categoryImages: Record<string, string> = {
 }
 
 const gradients = [
-  'from-emerald-400 to-teal-500',
+  'from-blue-600 to-sky-600',
   'from-amber-400 to-orange-500',
   'from-purple-400 to-violet-500',
   'from-pink-400 to-rose-500',
-  'from-blue-400 to-cyan-500',
+  'from-blue-400 to-sky-500',
   'from-red-400 to-rose-500',
 ]
 
@@ -47,7 +47,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
   const initials = product.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
   const gradient = getGradient(product.name)
   const stockColor =
-    product.stockStatus === 'Available' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-400' :
+    product.stockStatus === 'Available' ? 'text-blue-700 bg-blue-50 dark:bg-blue-950 dark:text-blue-500' :
     product.stockStatus === 'Limited Stock' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400' :
     'text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400'
   const hasImage = !!product.image
@@ -117,7 +117,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
               </Badge>
             )}
             {product.isNewArrival && (
-              <Badge className="absolute top-2 right-2 bg-emerald-500 text-white border-0 text-[11px] z-10 shadow-sm">
+              <Badge className="absolute top-2 right-2 bg-blue-600 text-white border-0 text-[11px] z-10 shadow-sm">
                 <Zap className="h-3 w-3 mr-0.5" /> New
               </Badge>
             )}
@@ -146,7 +146,7 @@ function ProductCardMini({ product, index }: { product: any; index: number }) {
 
             <div className="mt-auto pt-1.5 sm:pt-2 border-t border-border/50">
               <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="font-bold text-sm sm:text-base text-emerald-600 dark:text-emerald-400">
+                <span className="font-bold text-sm sm:text-base text-blue-700 dark:text-blue-500">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
               </div>

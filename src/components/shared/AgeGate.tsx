@@ -116,11 +116,11 @@ function SecretCodePuzzle({
       emoji: '🔍',
       label: 'খুঁজুন',
       sublabel: 'Search',
-      color: 'emerald',
-      glowColor: 'rgba(16,185,129,0.5)',
-      bgActive: 'bg-emerald-500',
-      borderActive: 'border-emerald-400',
-      shadowActive: 'shadow-emerald-500/50',
+      color: 'blue',
+      glowColor: 'rgba(37,99,235,0.5)',
+      bgActive: 'bg-blue-600',
+      borderActive: 'border-blue-400',
+      shadowActive: 'shadow-blue-600/50',
       icon: Search,
     },
     {
@@ -216,7 +216,7 @@ function SecretCodePuzzle({
                       relative flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 
                       transition-colors duration-300 cursor-pointer select-none
                       min-h-[72px] min-w-[72px]
-                      focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400
+                      focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400
                       ${
                         isActive
                           ? `${lock.borderActive} ${lock.shadowActive} shadow-lg`
@@ -271,8 +271,8 @@ function SecretCodePuzzle({
                       <span
                         className={`block text-[11px] font-semibold leading-tight ${
                           isActive
-                            ? lock.color === 'emerald'
-                              ? 'text-emerald-600 dark:text-emerald-400'
+                            ? lock.color === 'blue'
+                              ? 'text-blue-700 dark:text-blue-500'
                               : lock.color === 'amber'
                                 ? 'text-amber-600 dark:text-amber-400'
                                 : 'text-purple-600 dark:text-purple-400'
@@ -295,7 +295,7 @@ function SecretCodePuzzle({
                       animate={{ opacity: isActive ? 0 : 0.4 }}
                     >
                       <Lock
-                        className={`h-3 w-3 ${isActive ? 'text-emerald-400' : 'text-zinc-300 dark:text-zinc-600'}`}
+                        className={`h-3 w-3 ${isActive ? 'text-blue-500' : 'text-zinc-300 dark:text-zinc-600'}`}
                       />
                     </motion.div>
                   </motion.button>
@@ -598,7 +598,7 @@ export function AgeGate() {
                   না, ফিরে যান
                 </Button>
                 <Button
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-11"
+                  className="flex-1 bg-blue-700 hover:bg-blue-800 h-11"
                   onClick={handleAgeConfirm}
                 >
                   হ্যাঁ, আমি ১৮+
@@ -703,7 +703,7 @@ export function AgeGate() {
                   বাতিল
                 </Button>
                 <Button
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-11"
+                  className="flex-1 bg-blue-700 hover:bg-blue-800 h-11"
                   onClick={handlePinSubmit}
                   disabled={pin.length === 0}
                 >
@@ -723,7 +723,7 @@ export function AgeGate() {
               <ConfettiBurst active={showConfetti} />
               <DialogHeader className="text-center">
                 <motion.div
-                  className="mx-auto mb-4 h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center"
+                  className="mx-auto mb-4 h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-950 flex items-center justify-center"
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{
@@ -733,14 +733,14 @@ export function AgeGate() {
                     delay: 0.15,
                   }}
                 >
-                  <ShieldCheck className="h-8 w-8 text-emerald-500" />
+                  <ShieldCheck className="h-8 w-8 text-blue-600" />
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <DialogTitle className="text-xl text-emerald-600">
+                  <DialogTitle className="text-xl text-blue-700">
                     ✅ ভেরিফিকেশন সফল!
                   </DialogTitle>
                   <DialogDescription className="text-base mt-2">
@@ -757,7 +757,7 @@ export function AgeGate() {
                   {[0, 1, 2, 3, 4].map((i) => (
                     <motion.div
                       key={i}
-                      className="h-1.5 w-1.5 rounded-full bg-emerald-400"
+                      className="h-1.5 w-1.5 rounded-full bg-blue-500"
                       initial={{ scale: 0 }}
                       animate={{ scale: [0, 1.2, 1] }}
                       transition={{ delay: 0.5 + i * 0.08, duration: 0.3 }}

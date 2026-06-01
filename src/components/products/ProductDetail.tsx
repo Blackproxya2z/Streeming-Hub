@@ -24,11 +24,11 @@ import { OrderDialog } from '@/components/order/OrderDialog'
 import { SEOHead } from '@/components/shared/SEOHead'
 
 const gradients = [
-  'from-emerald-400 to-teal-500',
+  'from-blue-600 to-sky-600',
   'from-amber-400 to-orange-500',
   'from-purple-400 to-violet-500',
   'from-pink-400 to-rose-500',
-  'from-blue-400 to-cyan-500',
+  'from-blue-400 to-sky-500',
   'from-red-400 to-rose-500',
 ]
 
@@ -231,7 +231,7 @@ export function ProductDetail() {
                   </Badge>
                 )}
                 {product.isNewArrival && (
-                  <Badge className="bg-emerald-500 text-white border-0 text-xs">
+                  <Badge className="bg-blue-600 text-white border-0 text-xs">
                     <Zap className="h-3 w-3 mr-0.5" /> New
                   </Badge>
                 )}
@@ -244,7 +244,7 @@ export function ProductDetail() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {product.duration && (
                 <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
-                  <Timer className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <Timer className="h-4 w-4 text-blue-600 shrink-0" />
                   <div>
                     <p className="text-[11px] text-muted-foreground">Duration</p>
                     <p className="text-sm font-medium">{product.duration}</p>
@@ -262,10 +262,10 @@ export function ProductDetail() {
               )}
               {product.warranty && (
                 <div className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
-                  <Shield className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <Shield className="h-4 w-4 text-blue-600 shrink-0" />
                   <div>
                     <p className="text-[11px] text-muted-foreground">Warranty</p>
-                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{product.warranty}</p>
+                    <p className="text-sm font-medium text-blue-700 dark:text-blue-500">{product.warranty}</p>
                   </div>
                 </div>
               )}
@@ -279,10 +279,10 @@ export function ProductDetail() {
             </div>
 
             {/* Price Section */}
-            <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl p-4">
+            <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4">
               <p className="text-xs text-muted-foreground mb-1">Starting from</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="text-2xl sm:text-3xl font-bold text-blue-700 dark:text-blue-500">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
               </div>
@@ -298,16 +298,16 @@ export function ProductDetail() {
                       key={i}
                       type="button"
                       onClick={() => handlePlanClick(opt)}
-                      className="flex items-center justify-between bg-background border rounded-xl px-4 py-3 hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-colors group text-left"
+                      className="flex items-center justify-between bg-background border rounded-xl px-4 py-3 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors group text-left"
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-400' : 'bg-muted text-muted-foreground'}`}>
                           {i + 1}
                         </div>
                         <span className="text-sm font-medium">{opt.label}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        <span className="font-bold text-blue-700 dark:text-blue-500">
                           {formatPriceBDT(opt.priceBDT)}
                         </span>
                       </div>
@@ -331,7 +331,7 @@ export function ProductDetail() {
               <div className="flex flex-wrap gap-1.5">
                 {features.map((feature, i) => (
                   <span key={i} className="inline-flex items-center gap-1 text-xs bg-muted/70 rounded-full px-2.5 py-1">
-                    <CheckCircle className="h-3 w-3 text-emerald-500" />
+                    <CheckCircle className="h-3 w-3 text-blue-600" />
                     {feature}
                   </span>
                 ))}
@@ -345,7 +345,7 @@ export function ProductDetail() {
           <h2 className="font-bold text-base mb-4">অর্ডার করার নিয়ম / How to Order</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col items-center text-center gap-2">
-              <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-600 font-bold text-sm">1</div>
+              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 font-bold text-sm">1</div>
               <div>
                 <p className="text-sm font-medium">Send Money</p>
                 <p className="text-[11px] text-muted-foreground">bKash / Nagad দিয়ে</p>

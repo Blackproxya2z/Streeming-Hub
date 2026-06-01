@@ -43,7 +43,7 @@ export function CustomerReviews() {
             >
               <Card className="h-full hover:shadow-lg transition-all duration-300 border-0 shadow-sm">
                 <CardContent className="p-6">
-                  <Quote className="h-8 w-8 text-emerald-200 dark:text-emerald-900 mb-3" />
+                  <Quote className="h-8 w-8 text-blue-200 dark:text-blue-900 mb-3" />
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-4">
                     &ldquo;{review.text}&rdquo;
                   </p>
@@ -66,7 +66,7 @@ export function CustomerReviews() {
                         <p className="text-xs text-muted-foreground">{review.product}</p>
                       )}
                     </div>
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-sky-600 flex items-center justify-center text-white text-xs font-bold">
                       {review.name.charAt(0)}
                     </div>
                   </div>

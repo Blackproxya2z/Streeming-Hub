@@ -109,12 +109,12 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-0 gap-0 overflow-hidden">
         {/* Product Header */}
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 text-white">
+        <div className="bg-gradient-to-r from-blue-800 to-indigo-800 p-4 text-white">
           <DialogHeader>
             <DialogTitle className="text-white text-lg font-bold">
               Order: {product.name}
             </DialogTitle>
-            <DialogDescription className="text-emerald-100 text-xs">
+            <DialogDescription className="text-blue-100 text-xs">
               সর্বমোট ৩ ধাপে অর্ডার সম্পন্ন করুন
             </DialogDescription>
           </DialogHeader>
@@ -135,8 +135,8 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                 />
               </div>
             ) : (
-              <div className="h-12 w-12 rounded-lg bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center shrink-0">
-                <span className="text-emerald-600 font-bold text-sm">
+              <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
+                <span className="text-blue-700 font-bold text-sm">
                   {product.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                 </span>
               </div>
@@ -144,7 +144,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-sm truncate">{product.name}</p>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-emerald-600 text-sm">
+                <span className="font-bold text-blue-700 text-sm">
                   {formatPriceBDT(selectedPrice)}
                 </span>
               </div>
@@ -157,7 +157,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
           {/* Step 1: Send Money */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="h-7 w-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shrink-0">1</div>
+              <div className="h-7 w-7 rounded-full bg-blue-700 text-white flex items-center justify-center text-xs font-bold shrink-0">1</div>
               <span className="font-semibold text-sm">Send Money করুন 💸</span>
             </div>
 
@@ -223,7 +223,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                   onClick={() => handleCopy(bkashNumber, 'bkash-copy')}
                 >
                   {copied === 'bkash-copy' ? (
-                    <Check className="h-4 w-4 text-emerald-500" />
+                    <Check className="h-4 w-4 text-blue-600" />
                   ) : (
                     <Copy className="h-4 w-4 text-muted-foreground" />
                   )}
@@ -272,7 +272,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                   onClick={() => handleCopy(nagadNumber, 'nagad-copy')}
                 >
                   {copied === 'nagad-copy' ? (
-                    <Check className="h-4 w-4 text-emerald-500" />
+                    <Check className="h-4 w-4 text-blue-600" />
                   ) : (
                     <Copy className="h-4 w-4 text-muted-foreground" />
                   )}
@@ -312,8 +312,8 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
             </div>
             {product.warranty && (
               <div className="flex items-start gap-2">
-                <Shield className="h-3.5 w-3.5 shrink-0 mt-0.5 text-emerald-500" />
-                <span className="text-emerald-700 dark:text-emerald-300">ওয়ারেন্টি: {product.warranty}</span>
+                <Shield className="h-3.5 w-3.5 shrink-0 mt-0.5 text-blue-600" />
+                <span className="text-blue-800 dark:text-blue-400">ওয়ারেন্টি: {product.warranty}</span>
               </div>
             )}
           </div>
@@ -338,7 +338,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full h-10 rounded-lg border border-border/50 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400"
+                  className="w-full h-10 rounded-lg border border-border/50 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
                   style={{ fontSize: '16px' }}
                 />
               </div>
@@ -355,7 +355,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                   value={bkashLastDigit}
                   onChange={e => setBkashLastDigit(e.target.value.replace(/\D/g, ''))}
                   placeholder="e.g. 4567"
-                  className="w-full h-10 rounded-lg border border-border/50 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400"
+                  className="w-full h-10 rounded-lg border border-border/50 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
                   style={{ fontSize: '16px' }}
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">bKash/Nagad Send Money এর শেষ ৩-৪ ডিজিট দিন</p>

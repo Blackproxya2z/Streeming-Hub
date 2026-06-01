@@ -83,25 +83,25 @@ export function PaymentPage() {
                   className="h-7 px-2 ml-auto"
                   onClick={() => handleCopy(bkashNumber, 'bkash-copy')}
                 >
-                  {copied === 'bkash-copy' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
+                  {copied === 'bkash-copy' ? <Check className="h-4 w-4 text-blue-600" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <p className="font-semibold">Send Money করার নিয়ম:</p>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                   <span>নিচের বাটনে ক্লিক করুন — নম্বর অটো কপি হবে</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                   <span><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!<br />Select <strong>Send Money</strong>, not Payment!</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                   <span>নম্বর পেস্ট করুন এবং Send Money করুন।<br />Paste the number and Send Money.</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                   <span>Send Money করার পর Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।<br />After sending, share the last 3 digits of transaction ID via WhatsApp.</span>
                 </div>
               </div>
@@ -148,25 +148,25 @@ export function PaymentPage() {
                   className="h-7 px-2 ml-auto"
                   onClick={() => handleCopy(nagadNumber, 'nagad-copy')}
                 >
-                  {copied === 'nagad-copy' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
+                  {copied === 'nagad-copy' ? <Check className="h-4 w-4 text-blue-600" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <p className="font-semibold">Send Money করার নিয়ম:</p>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                   <span>নিচের বাটনে ক্লিক করুন — নম্বর অটো কপি হবে</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                   <span><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!<br />Select <strong>Send Money</strong>, not Payment!</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                   <span>নম্বর পেস্ট করুন এবং Send Money করুন।<br />Paste the number and Send Money.</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                   <span>Send Money করার পর Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।<br />After sending, share the last 3 digits of transaction ID via WhatsApp.</span>
                 </div>
               </div>
@@ -199,19 +199,19 @@ export function PaymentPage() {
             </div>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                 <span><strong>Send Money First:</strong> পেমেন্ট ফার্স্ট — আগে Send Money, তারপর ডেলিভারি। Payment first, then delivery.</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                 <span><strong>Delivery Time:</strong> 5-20 minutes after payment confirmation. পেমেন্ট নিশ্চিত হওয়ার ৫-২০ মিনিটের মধ্যে ডেলিভারি।</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                 <span><strong>Warranty:</strong> All subscriptions come with warranty. সকল সাবস্ক্রিপশনে ওয়ারেন্টি আছে।</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                 <span><strong>Support:</strong> Contact us on WhatsApp for any issues. যেকোনো সমস্যায় WhatsApp-এ যোগাযোগ করুন।</span>
               </li>
             </ul>

@@ -28,11 +28,11 @@ const categoryIconMap: Record<string, React.ElementType> = {
 const categoryGradients: Record<string, string> = {
   'streaming': 'from-red-500 to-rose-600',
   'ai-tools': 'from-purple-500 to-violet-600',
-  'educational': 'from-blue-500 to-cyan-600',
+  'educational': 'from-blue-500 to-sky-600',
   'design-creative': 'from-pink-500 to-fuchsia-600',
   'productivity': 'from-amber-500 to-orange-600',
   'cloud-storage': 'from-sky-500 to-blue-600',
-  'vpn': 'from-emerald-500 to-teal-600',
+  'vpn': 'from-blue-700 to-blue-800',
   'gift-cards': 'from-amber-400 to-yellow-500',
   'gaming-topup': 'from-indigo-500 to-purple-600',
   'multi-collection': 'from-slate-500 to-gray-600',
@@ -72,7 +72,7 @@ function getCategoryGradient(category: Category) {
   if (category.icon && categoryGradients[category.icon]) {
     return categoryGradients[category.icon]
   }
-  return 'from-emerald-500 to-teal-600'
+  return 'from-blue-700 to-blue-800'
 }
 
 export function CategoryCards() {
