@@ -60,3 +60,23 @@ Stage Summary:
 - AgeGate has fun hide&seek easter egg for PIN discovery
 - Chat widget properly positioned at bottom on all devices
 - Deployed to Vercel via GitHub push
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix Vercel build failure and deploy
+
+Work Log:
+- Ran `bun run build` and identified TypeScript error: `Cannot find module '@prisma/client'`
+- Root cause: `@prisma/client` was never installed as a dependency, and `prisma/seed.ts` was included in TypeScript compilation
+- Fix 1: Added `"prisma"` to tsconfig.json `exclude` array to exclude seed.ts from build
+- Fix 2: Installed `prisma@5.22.0` and `@prisma/client@5.22.0` (v5.x compatible with existing schema format)
+- Ran `npx prisma generate` to generate the Prisma client
+- Re-ran `bun run build` - build succeeded with all pages generated
+- Committed changes and pushed to GitHub: `fix: build error - install prisma client + exclude prisma from tsconfig`
+- Vercel auto-deploy triggered
+
+Stage Summary:
+- Build failure fixed by installing @prisma/client and excluding prisma/ from TypeScript compilation
+- Successfully pushed to GitHub (commit 31a6b79)
+- Vercel auto-deploy should now succeed
