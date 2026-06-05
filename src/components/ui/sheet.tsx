@@ -6,8 +6,13 @@ import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />
+/**
+ * IMPORTANT: modal defaults to FALSE to prevent Radix UI's RemoveScroll
+ * from locking body scrolling. Same reason as Dialog component.
+ * With modal=false, no RemoveScroll = no stuck scroll locks.
+ */
+function Sheet({ modal = false, ...props }: React.ComponentProps<typeof SheetPrimitive.Root> & { modal?: boolean }) {
+  return <SheetPrimitive.Root data-slot="sheet" modal={modal} {...props} />
 }
 
 function SheetTrigger({
@@ -57,6 +62,12 @@ function SheetContent({
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
+        onOpenAutoFocus={(e) => {
+          e.preventDefault()
+        }}
+        onCloseAutoFocus={(e) => {
+          e.preventDefault()
+        }}
         className={cn(
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
           side === "right" &&

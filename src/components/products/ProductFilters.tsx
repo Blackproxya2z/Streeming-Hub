@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { useCategories } from '@/lib/hooks'
 import { Button } from '@/components/ui/button'
@@ -7,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { lockScroll, unlockScroll } from '@/components/shared/ScrollFix'
 import { SlidersHorizontal, X } from 'lucide-react'
 
 const sortOptions = [
@@ -18,11 +20,24 @@ const sortOptions = [
 export function ProductFiltersMobile() {
   const { filters, setFilter, resetFilters } = useAppStore()
   const { data: categories } = useCategories()
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const activeFilterCount = (filters.categorySlug ? 1 : 0) + (filters.sort && filters.sort !== 'popular' ? 1 : 0)
 
+  // Manual scroll lock — since Sheet is modal={false}
+  useEffect(() => {
+    if (sheetOpen) {
+      lockScroll()
+    } else {
+      unlockScroll()
+    }
+    return () => {
+      if (sheetOpen) unlockScroll()
+    }
+  }, [sheetOpen])
+
   return (
-    <Sheet>
+    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" size="icon" className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 relative">
           <SlidersHorizontal className="h-4 w-4" />

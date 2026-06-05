@@ -11,7 +11,7 @@ const steps = [
     title: 'পণ্য বাছাই করুন',
     titleEn: 'Choose Your Product',
     description: 'আমাদের ক্যাটালগ থেকে আপনার পছন্দের সাবস্ক্রিপশন বাছাই করুন।',
-    color: 'from-[#00A6A6] to-[#14B8A6]',
+    color: 'from-[#10b981] to-[#34d399]',
   },
   {
     step: 2,
@@ -19,7 +19,7 @@ const steps = [
     title: 'Send Money করুন',
     titleEn: 'Send Money via bKash/Nagad',
     description: 'bKash বা Nagad দিয়ে Send Money করুন আমাদের নম্বরে। Payment নয়, Send Money!',
-    color: 'from-[#F5B301] to-[#F59E0B]',
+    color: 'from-[#f59e0b] to-[#d97706]',
   },
   {
     step: 3,
@@ -27,7 +27,7 @@ const steps = [
     title: 'WhatsApp-এ কনফার্ম করুন',
     titleEn: 'Confirm on WhatsApp',
     description: 'Send Money করার পর WhatsApp-এ মেসেজ পাঠান। Transaction ID-এর শেষ ৩ ডিজিট দিন।',
-    color: 'from-[#00A6A6] to-[#14B8A6]',
+    color: 'from-[#10b981] to-[#34d399]',
   },
   {
     step: 4,
@@ -35,7 +35,7 @@ const steps = [
     title: 'ডেলিভারি নিন',
     titleEn: 'Get Delivery in 5-20 Min',
     description: 'পেমেন্ট কনফার্মেশনের ৫-২০ মিনিটের মধ্যে আপনার সাবস্ক্রিপশন ডেলিভারি হবে।',
-    color: 'from-[#0B1F3A] to-[#102A43]',
+    color: 'from-[#0f172a] to-[#1e293b]',
   },
   {
     step: 5,

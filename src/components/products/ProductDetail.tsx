@@ -24,13 +24,13 @@ import { OrderDialog } from '@/components/order/OrderDialog'
 import { SEOHead } from '@/components/shared/SEOHead'
 
 const gradients = [
-  'from-[#00A6A6] to-[#14B8A6]',
+  'from-[#10b981] to-[#34d399]',
   'from-amber-400 to-orange-500',
   'from-purple-400 to-violet-500',
   'from-pink-400 to-rose-500',
-  'from-[#0B1F3A] to-[#00A6A6]',
+  'from-[#0f172a] to-[#10b981]',
   'from-red-400 to-rose-500',
-  'from-[#14B8A6] to-[#00A6A6]',
+  'from-[#34d399] to-[#10b981]',
 ]
 
 function getGradient(name: string) {
@@ -255,7 +255,7 @@ export function ProductDetail() {
                     </Badge>
                   )}
                   {product.isNewArrival && (
-                    <Badge className="bg-[#00A6A6] text-white border-0 text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
+                    <Badge className="bg-[#10b981] text-white border-0 text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
                       <Zap className="h-3.5 w-3.5 mr-1" /> New
                     </Badge>
                   )}
@@ -276,7 +276,7 @@ export function ProductDetail() {
                   </Badge>
                 )}
                 {product.isNewArrival && (
-                  <Badge className="bg-[#00A6A6] text-white border-0 text-xs sm:text-sm">
+                  <Badge className="bg-[#10b981] text-white border-0 text-xs sm:text-sm">
                     <Zap className="h-3 w-3 mr-0.5" /> New
                   </Badge>
                 )}
@@ -289,7 +289,7 @@ export function ProductDetail() {
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {product.duration && (
                 <div className="flex items-center gap-2.5 bg-muted/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
-                  <Timer className="h-4 w-4 sm:h-5 sm:w-5 text-[#00A6A6] shrink-0" />
+                  <Timer className="h-4 w-4 sm:h-5 sm:w-5 text-[#10b981] shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[11px] sm:text-xs text-muted-foreground">Duration</p>
                     <p className="text-sm sm:text-base font-medium truncate">{product.duration}</p>
@@ -298,7 +298,7 @@ export function ProductDetail() {
               )}
               {product.accountType && (
                 <div className="flex items-center gap-2.5 bg-muted/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
-                  <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-[#00A6A6] shrink-0" />
+                  <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-[#10b981] shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[11px] sm:text-xs text-muted-foreground">Account Type</p>
                     <p className="text-sm sm:text-base font-medium truncate">{product.accountType}</p>
@@ -307,10 +307,10 @@ export function ProductDetail() {
               )}
               {product.warranty && (
                 <div className="flex items-center gap-2.5 bg-muted/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
-                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-[#00A6A6] shrink-0" />
+                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-[#10b981] shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[11px] sm:text-xs text-muted-foreground">Warranty</p>
-                    <p className="text-sm sm:text-base font-medium text-[#00A6A6] dark:text-[#14B8A6] truncate">{product.warranty}</p>
+                    <p className="text-sm sm:text-base font-medium text-[#10b981] dark:text-[#34d399] truncate">{product.warranty}</p>
                   </div>
                 </div>
               )}
@@ -324,10 +324,10 @@ export function ProductDetail() {
             </div>
 
             {/* Price Section */}
-            <div className="bg-teal-50 dark:bg-[#0B1F3A]/20 rounded-xl p-4 sm:p-5">
+            <div className="bg-emerald-50 dark:bg-[#0f172a]/20 rounded-xl p-4 sm:p-5">
               <p className="text-xs sm:text-sm text-muted-foreground mb-1">Starting from</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#00A6A6] dark:text-[#14B8A6]">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#10b981] dark:text-[#34d399]">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
               </div>
@@ -343,16 +343,16 @@ export function ProductDetail() {
                       key={i}
                       type="button"
                       onClick={() => handlePlanClick(opt)}
-                      className="flex items-center justify-between bg-background border rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 hover:border-[#00A6A6] hover:bg-teal-50/50 dark:hover:bg-[#0B1F3A]/20 transition-colors group text-left"
+                      className="flex items-center justify-between bg-background border rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 hover:border-[#10b981] hover:bg-emerald-50/50 dark:hover:bg-[#0f172a]/20 transition-colors group text-left"
                     >
                       <div className="flex items-center gap-2.5 sm:gap-3">
-                        <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-teal-100 text-[#0B1F3A] dark:bg-[#0B1F3A] dark:text-[#14B8A6]' : 'bg-muted text-muted-foreground'}`}>
+                        <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-emerald-100 text-[#0f172a] dark:bg-[#0f172a] dark:text-[#34d399]' : 'bg-muted text-muted-foreground'}`}>
                           {i + 1}
                         </div>
                         <span className="text-sm sm:text-base font-medium">{opt.label}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-base sm:text-lg text-[#00A6A6] dark:text-[#14B8A6]">
+                        <span className="font-bold text-base sm:text-lg text-[#10b981] dark:text-[#34d399]">
                           {formatPriceBDT(opt.priceBDT)}
                         </span>
                       </div>
@@ -376,7 +376,7 @@ export function ProductDetail() {
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {features.map((feature, i) => (
                   <span key={i} className="inline-flex items-center gap-1 text-xs sm:text-sm bg-muted/70 rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5">
-                    <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#00A6A6]" />
+                    <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#10b981]" />
                     {feature}
                   </span>
                 ))}
@@ -390,7 +390,7 @@ export function ProductDetail() {
           <h2 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-6">অর্ডার করার নিয়ম / How to Order</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="flex flex-col items-center text-center gap-2">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-teal-100 dark:bg-[#0B1F3A] flex items-center justify-center text-[#0B1F3A] dark:text-[#14B8A6] font-bold text-sm sm:text-base">1</div>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-emerald-100 dark:bg-[#0f172a] flex items-center justify-center text-[#0f172a] dark:text-[#34d399] font-bold text-sm sm:text-base">1</div>
               <div>
                 <p className="text-sm sm:text-base font-medium">Send Money</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">bKash / Nagad দিয়ে</p>

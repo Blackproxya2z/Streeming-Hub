@@ -12,14 +12,14 @@ import { OrderDialog } from '@/components/order/OrderDialog'
 import type { Product } from '@/lib/hooks'
 
 const gradients = [
-  'from-[#00A6A6] to-[#14B8A6]',
+  'from-[#10b981] to-[#34d399]',
   'from-amber-400 to-orange-500',
   'from-purple-400 to-violet-500',
   'from-pink-400 to-rose-500',
-  'from-[#0B1F3A] to-[#00A6A6]',
+  'from-[#0f172a] to-[#10b981]',
   'from-red-400 to-rose-500',
-  'from-[#14B8A6] to-[#00A6A6]',
-  'from-[#14B8A6] to-[#00A6A6]',
+  'from-[#34d399] to-[#10b981]',
+  'from-[#34d399] to-[#10b981]',
 ]
 
 function getGradient(name: string) {
@@ -65,7 +65,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
   const isNumericPrice = !isNaN(parseFloat(product.basePriceBDT))
 
   const stockColor =
-    product.stockStatus === 'Available' ? 'text-[#00A6A6] bg-teal-50 dark:bg-[#0B1F3A]/50 dark:text-[#14B8A6]' :
+    product.stockStatus === 'Available' ? 'text-[#10b981] bg-emerald-50 dark:bg-[#0f172a]/50 dark:text-[#34d399]' :
     product.stockStatus === 'Limited Stock' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400' :
     'text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400'
 
@@ -169,7 +169,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
               )}
               {product.warranty && (
                 <span className="flex items-center gap-1 bg-muted rounded-md px-1.5 sm:px-2 py-0.5">
-                  <Shield className="h-3 w-3 text-[#00A6A6] dark:text-[#14B8A6]" /> {product.warranty}
+                  <Shield className="h-3 w-3 text-[#10b981] dark:text-[#34d399]" /> {product.warranty}
                 </span>
               )}
             </div>
@@ -177,7 +177,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
             {/* Price + Stock row */}
             <div className="mt-auto pt-1.5 sm:pt-2 border-t border-border/50">
               <div className="flex items-baseline justify-between gap-1.5">
-                <span className={`font-bold text-base sm:text-lg ${isNumericPrice ? 'text-[#00A6A6] dark:text-[#14B8A6]' : 'text-green-700 dark:text-green-500'}`}>
+                <span className={`font-bold text-base sm:text-lg ${isNumericPrice ? 'text-[#10b981] dark:text-[#34d399]' : 'text-green-700 dark:text-green-500'}`}>
                   {isNumericPrice ? formatPriceBDT(product.basePriceBDT) : product.basePriceBDT}
                 </span>
                 {product.stockStatus && (

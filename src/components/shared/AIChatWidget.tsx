@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { lockScroll, unlockScroll } from '@/components/shared/ScrollFix'
 import {
   MessageCircle,
   X,
@@ -116,7 +117,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, indent, , content] = bulletMatch
     elements.push(
       <span key={`bullet-${indent.length}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-[#00A6A6] dark:bg-[#14B8A6]" />
+        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-[#10b981] dark:bg-[#34d399]" />
         <span>{processInlineFormatting(content)}</span>
       </span>
     )
@@ -129,7 +130,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, , num, content] = numberedMatch
     elements.push(
       <span key={`num-${num}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-teal-100 dark:bg-[#0B1F3A]/30 text-[#0B1F3A] dark:text-[#14B8A6] flex items-center justify-center text-[10px] font-bold leading-none mt-px">
+        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-emerald-100 dark:bg-[#0f172a]/30 text-[#0f172a] dark:text-[#34d399] flex items-center justify-center text-[10px] font-bold leading-none mt-px">
           {num}
         </span>
         <span>{processInlineFormatting(content)}</span>
@@ -148,7 +149,7 @@ function processInlineFormatting(line: string): ReactNode[] {
         elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, boldMatch.index)}</span>)
       }
       elements.push(
-        <strong key={`b-${keyIdx++}`} className="font-semibold text-[#0B1F3A] dark:text-[#14B8A6]">
+        <strong key={`b-${keyIdx++}`} className="font-semibold text-[#0f172a] dark:text-[#34d399]">
           {boldMatch[1]}
         </strong>
       )
@@ -168,7 +169,7 @@ function processInlineFormatting(line: string): ReactNode[] {
           href={linkMatch[2]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#00A6A6] dark:text-[#14B8A6] underline underline-offset-2 hover:text-[#0B1F3A] dark:hover:text-[#F5B301] transition-colors"
+          className="text-[#10b981] dark:text-[#34d399] underline underline-offset-2 hover:text-[#0f172a] dark:hover:text-[#f59e0b] transition-colors"
         >
           {linkMatch[1]}
         </a>
@@ -189,6 +190,19 @@ function processInlineFormatting(line: string): ReactNode[] {
 
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
+
+  // Manual scroll lock on mobile when chat is open
+  useEffect(() => {
+    if (isOpen) {
+      lockScroll()
+    } else {
+      unlockScroll()
+    }
+    return () => {
+      if (isOpen) unlockScroll()
+    }
+  }, [isOpen])
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
@@ -383,22 +397,22 @@ export function AIChatWidget() {
               initial={{ opacity: 0, x: 10, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.8 }}
-              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-2xl px-4 py-2.5 max-w-[260px] cursor-pointer hover:shadow-xl hover:border-[#00A6A6]/50 transition-all group/bubble relative"
+              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-2xl px-4 py-2.5 max-w-[260px] cursor-pointer hover:shadow-xl hover:border-[#10b981]/50 transition-all group/bubble relative"
               onClick={() => setIsOpen(true)}
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground leading-snug">
                   {displayedText}
                   {isTyping && (
-                    <span className="inline-block w-[2px] h-4 bg-[#00A6A6] ml-0.5 align-middle animate-pulse" />
+                    <span className="inline-block w-[2px] h-4 bg-[#10b981] ml-0.5 align-middle animate-pulse" />
                   )}
                 </p>
               </div>
               {isTyping && (
                 <div className="flex items-center gap-[3px] shrink-0">
-                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
-                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
-                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
+                  <span className="h-1 w-1 rounded-full bg-[#10b981] animate-bounce [animation-delay:0ms]" />
+                  <span className="h-1 w-1 rounded-full bg-[#10b981] animate-bounce [animation-delay:150ms]" />
+                  <span className="h-1 w-1 rounded-full bg-[#10b981] animate-bounce [animation-delay:300ms]" />
                 </div>
               )}
               {/* Speech bubble arrow pointing right toward the button */}
@@ -415,19 +429,19 @@ export function AIChatWidget() {
                 w-14 h-14
                 sm:w-[60px] sm:h-[60px]
                 rounded-full
-                bg-gradient-to-br from-[#0B1F3A] via-[#102A43] to-[#00A6A6]
-                hover:from-[#0B1F3A] hover:via-[#0B1F3A] hover:to-[#14B8A6]
+                bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#10b981]
+                hover:from-[#0f172a] hover:via-[#0f172a] hover:to-[#34d399]
                 text-white shadow-lg hover:shadow-2xl
                 transition-all active:scale-90 group
-                ring-2 ring-[#00A6A6]/20
+                ring-2 ring-[#10b981]/20
                 touch-manipulation"
               aria-label="Chat with কর্মচারী — AI Assistant"
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.9 }}
             >
               {/* Subtle glow animation */}
-              <span className="absolute inset-[-4px] rounded-full bg-[#00A6A6]/20 animate-pulse [animation-duration:2s]" />
-              <span className="absolute inset-0 rounded-full bg-[#00A6A6]/25 animate-ping [animation-duration:2.5s]" />
+              <span className="absolute inset-[-4px] rounded-full bg-[#10b981]/20 animate-pulse [animation-duration:2s]" />
+              <span className="absolute inset-0 rounded-full bg-[#10b981]/25 animate-ping [animation-duration:2.5s]" />
 
               {/* Icon inside the button — use Sparkles icon as fallback when no avatar image */}
               <span className="relative z-10 flex items-center justify-center">
@@ -468,24 +482,24 @@ export function AIChatWidget() {
                 sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
             >
               {/* ===== HEADER ===== */}
-              <div className="relative bg-gradient-to-r from-[#0B1F3A] via-[#102A43] to-[#00A6A6] text-white p-3 sm:p-4 flex items-center justify-between shrink-0 overflow-hidden">
+              <div className="relative bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#10b981] text-white p-3 sm:p-4 flex items-center justify-between shrink-0 overflow-hidden">
                 {/* Decorative circles */}
                 <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/5" />
                 <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
 
                 <div className="flex items-center gap-2.5 sm:gap-3 relative z-10">
                   <div className="relative">
-                    <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gradient-to-br from-[#00A6A6] to-[#14B8A6] flex items-center justify-center ring-2 ring-white/30 shadow-md">
+                    <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gradient-to-br from-[#10b981] to-[#34d399] flex items-center justify-center ring-2 ring-white/30 shadow-md">
                       <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-[#00A6A6] flex items-center justify-center ring-2 ring-[#0B1F3A]">
+                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-[#10b981] flex items-center justify-center ring-2 ring-[#0f172a]">
                       <BadgeCheck className="h-2.5 w-2.5 text-white" />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
                       <h3 className="font-bold text-sm sm:text-base tracking-tight">কর্মচারী</h3>
-                      <BadgeCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#F5B301]" />
+                      <BadgeCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#f59e0b]" />
                       <Badge
                         variant="secondary"
                         className="text-[9px] sm:text-[10px] font-semibold bg-white/15 text-white border-0 rounded-full px-1.5 sm:px-2 py-0 h-4 sm:h-5"
@@ -523,12 +537,12 @@ export function AIChatWidget() {
               </div>
 
               {/* ===== TRUST INDICATORS BAR ===== */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-slate-50/50 dark:bg-[#0B1F3A]/20 border-b border-border/30 shrink-0">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-slate-50/50 dark:bg-[#0f172a]/20 border-b border-border/30 shrink-0">
                 {trustIndicators.map((item, idx) => {
                   const Icon = item.icon
                   return (
                     <div key={item.label} className="flex items-center gap-1">
-                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-[#0B1F3A] dark:text-[#14B8A6] font-medium">
+                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-[#0f172a] dark:text-[#34d399] font-medium">
                         <Icon className="h-2.5 w-2.5" />
                         <span>{item.label}</span>
                       </div>
@@ -546,7 +560,7 @@ export function AIChatWidget() {
                 className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 overscroll-contain scroll-smooth"
                 style={{
                   scrollbarWidth: 'thin',
-                  scrollbarColor: 'rgb(0 166 166 / 0.3) transparent',
+                  scrollbarColor: 'rgb(16 185 129 / 0.3) transparent',
                   WebkitOverflowScrolling: 'touch',
                 }}
               >
@@ -560,7 +574,7 @@ export function AIChatWidget() {
                   >
                     {msg.role === 'assistant' && (
                       <div className="relative shrink-0 mt-0.5">
-                        <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#00A6A6] to-[#14B8A6] flex items-center justify-center ring-1 ring-[#00A6A6]/30">
+                        <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#10b981] to-[#34d399] flex items-center justify-center ring-1 ring-[#10b981]/30">
                           <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                         </div>
                       </div>
@@ -568,7 +582,7 @@ export function AIChatWidget() {
                     <div
                       className={`max-w-[85%] sm:max-w-[82%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-[12px] sm:text-[13px] leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-gradient-to-br from-[#0B1F3A] to-[#00A6A6] text-white rounded-br-md shadow-md shadow-[#00A6A6]/20'
+                          ? 'bg-gradient-to-br from-[#0f172a] to-[#10b981] text-white rounded-br-md shadow-md shadow-[#10b981]/20'
                           : 'bg-muted/70 dark:bg-muted/50 rounded-bl-md border border-border/30'
                       }`}
                     >
@@ -591,7 +605,7 @@ export function AIChatWidget() {
                       )}
                     </div>
                     {msg.role === 'user' && (
-                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#0B1F3A] to-[#00A6A6] flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-[#00A6A6]/20">
+                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#0f172a] to-[#10b981] flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-[#10b981]/20">
                         <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                       </div>
                     )}
@@ -607,15 +621,15 @@ export function AIChatWidget() {
                     className="flex gap-2 sm:gap-2.5 justify-start"
                   >
                     <div className="relative shrink-0">
-                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#00A6A6] to-[#14B8A6] flex items-center justify-center ring-1 ring-[#00A6A6]/30">
+                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#10b981] to-[#34d399] flex items-center justify-center ring-1 ring-[#10b981]/30">
                         <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                       </div>
                     </div>
                     <div className="bg-muted/70 dark:bg-muted/50 rounded-2xl rounded-bl-md px-4 py-3 border border-border/30">
                       <div className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
-                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
-                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
+                        <span className="h-2 w-2 rounded-full bg-[#10b981] animate-bounce [animation-delay:0ms]" />
+                        <span className="h-2 w-2 rounded-full bg-[#10b981] animate-bounce [animation-delay:150ms]" />
+                        <span className="h-2 w-2 rounded-full bg-[#10b981] animate-bounce [animation-delay:300ms]" />
                       </div>
                     </div>
                   </motion.div>
@@ -631,10 +645,10 @@ export function AIChatWidget() {
                   <button
                     key={q.label}
                     className="cursor-pointer whitespace-nowrap text-[10px] sm:text-[11px] shrink-0
-                      hover:bg-teal-50 dark:hover:bg-[#0B1F3A]/40
-                      border border-border/60 hover:border-[#00A6A6]/50 dark:hover:border-[#14B8A6]
+                      hover:bg-emerald-50 dark:hover:bg-[#0f172a]/40
+                      border border-border/60 hover:border-[#10b981]/50 dark:hover:border-[#34d399]
                       transition-all active:scale-95 py-1.5 sm:py-2 px-2.5 sm:px-3.5 rounded-full bg-background
-                      font-medium text-foreground/80 hover:text-[#0B1F3A] dark:hover:text-[#14B8A6]
+                      font-medium text-foreground/80 hover:text-[#0f172a] dark:hover:text-[#34d399]
                       touch-manipulation"
                     onClick={() => {
                       sendMessage(q.action)
@@ -654,7 +668,7 @@ export function AIChatWidget() {
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="বাংলা, বাংলিশ বা English এ লিখুন..."
-                    className="h-10 sm:h-11 text-sm sm:text-base rounded-xl border-border/50 focus-visible:ring-[#00A6A6]/30"
+                    className="h-10 sm:h-11 text-sm sm:text-base rounded-xl border-border/50 focus-visible:ring-[#10b981]/30"
                     disabled={isLoading || cooldown}
                     style={{ fontSize: '16px' }}
                   />
@@ -662,7 +676,7 @@ export function AIChatWidget() {
                     size="icon"
                     onClick={() => sendMessage()}
                     disabled={!input.trim() || isLoading || cooldown}
-                    className="bg-gradient-to-r from-[#0B1F3A] to-[#00A6A6] hover:from-[#0B1F3A] hover:to-[#14B8A6] h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-[#00A6A6]/20 shrink-0 touch-manipulation"
+                    className="bg-gradient-to-r from-[#0f172a] to-[#10b981] hover:from-[#0f172a] hover:to-[#34d399] h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-[#10b981]/20 shrink-0 touch-manipulation"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

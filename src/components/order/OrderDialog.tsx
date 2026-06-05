@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useSettings } from '@/lib/hooks'
 import { formatPriceBDT } from '@/lib/price'
@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
+import { lockScroll, unlockScroll } from '@/components/shared/ScrollFix'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -49,6 +50,18 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
   const [selectedPayment, setSelectedPayment] = useState<'bkash' | 'nagad' | null>(null)
   const [email, setEmail] = useState('')
   const [bkashLastDigit, setBkashLastDigit] = useState('')
+
+  // Manual scroll lock — since Dialog is modal={false}
+  useEffect(() => {
+    if (open) {
+      lockScroll()
+    } else {
+      unlockScroll()
+    }
+    return () => {
+      if (open) unlockScroll()
+    }
+  }, [open])
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text)
@@ -106,7 +119,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md w-[95vw] max-h-[90vh] p-0 gap-0 overflow-hidden">
         {/* Product Header */}
-        <div className="bg-gradient-to-r from-[#0B1F3A] to-[#00A6A6] p-3 sm:p-4 text-white">
+        <div className="bg-gradient-to-r from-[#0f172a] to-[#10b981] p-3 sm:p-4 text-white">
           <DialogHeader>
             <DialogTitle className="text-white text-base sm:text-lg font-bold">
               Order: {product.name}
@@ -132,8 +145,8 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                 />
               </div>
             ) : (
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-slate-100 dark:bg-[#0B1F3A] flex items-center justify-center shrink-0">
-                <span className="text-[#00A6A6] font-bold text-xs sm:text-sm">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-slate-100 dark:bg-[#0f172a] flex items-center justify-center shrink-0">
+                <span className="text-[#10b981] font-bold text-xs sm:text-sm">
                   {product.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                 </span>
               </div>
@@ -141,7 +154,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-xs sm:text-sm truncate">{product.name}</p>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-[#00A6A6] text-xs sm:text-sm">
+                <span className="font-bold text-[#10b981] text-xs sm:text-sm">
                   {formatPriceBDT(selectedPrice)}
                 </span>
               </div>
@@ -154,7 +167,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
           {/* Step 1: Send Money */}
           <div>
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
-              <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-[#0B1F3A] text-white flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0">1</div>
+              <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-[#0f172a] text-white flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0">1</div>
               <span className="font-semibold text-xs sm:text-sm">Send Money করুন 💸</span>
             </div>
 
@@ -170,11 +183,11 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
             </div>
 
             {/* How to Send Money - Instructions */}
-            <div className="bg-slate-50 dark:bg-[#0B1F3A]/30 rounded-xl p-2.5 sm:p-3 mb-2.5 sm:mb-3 border border-slate-200 dark:border-slate-700">
-              <p className="text-[11px] sm:text-xs font-semibold text-[#0B1F3A] dark:text-[#14B8A6] mb-1.5 sm:mb-2">
+            <div className="bg-slate-50 dark:bg-[#0f172a]/30 rounded-xl p-2.5 sm:p-3 mb-2.5 sm:mb-3 border border-slate-200 dark:border-slate-700">
+              <p className="text-[11px] sm:text-xs font-semibold text-[#0f172a] dark:text-[#34d399] mb-1.5 sm:mb-2">
                 📱 Send Money করার নিয়ম:
               </p>
-              <div className="space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-[#0B1F3A]/70 dark:text-[#14B8A6]">
+              <div className="space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-[#0f172a]/70 dark:text-[#34d399]">
                 <div className="flex items-start gap-1.5 sm:gap-2">
                   <span className="font-bold shrink-0">১.</span>
                   <span>নিচের <strong>bKash</strong> বা <strong>Nagad</strong> বাটনে ক্লিক করুন</span>
@@ -220,7 +233,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                   onClick={() => handleCopy(bkashNumber, 'bkash-copy')}
                 >
                   {copied === 'bkash-copy' ? (
-                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6]" />
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#10b981]" />
                   ) : (
                     <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                   )}
@@ -267,7 +280,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                   onClick={() => handleCopy(nagadNumber, 'nagad-copy')}
                 >
                   {copied === 'nagad-copy' ? (
-                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6]" />
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#10b981]" />
                   ) : (
                     <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                   )}
@@ -306,8 +319,8 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
             </div>
             {product.warranty && (
               <div className="flex items-start gap-1.5 sm:gap-2">
-                <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 mt-0.5 text-[#00A6A6]" />
-                <span className="text-[#0B1F3A] dark:text-[#14B8A6]">ওয়ারেন্টি: {product.warranty}</span>
+                <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 mt-0.5 text-[#10b981]" />
+                <span className="text-[#0f172a] dark:text-[#34d399]">ওয়ারেন্টি: {product.warranty}</span>
               </div>
             )}
           </div>
@@ -317,11 +330,11 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
           {/* Order Details: Email + Bkash Last Digit */}
           <div>
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
-              <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-[#00A6A6] text-white flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0">2</div>
+              <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-[#10b981] text-white flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0">2</div>
               <span className="font-semibold text-xs sm:text-sm">অর্ডার ডিটেইলস দিন 📝</span>
             </div>
 
-            <div className="space-y-2.5 sm:space-y-3 bg-slate-50/50 dark:bg-[#0B1F3A]/20 rounded-xl p-2.5 sm:p-3 border border-slate-100 dark:border-slate-800">
+            <div className="space-y-2.5 sm:space-y-3 bg-slate-50/50 dark:bg-[#0f172a]/20 rounded-xl p-2.5 sm:p-3 border border-slate-100 dark:border-slate-800">
               {/* Email */}
               <div>
                 <label className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
@@ -332,7 +345,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full h-9 sm:h-10 rounded-lg border border-border/50 bg-background px-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#00A6A6]/30 focus:border-[#00A6A6]"
+                  className="w-full h-9 sm:h-10 rounded-lg border border-border/50 bg-background px-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/30 focus:border-[#10b981]"
                   style={{ fontSize: '16px' }}
                 />
               </div>
@@ -349,7 +362,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                   value={bkashLastDigit}
                   onChange={e => setBkashLastDigit(e.target.value.replace(/\D/g, ''))}
                   placeholder="e.g. 4567"
-                  className="w-full h-9 sm:h-10 rounded-lg border border-border/50 bg-background px-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#00A6A6]/30 focus:border-[#00A6A6]"
+                  className="w-full h-9 sm:h-10 rounded-lg border border-border/50 bg-background px-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/30 focus:border-[#10b981]"
                   style={{ fontSize: '16px' }}
                 />
                 <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-1">bKash/Nagad Send Money এর শেষ ৩-৪ ডিজিট দিন</p>

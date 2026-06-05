@@ -6,8 +6,19 @@ import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * IMPORTANT: modal defaults to FALSE to prevent Radix UI's RemoveScroll
+ * from locking body scrolling. RemoveScroll adds overflow:hidden and
+ * pointer-events:none to body/html which gets STUCK after dialog close
+ * due to Framer Motion animation race conditions.
+ *
+ * With modal=false:
+ * - No scroll lock on body (we handle it manually via ScrollLock component)
+ * - No focus trapping (the overlay prevents interaction with background)
+ * - No RemoveScroll package involvement = no stuck scroll locks
+ */
 function Dialog({
-  modal = true,
+  modal = false,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" modal={modal} {...props} />
@@ -61,7 +72,9 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         onOpenAutoFocus={(e) => {
-          // Prevent auto-focus from stealing focus on mount
+          e.preventDefault()
+        }}
+        onCloseAutoFocus={(e) => {
           e.preventDefault()
         }}
         className={cn(

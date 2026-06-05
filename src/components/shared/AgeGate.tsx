@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import { useAppStore } from '@/lib/store'
+import { lockScroll, unlockScroll } from '@/components/shared/ScrollFix'
 import {
   Dialog,
   DialogContent,
@@ -118,8 +119,8 @@ function SecretCodePuzzle({
       sublabel: 'Search',
       color: 'blue',
       glowColor: 'rgba(37,99,235,0.5)',
-      bgActive: 'bg-[#00A6A6]',
-      borderActive: 'border-[#14B8A6]',
+      bgActive: 'bg-[#10b981]',
+      borderActive: 'border-[#34d399]',
       shadowActive: 'shadow-blue-600/50',
       icon: Search,
     },
@@ -272,7 +273,7 @@ function SecretCodePuzzle({
                         className={`block text-[11px] font-semibold leading-tight ${
                           isActive
                             ? lock.color === 'blue'
-                              ? 'text-[#00A6A6] dark:text-[#14B8A6]'
+                              ? 'text-[#10b981] dark:text-[#34d399]'
                               : lock.color === 'amber'
                                 ? 'text-amber-600 dark:text-amber-400'
                                 : 'text-purple-600 dark:text-purple-400'
@@ -295,7 +296,7 @@ function SecretCodePuzzle({
                       animate={{ opacity: isActive ? 0 : 0.4 }}
                     >
                       <Lock
-                        className={`h-3 w-3 ${isActive ? 'text-[#00A6A6]' : 'text-zinc-300 dark:text-zinc-600'}`}
+                        className={`h-3 w-3 ${isActive ? 'text-[#10b981]' : 'text-zinc-300 dark:text-zinc-600'}`}
                       />
                     </motion.div>
                   </motion.button>
@@ -511,6 +512,18 @@ export function AgeGate() {
   const [wrongAttempt, setWrongAttempt] = useState(0)
   const [showConfetti, setShowConfetti] = useState(false)
 
+  // Manual scroll lock — since Dialog is modal={false}, we control scrolling ourselves
+  useEffect(() => {
+    if (ageGateOpen) {
+      lockScroll()
+    } else {
+      unlockScroll()
+    }
+    return () => {
+      if (ageGateOpen) unlockScroll()
+    }
+  }, [ageGateOpen])
+
   const handleAgeConfirm = useCallback(() => {
     setStep('pin')
     setPin('')
@@ -598,7 +611,7 @@ export function AgeGate() {
                   না, ফিরে যান
                 </Button>
                 <Button
-                  className="flex-1 bg-[#0B1F3A] hover:bg-[#102A43] h-11"
+                  className="flex-1 bg-[#0f172a] hover:bg-[#1e293b] h-11"
                   onClick={handleAgeConfirm}
                 >
                   হ্যাঁ, আমি ১৮+
@@ -703,7 +716,7 @@ export function AgeGate() {
                   বাতিল
                 </Button>
                 <Button
-                  className="flex-1 bg-[#0B1F3A] hover:bg-[#102A43] h-11"
+                  className="flex-1 bg-[#0f172a] hover:bg-[#1e293b] h-11"
                   onClick={handlePinSubmit}
                   disabled={pin.length === 0}
                 >
@@ -723,7 +736,7 @@ export function AgeGate() {
               <ConfettiBurst active={showConfetti} />
               <DialogHeader className="text-center">
                 <motion.div
-                  className="mx-auto mb-4 h-16 w-16 rounded-full bg-teal-100 dark:bg-[#0B1F3A] flex items-center justify-center"
+                  className="mx-auto mb-4 h-16 w-16 rounded-full bg-emerald-100 dark:bg-[#0f172a] flex items-center justify-center"
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{
@@ -733,14 +746,14 @@ export function AgeGate() {
                     delay: 0.15,
                   }}
                 >
-                  <ShieldCheck className="h-8 w-8 text-[#00A6A6]" />
+                  <ShieldCheck className="h-8 w-8 text-[#10b981]" />
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <DialogTitle className="text-xl text-[#00A6A6]">
+                  <DialogTitle className="text-xl text-[#10b981]">
                     ✅ ভেরিফিকেশন সফল!
                   </DialogTitle>
                   <DialogDescription className="text-base mt-2">
@@ -757,7 +770,7 @@ export function AgeGate() {
                   {[0, 1, 2, 3, 4].map((i) => (
                     <motion.div
                       key={i}
-                      className="h-1.5 w-1.5 rounded-full bg-[#00A6A6]"
+                      className="h-1.5 w-1.5 rounded-full bg-[#10b981]"
                       initial={{ scale: 0 }}
                       animate={{ scale: [0, 1.2, 1] }}
                       transition={{ delay: 0.5 + i * 0.08, duration: 0.3 }}

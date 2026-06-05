@@ -13,12 +13,12 @@ export function HeroSection() {
   const whatsappNumber = settings?.whatsappNumber || '+8801647236359'
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#0B1F3A] via-[#102A43] to-[#0B1F3A] text-white" aria-label="Hero Banner — Premium Subscriptions at Best Price in Bangladesh">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white" aria-label="Hero Banner — Premium Subscriptions at Best Price in Bangladesh">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-teal-400/10 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-teal-500/5 blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-3xl" />
         {/* Animated floating orbs */}
         <motion.div
           animate={{ y: [-10, 10, -10], x: [-5, 5, -5] }}
@@ -28,7 +28,7 @@ export function HeroSection() {
         <motion.div
           animate={{ y: [10, -10, 10], x: [5, -5, 5] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-20 left-[10%] w-32 h-32 rounded-full bg-teal-300/10 blur-xl"
+          className="absolute bottom-20 left-[10%] w-32 h-32 rounded-full bg-emerald-300/10 blur-xl"
         />
         <motion.div
           animate={{ y: [-15, 15, -15] }}
@@ -62,7 +62,7 @@ export function HeroSection() {
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-5 sm:mb-6"
           >
             Premium Subscriptions
-            <span className="block text-teal-300">at the Best Price in BD</span>
+            <span className="block text-emerald-300">at the Best Price in BD</span>
           </motion.h1>
 
           <motion.p
@@ -83,7 +83,7 @@ export function HeroSection() {
             <Button
               size="lg"
               onClick={() => navigate('products')}
-              className="w-full sm:w-auto bg-[#00A6A6] hover:bg-[#14B8A6] text-white font-semibold text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-13 rounded-xl shadow-lg shadow-[#00A6A6]/25 transition-all hover:shadow-xl hover:shadow-[#00A6A6]/35"
+              className="w-full sm:w-auto bg-[#10b981] hover:bg-[#34d399] text-white font-semibold text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-13 rounded-xl shadow-lg shadow-[#10b981]/25 transition-all hover:shadow-xl hover:shadow-[#10b981]/35"
             >
               <ShoppingBag className="h-5 w-5 sm:h-5.5 sm:w-5.5 mr-2" />
               Shop Now
@@ -116,7 +116,7 @@ export function HeroSection() {
             <div className="flex items-center justify-center gap-5 sm:gap-7 md:gap-9 flex-wrap">
               <div className="flex items-center gap-2 sm:gap-2.5 text-slate-200">
                 <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-white/10 flex items-center justify-center">
-                  <Shield className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-teal-300" />
+                  <Shield className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-emerald-300" />
                 </div>
                 <div className="text-left">
                   <p className="text-[10px] sm:text-xs text-slate-300/70">Secure</p>
@@ -125,7 +125,7 @@ export function HeroSection() {
               </div>
               <div className="flex items-center gap-2 sm:gap-2.5 text-slate-200">
                 <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-white/10 flex items-center justify-center">
-                  <Zap className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-[#F5B301]" />
+                  <Zap className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-[#f59e0b]" />
                 </div>
                 <div className="text-left">
                   <p className="text-[10px] sm:text-xs text-slate-300/70">Fast</p>
@@ -134,7 +134,7 @@ export function HeroSection() {
               </div>
               <div className="flex items-center gap-2 sm:gap-2.5 text-slate-200">
                 <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-white/10 flex items-center justify-center">
-                  <Clock className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-teal-300" />
+                  <Clock className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-emerald-300" />
                 </div>
                 <div className="text-left">
                   <p className="text-[10px] sm:text-xs text-slate-300/70">24/7</p>
