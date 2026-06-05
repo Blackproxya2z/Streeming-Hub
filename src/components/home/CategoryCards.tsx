@@ -125,7 +125,7 @@ export function CategoryCards() {
                 transition={{ duration: 0.4, delay: index * 0.05 }}
               >
                 <Card
-                  className="cursor-pointer group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 overflow-hidden rounded-2xl shadow-sm"
+                  className="cursor-pointer group hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 border-0 overflow-hidden rounded-2xl shadow-sm category-glow"
                   onClick={() => handleClick(cat)}
                 >
                   <CardContent className="p-0 relative">
@@ -140,13 +140,13 @@ export function CategoryCards() {
                             className="object-cover transition-transform duration-500 group-hover:scale-110"
                             sizes="(max-width: 480px) 50vw, (max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent group-hover:from-black/70 transition-colors duration-300" />
                         </>
                       ) : (
-                        <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
+                        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} group-hover:brightness-110 transition-all duration-300`} />
                       )}
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-2 sm:p-3">
-                        <div className={`h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                        <div className={`h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300`}>
                           <Icon className="h-5 w-5 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
                         </div>
                         <h3 className="font-semibold text-xs sm:text-sm md:text-base mt-1.5 sm:mt-2 flex items-center gap-1 text-center drop-shadow-md line-clamp-1">

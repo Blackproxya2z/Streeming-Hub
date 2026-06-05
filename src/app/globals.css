@@ -49,73 +49,73 @@
   --safe-area-bottom: env(safe-area-inset-bottom);
   --safe-area-left: env(safe-area-inset-left);
   --safe-area-right: env(safe-area-inset-right);
-  /* Premium Slate/Emerald/Amber Theme — Psychology: Slate = trust, authority | Emerald = freshness, vitality | Amber = premium quality */
-  --background: oklch(0.99 0.003 80);
-  --foreground: oklch(0.15 0.02 260);
-  --card: oklch(1 0.002 80);
-  --card-foreground: oklch(0.15 0.02 260);
-  --popover: oklch(1 0.002 80);
-  --popover-foreground: oklch(0.15 0.02 260);
-  --primary: oklch(0.70 0.17 165);
+  /* Vibrant Teal/Coral Theme — Psychology: Teal = premium tech + freshness | Coral = energy, youth, action | Deep dark = luxury, authority */
+  --background: oklch(0.985 0.002 165);
+  --foreground: oklch(0.13 0.03 260);
+  --card: oklch(0.995 0.002 165);
+  --card-foreground: oklch(0.13 0.03 260);
+  --popover: oklch(0.995 0.002 165);
+  --popover-foreground: oklch(0.13 0.03 260);
+  --primary: oklch(0.62 0.19 170);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.018 165);
-  --secondary-foreground: oklch(0.19 0.02 260);
-  --muted: oklch(0.96 0.012 80);
-  --muted-foreground: oklch(0.50 0.02 260);
-  --accent: oklch(0.77 0.16 80);
-  --accent-foreground: oklch(0.19 0.02 260);
+  --secondary: oklch(0.95 0.025 170);
+  --secondary-foreground: oklch(0.17 0.03 260);
+  --muted: oklch(0.955 0.015 170);
+  --muted-foreground: oklch(0.48 0.03 260);
+  --accent: oklch(0.72 0.19 30);
+  --accent-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.012 80);
-  --input: oklch(0.91 0.012 80);
-  --ring: oklch(0.70 0.17 165);
-  --chart-1: oklch(0.70 0.17 165);
-  --chart-2: oklch(0.77 0.15 165);
-  --chart-3: oklch(0.77 0.16 80);
-  --chart-4: oklch(0.19 0.02 260);
-  --chart-5: oklch(0.70 0.16 30);
-  --sidebar: oklch(0.97 0.01 80);
-  --sidebar-foreground: oklch(0.15 0.02 260);
-  --sidebar-primary: oklch(0.70 0.17 165);
+  --border: oklch(0.90 0.018 170);
+  --input: oklch(0.90 0.018 170);
+  --ring: oklch(0.62 0.19 170);
+  --chart-1: oklch(0.62 0.19 170);
+  --chart-2: oklch(0.65 0.20 160);
+  --chart-3: oklch(0.72 0.19 30);
+  --chart-4: oklch(0.55 0.22 340);
+  --chart-5: oklch(0.70 0.18 50);
+  --sidebar: oklch(0.97 0.015 170);
+  --sidebar-foreground: oklch(0.13 0.03 260);
+  --sidebar-primary: oklch(0.62 0.19 170);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.94 0.025 165);
-  --sidebar-accent-foreground: oklch(0.19 0.02 260);
-  --sidebar-border: oklch(0.91 0.012 80);
-  --sidebar-ring: oklch(0.70 0.17 165);
+  --sidebar-accent: oklch(0.93 0.03 170);
+  --sidebar-accent-foreground: oklch(0.17 0.03 260);
+  --sidebar-border: oklch(0.90 0.018 170);
+  --sidebar-ring: oklch(0.62 0.19 170);
 }
 
 .dark {
-  /* Premium Slate/Emerald/Amber Theme — Dark: Deep slate with bright emerald & amber accents = premium, authority */
-  --background: oklch(0.19 0.02 260);
-  --foreground: oklch(0.96 0.007 80);
-  --card: oklch(0.22 0.02 260);
-  --card-foreground: oklch(0.96 0.007 80);
-  --popover: oklch(0.22 0.02 260);
-  --popover-foreground: oklch(0.96 0.007 80);
-  --primary: oklch(0.70 0.17 165);
+  /* Vibrant Teal/Coral Theme — Dark: Rich deep charcoal with vivid teal & warm coral accents = premium tech luxury */
+  --background: oklch(0.13 0.025 270);
+  --foreground: oklch(0.97 0.005 165);
+  --card: oklch(0.16 0.025 270);
+  --card-foreground: oklch(0.97 0.005 165);
+  --popover: oklch(0.16 0.025 270);
+  --popover-foreground: oklch(0.97 0.005 165);
+  --primary: oklch(0.72 0.19 170);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.27 0.02 260);
-  --secondary-foreground: oklch(0.96 0.007 80);
-  --muted: oklch(0.27 0.02 260);
-  --muted-foreground: oklch(0.65 0.03 80);
-  --accent: oklch(0.77 0.16 80);
-  --accent-foreground: oklch(0.19 0.02 260);
+  --secondary: oklch(0.22 0.03 270);
+  --secondary-foreground: oklch(0.94 0.01 165);
+  --muted: oklch(0.22 0.03 270);
+  --muted-foreground: oklch(0.62 0.03 165);
+  --accent: oklch(0.74 0.18 35);
+  --accent-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.70 0.17 165);
-  --chart-1: oklch(0.70 0.17 165);
-  --chart-2: oklch(0.77 0.15 165);
-  --chart-3: oklch(0.77 0.16 80);
-  --chart-4: oklch(0.60 0.20 280);
-  --chart-5: oklch(0.65 0.22 30);
-  --sidebar: oklch(0.20 0.02 260);
-  --sidebar-foreground: oklch(0.96 0.007 80);
-  --sidebar-primary: oklch(0.70 0.17 165);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.72 0.19 170);
+  --chart-1: oklch(0.72 0.19 170);
+  --chart-2: oklch(0.68 0.20 160);
+  --chart-3: oklch(0.74 0.18 35);
+  --chart-4: oklch(0.65 0.22 340);
+  --chart-5: oklch(0.72 0.20 50);
+  --sidebar: oklch(0.14 0.025 270);
+  --sidebar-foreground: oklch(0.97 0.005 165);
+  --sidebar-primary: oklch(0.72 0.19 170);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.27 0.02 260);
-  --sidebar-accent-foreground: oklch(0.96 0.007 80);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.70 0.17 165);
+  --sidebar-accent: oklch(0.22 0.035 170);
+  --sidebar-accent-foreground: oklch(0.94 0.01 165);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.72 0.19 170);
 }
 
 @layer base {
@@ -278,4 +278,110 @@ html:has([data-state="open"][data-slot="sheet-content"]) body {
 }
 .card-shine:hover::after {
   transform: rotate(45deg) translateY(0%);
+}
+
+/* ========================================
+   VIBRANT THEME — Gradient & Glow Utilities
+   ======================================== */
+
+/* Animated gradient background for hero sections */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Subtle pulse glow for accent elements */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px oklch(0.62 0.19 170 / 20%), 0 0 24px oklch(0.62 0.19 170 / 10%);
+  }
+  50% {
+    box-shadow: 0 0 12px oklch(0.62 0.19 170 / 30%), 0 0 36px oklch(0.62 0.19 170 / 15%);
+  }
+}
+.dark .glow-teal {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+.glow-teal {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Product card gradient border effect */
+.card-gradient-border {
+  position: relative;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+.card-gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, oklch(0.62 0.19 170 / 0%), oklch(0.72 0.19 35 / 0%));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  transition: background 0.4s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.card-gradient-border:hover::before {
+  background: linear-gradient(135deg, oklch(0.62 0.19 170 / 60%), oklch(0.72 0.19 35 / 60%));
+}
+
+/* Category card hover glow */
+.category-glow:hover {
+  box-shadow: 0 8px 32px oklch(0.62 0.19 170 / 15%), 0 2px 8px oklch(0.72 0.19 35 / 10%);
+}
+.dark .category-glow:hover {
+  box-shadow: 0 8px 32px oklch(0.72 0.19 170 / 20%), 0 2px 8px oklch(0.74 0.18 35 / 12%);
+}
+
+/* Header gradient accent line */
+.header-accent-line {
+  position: relative;
+}
+.header-accent-line::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, oklch(0.62 0.19 170), oklch(0.72 0.19 35), oklch(0.62 0.19 170));
+  background-size: 200% 100%;
+  animation: gradient-shift 6s ease infinite;
+}
+
+/* Footer gradient top border */
+.footer-gradient-top {
+  position: relative;
+}
+.footer-gradient-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, oklch(0.62 0.19 170), oklch(0.72 0.19 35), oklch(0.55 0.22 340), oklch(0.62 0.19 170));
+  background-size: 300% 100%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Product card hover glow */
+.product-card-glow:hover {
+  box-shadow: 0 4px 24px oklch(0.62 0.19 170 / 12%), 0 1px 4px oklch(0.72 0.19 35 / 8%);
+}
+.dark .product-card-glow:hover {
+  box-shadow: 0 4px 24px oklch(0.72 0.19 170 / 18%), 0 1px 4px oklch(0.74 0.18 35 / 12%);
 }

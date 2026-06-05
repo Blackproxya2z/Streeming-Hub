@@ -17,21 +17,21 @@ const features = [
     title: 'Affordable Price',
     titleBn: 'সেরা দাম',
     description: 'Best prices in Bangladesh market. We offer competitive rates on all subscriptions.',
-    gradient: 'from-[#10b981] to-[#34d399]',
+    gradient: 'from-[#10b981] to-[#0d9488]',
   },
   {
     icon: Shield,
     title: 'Warranty Available',
     titleBn: 'ওয়ারেন্টি আছে',
     description: 'Full warranty on all subscriptions. Get replacement or refund if any issues occur.',
-    gradient: 'from-[#10b981] to-[#34d399]',
+    gradient: 'from-[#0d9488] to-[#0f766e]',
   },
   {
     icon: Mail,
     title: 'Own Mail Option',
     titleBn: 'নিজের মেইল',
     description: 'Get your subscription with your own email address for full control and security.',
-    gradient: 'from-[#0f172a] to-[#1e293b]',
+    gradient: 'from-[#1e293b] to-[#0f766e]',
   },
   {
     icon: MessageCircle,
@@ -67,7 +67,7 @@ export function WhyChooseUs() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
             >
-              <Card className="h-full hover:shadow-lg transition-all duration-300 group border-0 shadow-sm">
+              <Card className="h-full hover:shadow-lg transition-all duration-300 group border-0 shadow-sm hover:-translate-y-0.5 category-glow">
                 <CardContent className="p-5 sm:p-6">
                   <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
                     <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />

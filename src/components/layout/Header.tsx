@@ -89,7 +89,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" role="banner">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 header-accent-line" role="banner">
       <div className="container mx-auto px-3 sm:px-4">
         <div className="flex h-14 sm:h-16 items-center justify-between gap-3 sm:gap-4">
           {/* Logo */}
@@ -103,19 +103,19 @@ export function Header() {
               alt="Streaming Hub Logo"
               width={40}
               height={40}
-              className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover ring-2 ring-[#10b981]/30 shadow-md shadow-[#10b981]/10"
+              className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover ring-2 ring-[#10b981]/30 shadow-md shadow-[#10b981]/15"
               priority
             />
             <div className="hidden sm:flex flex-col">
               <div className="flex items-center gap-1">
-                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#10b981] to-[#34d399] bg-clip-text text-transparent leading-tight">
+                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#10b981] to-[#0d9488] bg-clip-text text-transparent leading-tight">
                   Streaming Hub
                 </span>
                 <BadgeCheck className="h-4 w-4 text-sky-500 shrink-0" />
               </div>
               <span className="text-[10px] text-muted-foreground font-medium -mt-0.5">BD&apos;s #1 Subscription Store</span>
             </div>
-            <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#10b981] to-[#34d399] bg-clip-text text-transparent sm:hidden flex items-center gap-1">
+            <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#10b981] to-[#0d9488] bg-clip-text text-transparent sm:hidden flex items-center gap-1">
               SH
               <BadgeCheck className="h-3.5 w-3.5 text-sky-500" />
             </span>
@@ -253,7 +253,7 @@ export function Header() {
               <SheetContent side="left" className="w-[85vw] max-w-80 p-0">
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <div className="flex flex-col h-full">
-                  <div className="p-4 border-b bg-gradient-to-r from-slate-50 to-emerald-50 dark:from-[#0f172a] dark:to-[#1e293b]">
+                  <div className="p-4 border-b bg-gradient-to-r from-teal-50/80 to-emerald-50/80 dark:from-[#0a1a2e] dark:to-[#0f2922]">
                     <div className="flex items-center gap-2">
                       <Image
                         src="/logo.jpg"
@@ -264,7 +264,7 @@ export function Header() {
                       />
                       <div>
                         <div className="flex items-center gap-1">
-                          <span className="text-lg font-bold bg-gradient-to-r from-[#10b981] to-[#34d399] bg-clip-text text-transparent">
+                          <span className="text-lg font-bold bg-gradient-to-r from-[#10b981] to-[#0d9488] bg-clip-text text-transparent">
                             Streaming Hub
                           </span>
                           <BadgeCheck className="h-4 w-4 text-sky-500" />

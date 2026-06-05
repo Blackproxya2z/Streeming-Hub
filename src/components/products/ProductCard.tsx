@@ -88,7 +88,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
   return (
     <>
       <Card
-        className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 overflow-hidden h-full flex flex-col rounded-xl border shadow-sm cursor-pointer active:scale-[0.98]"
+        className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full flex flex-col rounded-xl border shadow-sm cursor-pointer active:scale-[0.98] card-gradient-border product-card-glow"
         onClick={handleCardClick}
       >
         <CardContent className="p-0 flex flex-col h-full overflow-hidden">
