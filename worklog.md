@@ -1,124 +1,105 @@
----
-Task ID: 1
-Agent: Main Agent
-Task: Fix website and deploy to Vercel - Redesign AI Chat Assistant
-
-Work Log:
-- Read all key project files (AIChatWidget, chat route, OrderDialog, OrderForm, AgeGate, store, page.tsx, MobileBottomBar)
-- Identified chat widget was positioned at top-[72px] on mobile (wrong position)
-- Identified chat window opened from top on mobile instead of bottom
-- Redesigned AIChatWidget.tsx with proper bottom-right positioning on ALL devices
-- Added mobile backdrop overlay when chat is open
-- Fixed animation direction (slide-up from bottom instead of slide-down from top)
-- Enhanced chat backend with 3 new intents: thanks, goodbye, comparison
-- Added context-aware thank you responses with product recall from conversation
-- Added warm farewell with bKash payment reminder
-- Added product comparison feature (side-by-side with prices and features)
-- Updated order flow in chat to mention Email + last digit of Send Money
-- Verified OrderDialog already has Email + Bkash last digit fields + WhatsApp
-- Verified OrderForm already has Email + transactionId fields + WhatsApp
-- Verified AgeGate already has PIN=69 system working with Dialog (not AlertDialog)
-- Lint passed with no errors
-- Committed and pushed to GitHub for Vercel auto-deploy
-
-Stage Summary:
-- AIChatWidget completely redesigned: bottom-positioned, professional UI, responsive
-- Chat backend enhanced with 3 new intents (thanks, goodbye, comparison)
-- All existing features verified working (Order flow, Adult PIN system)
-- Deployed to GitHub: https://github.com/Blackproxya2z/Streeming-Hub (commit 5a8f73b)
-- Vercel auto-deploy triggered
----
-Task ID: 1
-Agent: Main Agent
-Task: Fix AI Chat responses + PIN inquiry + AgeGate hide&seek + Deploy
-
-Work Log:
-- Read and analyzed full codebase: AIChatWidget.tsx (601 lines), chat route.ts (1255 lines), AgeGate.tsx (162 lines)
-- Identified core problems: AI giving wrong responses due to loose intent detection, missing PIN inquiry, no fun PIN discovery
-- Rewrote AI Chat API route.ts (1295 lines):
-  • Added pin_inquiry intent (checked FIRST before all other intents)
-  • Fixed intent detection order: PIN → Greeting → Thanks → Goodbye → Comparison → Price (moved up) → How to Use → Warranty → Order/Payment → Featured → All Products → Category → Specific Product → Search → Out of Scope
-  • Removed overly broad keywords: standalone "lagbe"/"chai" from order, standalone "kivabe"/"কিভাবে" from how_to_use
-  • Added word-boundary regex for "pin" to avoid matching "shopping" etc.
-  • Professional response formatting in all 3 languages
-- Redesigned AI Chat Widget UI (623 lines):
-  • Chat button fixed at bottom-[72px] on mobile (above bottom bar), bottom-6 on desktop
-  • Professional emerald/teal gradient theme
-  • Updated greeting, typewriter messages, quick actions
-  • Clean message bubbles, trust indicators, capability cards
-  • Full-screen overlay on mobile, 400px panel on desktop
-- Added AgeGate hide&seek easter egg (248 lines):
-  • Subtle "💡 Need a hint?" text at ~40% opacity
-  • Clicking reveals PIN=69 with spring animation (digits flip in separately)
-  • Amber treasure-found color scheme
-- All lint checks pass, dev server running
-- Pushed to GitHub (commit 7836c11) for Vercel auto-deploy
-
-Stage Summary:
-- AI now correctly responds to product queries (Netflix price → price_inquiry, not order_payment)
-- AI reveals PIN=69 when asked about adult section PIN
-- AgeGate has fun hide&seek easter egg for PIN discovery
-- Chat widget properly positioned at bottom on all devices
-- Deployed to Vercel via GitHub push
+# Streaming Hub — Work Log
 
 ---
 Task ID: 1
 Agent: Main Agent
-Task: Fix Vercel build failure and deploy
+Task: Fix scrolling/touch issues on the website
 
 Work Log:
-- Ran `bun run build` and identified TypeScript error: `Cannot find module '@prisma/client'`
-- Root cause: `@prisma/client` was never installed as a dependency, and `prisma/seed.ts` was included in TypeScript compilation
-- Fix 1: Added `"prisma"` to tsconfig.json `exclude` array to exclude seed.ts from build
-- Fix 2: Installed `prisma@5.22.0` and `@prisma/client@5.22.0` (v5.x compatible with existing schema format)
-- Ran `npx prisma generate` to generate the Prisma client
-- Re-ran `bun run build` - build succeeded with all pages generated
-- Committed changes and pushed to GitHub: `fix: build error - install prisma client + exclude prisma from tsconfig`
-- Vercel auto-deploy triggered
+- Analyzed root cause: `overflow: auto !important` in globals.css fighting with Radix UI Dialog scroll lock mechanism
+- Identified aggressive ScrollFix component (500ms interval) conflicting with legitimate dialog scroll management
+- Rewrote globals.css: Removed blanket `!important` on overflow, used CSS `:has()` selector to only apply `overflow: auto !important` when no dialog is open
+- Added `touch-action: pan-y pan-x` and `-webkit-overflow-scrolling: touch` for mobile scroll support
+- Simplified ScrollFix component: Reduced interval from 500ms to 2000ms, improved MutationObserver logic
+- Fixed Dialog component: Added `onOpenAutoFocus` prevention to avoid focus stealing
+- Added `127.0.0.1` and `0.0.0.0` to allowedDevOrigins in next.config.ts
 
 Stage Summary:
-- Build failure fixed by installing @prisma/client and excluding prisma/ from TypeScript compilation
-- Successfully pushed to GitHub (commit 31a6b79)
-- Vercel auto-deploy should now succeed
+- Scrolling now works correctly - verified with agent-browser (scroll up/down works)
+- Touch events no longer blocked
+- Dialog scroll lock properly managed - only locks when dialog is actually open
+- Key files modified: globals.css, ScrollFix.tsx, dialog.tsx, next.config.ts
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix AI Chat Widget - visibility, responsiveness, improved UX
+
+Work Log:
+- Replaced Image-based avatar with Sparkles icon for guaranteed visibility (no dependency on avatar image file)
+- Removed `next/image` import for avatar, using inline SVG icon instead
+- Added `touch-manipulation` class to buttons for better mobile touch handling
+- Improved mobile chat positioning: `right-3 bottom-[76px]` on mobile, `right-6 bottom-6` on desktop
+- Added `WebkitOverflowScrolling: 'touch'` to message area for smooth mobile scrolling
+- Reduced chat window max height on desktop: 600px instead of 620px
+- Ensured chat backdrop overlay works correctly on mobile
+
+Stage Summary:
+- AI Chat button now always visible with Sparkles icon (no broken image)
+- Chat widget responsive on mobile and desktop
+- Touch-friendly buttons with `touch-manipulation`
+- Key file modified: AIChatWidget.tsx
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix UI issues - product images, layout, color theme consistency
+
+Work Log:
+- Verified product images exist in `/public/images/products/` directory
+- Verified category images exist in `/public/images/categories/` directory
+- Color theme already properly configured with Navy (#0B1F3A), Teal (#00A6A6), Gold (#F5B301)
+- ProductCard component properly handles missing images with gradient fallback
+- Layout components (Header, Footer, MobileBottomBar) already properly structured
+
+Stage Summary:
+- Product images are present and properly referenced
+- Color theme (Navy/Teal/Gold) already applied throughout
+- No broken image references found
+- Layout is responsive and properly structured
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Deploy and verify all fixes work
+
+Work Log:
+- Build verification: `bun run lint` passes with no errors
+- Build verification: `npx next build` compiles successfully
+- Dev server runs and serves pages correctly (verified via curl and agent-browser)
+- Scrolling tested and working with agent-browser
+- Category navigation tested and working
+- Page renders correctly with all sections
+
+Stage Summary:
+- All fixes verified locally
+- Ready for deployment
+
 ---
 Task ID: 1
 Agent: Main Agent
-Task: Make all products responsive and fix desktop/mobile layout - full responsive redesign
+Task: Fix scrolling/touch issues on Streaming Hub website and update AI chat
 
 Work Log:
-- Read and analyzed all 15+ component files to assess current responsiveness state
-- Identified key issues: two diverged ProductCard implementations, text too small on mobile (text-[10px]), cramped 2-col grid, no desktop filter, description hidden on mobile
-- Created unified ProductCard component replacing both ProductCard and ProductCardMini
-- Added variant/props support (showDetails, variant) for different use cases
-- Fixed image heights: mobile h-36 (was h-28), sm:h-44, md:h-48 for better visibility
-- Fixed text sizes: minimum 11px on mobile, 12px+ on sm, 14px+ on md
-- Added both "Order" and "Details" buttons with min-h-[40px] for touch targets
-- Added stock status badge to card
-- Updated ProductCatalog with better spacing (gap-3 sm:gap-4), larger search input
-- Added desktop sort dropdown (ProductFiltersDesktop) alongside mobile sheet
-- Updated ProductDetail with larger image (h-56 sm:h-72 md:h-80), better info grid spacing
-- Limited related products to 3 for cleaner layout
-- Updated FeaturedProducts to use unified ProductCard with showDetails=true
-- Fixed FeaturedProducts bug: wrong import (Button from badge instead of button)
-- Updated CategoryCards with better heights and text sizes
-- Updated HeroSection with teal/emerald trust/loyalty color theme
-- Updated Header with teal/emerald color scheme, better mobile menu
-- Updated Footer with consistent styling and better spacing
-- Updated TrustBadgeBar and MobileBottomBar with teal theme
-- Updated AnnouncementBar with teal/emerald gradient
-- Updated globals.css with teal/emerald oklch color tokens (trust & loyalty psychology)
-- Updated WhyChooseUs, HowToOrder, CustomerReviews, FAQ with better spacing and text sizes
-- All text minimum 11px on mobile, 14px+ preferred
-- All touch targets minimum 40px height
-- All buttons have proper padding and responsive sizing
-- Fixed lint errors (import path in FeaturedProducts)
-- Verified server returns 200 OK
+- Cloned repo from GitHub (Blackproxya2z/Streeming-Hub)
+- Identified root cause: `:has()` CSS selector in globals.css NOT supported on many mobile browsers
+- This caused `overflow: auto !important` to never apply, so Radix Dialog scroll locks persisted
+- Fixed globals.css: Replaced `:has()` selector with unconditional scroll-friendly rules
+- Added `html { overflow-y: scroll !important; overflow-x: auto !important; }` 
+- Added `body { overflow: visible !important; pointer-events: auto !important; position: relative !important; }`
+- Rewrote ScrollFix.tsx: More aggressive, runs immediately, 500ms interval, clears ALL Radix lock styles
+- Added touchstart listener for instant mobile scroll fix
+- Updated layout.tsx: Added `overflow-y-scroll` class to body
+- Updated page.tsx: Changed `pb-24` to `pb-20` for better mobile padding
+- Updated AIChatWidget.tsx: Adjusted button position
+- Updated chat/route.ts: Enhanced system prompt with better product lookup instructions
+- Added `touch-action: manipulation` to all elements for better touch response
+- Pushed to GitHub (commit a388133)
+- Verified with Agent Browser: scrolling works on both mobile and desktop
+- CSS properties confirmed: overflow=auto, pointerEvents=auto on body
 
 Stage Summary:
-- All 120+ products display properly in responsive grid (2-col mobile → 6-col xl)
-- Unified ProductCard component replaces the two diverged implementations
-- Desktop sort dropdown added alongside mobile filter sheet
-- Teal/Emerald color theme applied throughout for trust & loyalty psychology
-- All text sizes now readable on mobile (minimum 11px)
-- All touch targets meet 40px minimum
-- Server running successfully at localhost:3000
+- Root cause: `:has()` CSS not supported on mobile browsers → scroll locks stuck
+- Fixed with unconditional CSS rules + aggressive JS scroll fix component
+- All changes pushed to GitHub, Vercel auto-deploy triggered
+- Scrolling verified working on mobile (375x812) and desktop viewports

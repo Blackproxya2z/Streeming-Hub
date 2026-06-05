@@ -99,19 +99,19 @@ export function Header() {
               alt="Streaming Hub Logo"
               width={40}
               height={40}
-              className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover ring-2 ring-teal-500/30 shadow-md shadow-teal-600/10"
+              className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover ring-2 ring-[#00A6A6]/30 shadow-md shadow-[#00A6A6]/10"
               priority
             />
             <div className="hidden sm:flex flex-col">
               <div className="flex items-center gap-1">
-                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-teal-700 to-emerald-700 bg-clip-text text-transparent leading-tight">
+                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#00A6A6] to-[#14B8A6] bg-clip-text text-transparent leading-tight">
                   Streaming Hub
                 </span>
                 <BadgeCheck className="h-4 w-4 text-sky-500 shrink-0" />
               </div>
               <span className="text-[10px] text-muted-foreground font-medium -mt-0.5">BD&apos;s #1 Subscription Store</span>
             </div>
-            <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-teal-700 to-emerald-700 bg-clip-text text-transparent sm:hidden flex items-center gap-1">
+            <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#00A6A6] to-[#14B8A6] bg-clip-text text-transparent sm:hidden flex items-center gap-1">
               SH
               <BadgeCheck className="h-3.5 w-3.5 text-sky-500" />
             </span>
@@ -249,18 +249,18 @@ export function Header() {
               <SheetContent side="left" className="w-[85vw] max-w-80 p-0">
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <div className="flex flex-col h-full">
-                  <div className="p-4 border-b bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-950 dark:to-emerald-950">
+                  <div className="p-4 border-b bg-gradient-to-r from-slate-50 to-teal-50 dark:from-[#0B1F3A] dark:to-[#102A43]">
                     <div className="flex items-center gap-2">
                       <Image
                         src="/logo.jpg"
                         alt="Streaming Hub Logo"
                         width={36}
                         height={36}
-                        className="h-9 w-9 rounded-full object-cover ring-2 ring-teal-500/30"
+                        className="h-9 w-9 rounded-full object-cover ring-2 ring-[#00A6A6]/30"
                       />
                       <div>
                         <div className="flex items-center gap-1">
-                          <span className="text-lg font-bold bg-gradient-to-r from-teal-700 to-emerald-700 bg-clip-text text-transparent">
+                          <span className="text-lg font-bold bg-gradient-to-r from-[#00A6A6] to-[#14B8A6] bg-clip-text text-transparent">
                             Streaming Hub
                           </span>
                           <BadgeCheck className="h-4 w-4 text-sky-500" />

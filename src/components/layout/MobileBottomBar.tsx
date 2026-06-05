@@ -17,7 +17,7 @@ export function MobileBottomBar() {
           aria-label="Home"
           aria-current={currentPage === 'home' ? 'page' : undefined}
           className={`flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 ${
-            currentPage === 'home' ? 'text-teal-700 dark:text-teal-500' : 'text-muted-foreground'
+            currentPage === 'home' ? 'text-[#00A6A6] dark:text-[#14B8A6]' : 'text-muted-foreground'
           }`}
         >
           <Home className="h-5 w-5" />
@@ -31,7 +31,7 @@ export function MobileBottomBar() {
           aria-label="Search products"
           aria-current={currentPage === 'products' || currentPage === 'category' ? 'page' : undefined}
           className={`flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 ${
-            currentPage === 'products' || currentPage === 'category' ? 'text-teal-700 dark:text-teal-500' : 'text-muted-foreground'
+            currentPage === 'products' || currentPage === 'category' ? 'text-[#00A6A6] dark:text-[#14B8A6]' : 'text-muted-foreground'
           }`}
         >
           <Search className="h-5 w-5" />
@@ -42,7 +42,7 @@ export function MobileBottomBar() {
           aria-label="Browse categories"
           aria-current={currentPage === 'products' ? 'page' : undefined}
           className={`flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 ${
-            currentPage === 'products' ? 'text-teal-700 dark:text-teal-500' : 'text-muted-foreground'
+            currentPage === 'products' ? 'text-[#00A6A6] dark:text-[#14B8A6]' : 'text-muted-foreground'
           }`}
         >
           <Grid3X3 className="h-5 w-5" />

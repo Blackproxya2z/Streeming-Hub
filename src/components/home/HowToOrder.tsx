@@ -11,7 +11,7 @@ const steps = [
     title: 'পণ্য বাছাই করুন',
     titleEn: 'Choose Your Product',
     description: 'আমাদের ক্যাটালগ থেকে আপনার পছন্দের সাবস্ক্রিপশন বাছাই করুন।',
-    color: 'from-blue-500 to-sky-600',
+    color: 'from-[#00A6A6] to-[#14B8A6]',
   },
   {
     step: 2,
@@ -19,7 +19,7 @@ const steps = [
     title: 'Send Money করুন',
     titleEn: 'Send Money via bKash/Nagad',
     description: 'bKash বা Nagad দিয়ে Send Money করুন আমাদের নম্বরে। Payment নয়, Send Money!',
-    color: 'from-amber-500 to-orange-600',
+    color: 'from-[#F5B301] to-[#F59E0B]',
   },
   {
     step: 3,
@@ -27,7 +27,7 @@ const steps = [
     title: 'WhatsApp-এ কনফার্ম করুন',
     titleEn: 'Confirm on WhatsApp',
     description: 'Send Money করার পর WhatsApp-এ মেসেজ পাঠান। Transaction ID-এর শেষ ৩ ডিজিট দিন।',
-    color: 'from-teal-500 to-emerald-600',
+    color: 'from-[#00A6A6] to-[#14B8A6]',
   },
   {
     step: 4,
@@ -35,7 +35,7 @@ const steps = [
     title: 'ডেলিভারি নিন',
     titleEn: 'Get Delivery in 5-20 Min',
     description: 'পেমেন্ট কনফার্মেশনের ৫-২০ মিনিটের মধ্যে আপনার সাবস্ক্রিপশন ডেলিভারি হবে।',
-    color: 'from-purple-500 to-violet-600',
+    color: 'from-[#0B1F3A] to-[#102A43]',
   },
   {
     step: 5,
@@ -43,7 +43,7 @@ const steps = [
     title: 'একাউন্ট ব্যবহার করুন',
     titleEn: 'Login & Enjoy',
     description: 'আপনার সাবস্ক্রিপশন একাউন্টের ডিটেইলস WhatsApp-এ পাবেন। লগইন করে উপভোগ করুন!',
-    color: 'from-green-500 to-emerald-600',
+    color: 'from-green-600 to-emerald-700',
   },
   {
     step: 6,

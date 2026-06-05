@@ -28,11 +28,11 @@ const categoryIconMap: Record<string, React.ElementType> = {
 const categoryGradients: Record<string, string> = {
   'streaming': 'from-red-500 to-rose-600',
   'ai-tools': 'from-purple-500 to-violet-600',
-  'educational': 'from-blue-500 to-sky-600',
+  'educational': 'from-[#00A6A6] to-[#14B8A6]',
   'design-creative': 'from-pink-500 to-fuchsia-600',
   'productivity': 'from-amber-500 to-orange-600',
-  'cloud-storage': 'from-sky-500 to-blue-600',
-  'vpn': 'from-teal-500 to-emerald-600',
+  'cloud-storage': 'from-[#00A6A6] to-[#14B8A6]',
+  'vpn': 'from-[#0B1F3A] to-[#00A6A6]',
   'gift-cards': 'from-amber-400 to-yellow-500',
   'gaming-topup': 'from-violet-500 to-purple-600',
   'multi-collection': 'from-slate-500 to-gray-600',
@@ -72,7 +72,7 @@ function getCategoryGradient(category: Category) {
   if (category.icon && categoryGradients[category.icon]) {
     return categoryGradients[category.icon]
   }
-  return 'from-teal-600 to-emerald-700'
+  return 'from-[#0B1F3A] to-[#00A6A6]'
 }
 
 export function CategoryCards() {
@@ -146,8 +146,8 @@ export function CategoryCards() {
                         <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
                       )}
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-2 sm:p-3">
-                        <div className={`h-9 w-9 sm:h-11 sm:w-11 md:h-12 md:w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                          <Icon className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
+                        <div className={`h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                          <Icon className="h-5 w-5 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
                         </div>
                         <h3 className="font-semibold text-xs sm:text-sm md:text-base mt-1.5 sm:mt-2 flex items-center gap-1 text-center drop-shadow-md line-clamp-1">
                           {cat.name}

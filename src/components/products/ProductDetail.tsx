@@ -18,20 +18,19 @@ import {
   Zap,
   ArrowLeft,
   Lock,
-  Share2,
 } from 'lucide-react'
 import { ProductCard } from './ProductCard'
 import { OrderDialog } from '@/components/order/OrderDialog'
 import { SEOHead } from '@/components/shared/SEOHead'
 
 const gradients = [
-  'from-blue-600 to-sky-600',
+  'from-[#00A6A6] to-[#14B8A6]',
   'from-amber-400 to-orange-500',
   'from-purple-400 to-violet-500',
   'from-pink-400 to-rose-500',
-  'from-blue-400 to-sky-500',
+  'from-[#0B1F3A] to-[#00A6A6]',
   'from-red-400 to-rose-500',
-  'from-emerald-400 to-teal-500',
+  'from-[#14B8A6] to-[#00A6A6]',
 ]
 
 function getGradient(name: string) {
@@ -122,12 +121,27 @@ export function ProductDetail() {
 
   const initials = product.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const gradient = getGradient(product.name)
-  const features: string[] = product.features ? JSON.parse(product.features) : []
-  const priceOptions: { label: string; priceBDT: string }[] =
-    product.priceOptions ? JSON.parse(product.priceOptions) : []
+  let features: string[] = []
+  try { features = product.features ? JSON.parse(product.features) : [] } catch { features = [] }
+  let priceOptions: { label: string; priceBDT: string }[] = []
+  try { priceOptions = product.priceOptions ? JSON.parse(product.priceOptions) : [] } catch { priceOptions = [] }
   const hasImage = !!product.image
   const isExternalImage = hasImage && product.image!.startsWith('http')
   const isCategoryImage = hasImage && product.image!.startsWith('/images/categories/')
+  const categoryImageMap: Record<string, string> = {
+    'streaming': '/images/categories/streaming.png',
+    'ai-tools': '/images/categories/ai-tools.png',
+    'educational': '/images/categories/educational.png',
+    'design-creative': '/images/categories/design-creative.png',
+    'productivity': '/images/categories/productivity.png',
+    'cloud-storage': '/images/categories/cloud-storage.png',
+    'vpn': '/images/categories/vpn.png',
+    'gift-cards': '/images/categories/gift-cards.png',
+    'gaming-topup': '/images/categories/gaming-topup.png',
+    'multi-collection': '/images/categories/multi-collection.png',
+    'adult': '/images/categories/adult.png',
+  }
+  const categoryImage = product.category?.slug ? categoryImageMap[product.category.slug] : null
 
   const handlePlanClick = (opt: { label: string; priceBDT: string }) => {
     setSelectedPlan(opt.label)
@@ -197,7 +211,7 @@ export function ProductDetail() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-5 sm:gap-8">
           {/* Image — 2 cols */}
           <div className="md:col-span-2">
-            <div className={`relative rounded-2xl overflow-hidden h-56 sm:h-72 md:h-80 lg:h-96 ${!hasImage || isCategoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center md:sticky md:top-20`}>
+            <div className={`relative rounded-2xl overflow-hidden h-56 sm:h-72 md:h-80 lg:h-96 ${!hasImage && !categoryImage ? `bg-gradient-to-br ${gradient}` : ''} flex items-center justify-center md:sticky md:top-20`}>
               {hasImage ? (
                 <>
                   <Image
@@ -215,6 +229,20 @@ export function ProductDetail() {
                     </div>
                   )}
                 </>
+              ) : categoryImage ? (
+                <>
+                  <Image
+                    src={categoryImage}
+                    alt={product.category?.name || product.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 40vw"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/30 flex items-center justify-center">
+                    <span className="text-4xl sm:text-5xl font-bold text-white drop-shadow-lg">{initials}</span>
+                  </div>
+                </>
               ) : (
                 <span className="text-5xl sm:text-6xl font-bold text-white/60">{initials}</span>
               )}
@@ -227,7 +255,7 @@ export function ProductDetail() {
                     </Badge>
                   )}
                   {product.isNewArrival && (
-                    <Badge className="bg-sky-600 text-white border-0 text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
+                    <Badge className="bg-[#00A6A6] text-white border-0 text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
                       <Zap className="h-3.5 w-3.5 mr-1" /> New
                     </Badge>
                   )}
@@ -248,7 +276,7 @@ export function ProductDetail() {
                   </Badge>
                 )}
                 {product.isNewArrival && (
-                  <Badge className="bg-sky-600 text-white border-0 text-xs sm:text-sm">
+                  <Badge className="bg-[#00A6A6] text-white border-0 text-xs sm:text-sm">
                     <Zap className="h-3 w-3 mr-0.5" /> New
                   </Badge>
                 )}
@@ -261,7 +289,7 @@ export function ProductDetail() {
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {product.duration && (
                 <div className="flex items-center gap-2.5 bg-muted/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
-                  <Timer className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 shrink-0" />
+                  <Timer className="h-4 w-4 sm:h-5 sm:w-5 text-[#00A6A6] shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[11px] sm:text-xs text-muted-foreground">Duration</p>
                     <p className="text-sm sm:text-base font-medium truncate">{product.duration}</p>
@@ -270,7 +298,7 @@ export function ProductDetail() {
               )}
               {product.accountType && (
                 <div className="flex items-center gap-2.5 bg-muted/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
-                  <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 shrink-0" />
+                  <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-[#00A6A6] shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[11px] sm:text-xs text-muted-foreground">Account Type</p>
                     <p className="text-sm sm:text-base font-medium truncate">{product.accountType}</p>
@@ -279,10 +307,10 @@ export function ProductDetail() {
               )}
               {product.warranty && (
                 <div className="flex items-center gap-2.5 bg-muted/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
-                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 shrink-0" />
+                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-[#00A6A6] shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[11px] sm:text-xs text-muted-foreground">Warranty</p>
-                    <p className="text-sm sm:text-base font-medium text-blue-700 dark:text-blue-500 truncate">{product.warranty}</p>
+                    <p className="text-sm sm:text-base font-medium text-[#00A6A6] dark:text-[#14B8A6] truncate">{product.warranty}</p>
                   </div>
                 </div>
               )}
@@ -296,10 +324,10 @@ export function ProductDetail() {
             </div>
 
             {/* Price Section */}
-            <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4 sm:p-5">
+            <div className="bg-teal-50 dark:bg-[#0B1F3A]/20 rounded-xl p-4 sm:p-5">
               <p className="text-xs sm:text-sm text-muted-foreground mb-1">Starting from</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-700 dark:text-blue-500">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#00A6A6] dark:text-[#14B8A6]">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
               </div>
@@ -315,16 +343,16 @@ export function ProductDetail() {
                       key={i}
                       type="button"
                       onClick={() => handlePlanClick(opt)}
-                      className="flex items-center justify-between bg-background border rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors group text-left"
+                      className="flex items-center justify-between bg-background border rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 hover:border-[#00A6A6] hover:bg-teal-50/50 dark:hover:bg-[#0B1F3A]/20 transition-colors group text-left"
                     >
                       <div className="flex items-center gap-2.5 sm:gap-3">
-                        <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-400' : 'bg-muted text-muted-foreground'}`}>
+                        <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-teal-100 text-[#0B1F3A] dark:bg-[#0B1F3A] dark:text-[#14B8A6]' : 'bg-muted text-muted-foreground'}`}>
                           {i + 1}
                         </div>
                         <span className="text-sm sm:text-base font-medium">{opt.label}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-base sm:text-lg text-blue-700 dark:text-blue-500">
+                        <span className="font-bold text-base sm:text-lg text-[#00A6A6] dark:text-[#14B8A6]">
                           {formatPriceBDT(opt.priceBDT)}
                         </span>
                       </div>
@@ -348,7 +376,7 @@ export function ProductDetail() {
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {features.map((feature, i) => (
                   <span key={i} className="inline-flex items-center gap-1 text-xs sm:text-sm bg-muted/70 rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5">
-                    <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-blue-600" />
+                    <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#00A6A6]" />
                     {feature}
                   </span>
                 ))}
@@ -362,7 +390,7 @@ export function ProductDetail() {
           <h2 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-6">অর্ডার করার নিয়ম / How to Order</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="flex flex-col items-center text-center gap-2">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 font-bold text-sm sm:text-base">1</div>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-teal-100 dark:bg-[#0B1F3A] flex items-center justify-center text-[#0B1F3A] dark:text-[#14B8A6] font-bold text-sm sm:text-base">1</div>
               <div>
                 <p className="text-sm sm:text-base font-medium">Send Money</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">bKash / Nagad দিয়ে</p>

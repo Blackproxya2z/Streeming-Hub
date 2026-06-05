@@ -83,25 +83,25 @@ export function PaymentPage() {
                   className="h-7 px-2 ml-auto"
                   onClick={() => handleCopy(bkashNumber, 'bkash-copy')}
                 >
-                  {copied === 'bkash-copy' ? <Check className="h-4 w-4 text-blue-600" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
+                  {copied === 'bkash-copy' ? <Check className="h-4 w-4 text-[#00A6A6]" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
               <div className="bg-muted/50 rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2">
                 <p className="font-semibold text-xs sm:text-sm">Send Money করার নিয়ম:</p>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                   <span className="text-[11px] sm:text-xs">নিচের বাটনে ক্লিক করুন — নম্বর অটো কপি হবে</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                   <span className="text-[11px] sm:text-xs"><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                   <span className="text-[11px] sm:text-xs">নম্বর পেস্ট করুন এবং Send Money করুন।</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                   <span className="text-[11px] sm:text-xs">Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।</span>
                 </div>
               </div>
@@ -148,25 +148,25 @@ export function PaymentPage() {
                   className="h-7 px-2 ml-auto"
                   onClick={() => handleCopy(nagadNumber, 'nagad-copy')}
                 >
-                  {copied === 'nagad-copy' ? <Check className="h-4 w-4 text-blue-600" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
+                  {copied === 'nagad-copy' ? <Check className="h-4 w-4 text-[#00A6A6]" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
               <div className="bg-muted/50 rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2">
                 <p className="font-semibold text-xs sm:text-sm">Send Money করার নিয়ম:</p>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                   <span className="text-[11px] sm:text-xs">নিচের বাটনে ক্লিক করুন — নম্বর অটো কপি হবে</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                   <span className="text-[11px] sm:text-xs"><strong>Send Money</strong> অপশন সিলেক্ট করুন, Payment নয়!</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                   <span className="text-[11px] sm:text-xs">নম্বর পেস্ট করুন এবং Send Money করুন।</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                   <span className="text-[11px] sm:text-xs">Transaction ID-এর শেষ ৩ ডিজিট WhatsApp-এ পাঠান।</span>
                 </div>
               </div>
@@ -199,19 +199,19 @@ export function PaymentPage() {
             </div>
             <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                 <span><strong>Send Money First:</strong> পেমেন্ট ফার্স্ট — আগে Send Money, তারপর ডেলিভারি।</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                 <span><strong>Delivery Time:</strong> 5-20 minutes after payment confirmation.</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                 <span><strong>Warranty:</strong> All subscriptions come with warranty.</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0 mt-0.5" />
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#00A6A6] shrink-0 mt-0.5" />
                 <span><strong>Support:</strong> Contact us on WhatsApp for any issues.</span>
               </li>
             </ul>

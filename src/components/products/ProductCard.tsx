@@ -12,14 +12,14 @@ import { OrderDialog } from '@/components/order/OrderDialog'
 import type { Product } from '@/lib/hooks'
 
 const gradients = [
-  'from-blue-600 to-sky-600',
+  'from-[#00A6A6] to-[#14B8A6]',
   'from-amber-400 to-orange-500',
   'from-purple-400 to-violet-500',
   'from-pink-400 to-rose-500',
-  'from-blue-400 to-sky-500',
+  'from-[#0B1F3A] to-[#00A6A6]',
   'from-red-400 to-rose-500',
-  'from-emerald-400 to-teal-500',
-  'from-cyan-400 to-sky-500',
+  'from-[#14B8A6] to-[#00A6A6]',
+  'from-[#14B8A6] to-[#00A6A6]',
 ]
 
 function getGradient(name: string) {
@@ -55,7 +55,6 @@ interface ProductCardProps {
 export const ProductCard = memo(function ProductCard({ product, showDetails = true, variant = 'default' }: ProductCardProps) {
   const { navigate } = useAppStore()
   const [orderOpen, setOrderOpen] = useState(false)
-  const [selectedPlan, setSelectedPlan] = useState<string | undefined>()
 
   const initials = product.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const gradient = getGradient(product.name)
@@ -66,7 +65,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
   const isNumericPrice = !isNaN(parseFloat(product.basePriceBDT))
 
   const stockColor =
-    product.stockStatus === 'Available' ? 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-400' :
+    product.stockStatus === 'Available' ? 'text-[#00A6A6] bg-teal-50 dark:bg-[#0B1F3A]/50 dark:text-[#14B8A6]' :
     product.stockStatus === 'Limited Stock' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400' :
     'text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400'
 
@@ -170,7 +169,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
               )}
               {product.warranty && (
                 <span className="flex items-center gap-1 bg-muted rounded-md px-1.5 sm:px-2 py-0.5">
-                  <Shield className="h-3 w-3 text-blue-600 dark:text-blue-500" /> {product.warranty}
+                  <Shield className="h-3 w-3 text-[#00A6A6] dark:text-[#14B8A6]" /> {product.warranty}
                 </span>
               )}
             </div>
@@ -178,7 +177,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
             {/* Price + Stock row */}
             <div className="mt-auto pt-1.5 sm:pt-2 border-t border-border/50">
               <div className="flex items-baseline justify-between gap-1.5">
-                <span className={`font-bold text-base sm:text-lg ${isNumericPrice ? 'text-blue-700 dark:text-blue-500' : 'text-green-700 dark:text-green-500'}`}>
+                <span className={`font-bold text-base sm:text-lg ${isNumericPrice ? 'text-[#00A6A6] dark:text-[#14B8A6]' : 'text-green-700 dark:text-green-500'}`}>
                   {isNumericPrice ? formatPriceBDT(product.basePriceBDT) : product.basePriceBDT}
                 </span>
                 {product.stockStatus && (
@@ -220,7 +219,6 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
         open={orderOpen}
         onOpenChange={setOrderOpen}
         product={product}
-        selectedPlan={selectedPlan}
       />
     </>
   )

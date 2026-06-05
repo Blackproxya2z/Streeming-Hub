@@ -10,6 +10,7 @@ import { BackToTop } from '@/components/shared/BackToTop'
 import { AgeGate } from '@/components/shared/AgeGate'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { AIChatWidget } from '@/components/shared/AIChatWidget'
+import { ScrollFix } from '@/components/shared/ScrollFix'
 import { SEOHead } from '@/components/shared/SEOHead'
 import { BreadcrumbSchema } from '@/components/shared/BreadcrumbSchema'
 import { HeroSection } from '@/components/home/HeroSection'
@@ -137,7 +138,7 @@ export default function Home() {
         <AnnouncementBar />
         <Header />
         <TrustBadgeBar />
-        <main className="flex-1 pb-24 lg:pb-0" role="main">
+        <main className="flex-1 pb-20 lg:pb-6" role="main">
           <PageRouter />
         </main>
         <Footer />
@@ -146,6 +147,7 @@ export default function Home() {
         <BackToTop />
         <AgeGate />
         <AIChatWidget />
+        <ScrollFix />
       </div>
     </ErrorBoundary>
   )

@@ -17,7 +17,7 @@ const badges = [
     icon: Shield,
     label: 'Full Warranty',
     sublabel: 'গ্যারান্টি সহ',
-    color: 'text-teal-700 dark:text-teal-500',
+    color: 'text-[#00A6A6] dark:text-[#14B8A6]',
     bg: 'bg-teal-50 dark:bg-teal-950/50',
   },
   {
@@ -52,8 +52,8 @@ const badges = [
     icon: BadgeCheck,
     label: '1000+ Customers',
     sublabel: 'বিশ্বস্ত ক্রেতা',
-    color: 'text-emerald-700 dark:text-emerald-500',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/50',
+    color: 'text-[#0B1F3A] dark:text-[#00A6A6]',
+    bg: 'bg-slate-50 dark:bg-[#0B1F3A]/50',
   },
 ]
 
@@ -61,7 +61,7 @@ export function TrustBadgeBar() {
   return (
     <div className="w-full border-b bg-background/80 backdrop-blur-sm" role="complementary" aria-label="Trust badges and guarantees">
       <div className="container mx-auto px-3 sm:px-4">
-        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 py-2 sm:py-2.5 overflow-x-auto scrollbar-none">
+        <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-5 py-2.5 sm:py-3 overflow-x-auto scrollbar-none">
           {badges.map((badge, i) => {
             const Icon = badge.icon
             return (
@@ -70,17 +70,17 @@ export function TrustBadgeBar() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
-                className="flex items-center gap-1.5 sm:gap-2 shrink-0"
+                className="flex items-center gap-2 sm:gap-2.5 shrink-0"
               >
-                <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-border/50 ${badge.bg} transition-all hover:shadow-sm`}>
-                  <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 ${badge.color}`} />
+                <div className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-border/50 ${badge.bg} transition-all hover:shadow-sm`}>
+                  <Icon className={`h-4 w-4 sm:h-[18px] sm:w-[18px] shrink-0 ${badge.color}`} />
                   <div className="flex flex-col leading-none">
                     <span className="text-[11px] sm:text-xs font-semibold text-foreground whitespace-nowrap">{badge.label}</span>
                     <span className="text-[9px] sm:text-[10px] text-muted-foreground whitespace-nowrap hidden sm:block">{badge.sublabel}</span>
                   </div>
                 </div>
                 {i < badges.length - 1 && (
-                  <div className="w-px h-4 sm:h-6 bg-border/50 shrink-0 hidden lg:block" />
+                  <div className="w-px h-5 sm:h-7 bg-border/40 shrink-0 hidden md:block" />
                 )}
               </motion.div>
             )

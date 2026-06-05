@@ -16,13 +16,14 @@ import {
   Headphones,
   ExternalLink,
   Loader2,
+  CreditCard,
+  List,
+  Phone,
+  Sparkles,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const AVATAR_SRC = '/images/assistant-avatar.png'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -37,16 +38,15 @@ interface ChatResponse {
   error?: string
 }
 
-// ─── Quick Actions ────────────────────────────────────────────────────────────
+// ─── Quick Actions (Sales-Focused) ───────────────────────────────────────────
 
 const quickActions = [
-  { label: '⭐ Best Sellers', action: 'ফিচার্ড প্রোডাক্ট দেখাও' },
-  { label: '🎬 Netflix দাম', action: 'Netflix কত টাকা?' },
-  { label: '🤖 ChatGPT Plus', action: 'ChatGPT Plus কত টাকা?' },
-  { label: '🔒 VPN প্ল্যান', action: 'VPN প্ল্যান কত টাকা?' },
-  { label: '📦 অর্ডার করুন', action: 'কীভাবে অর্ডার করবো?' },
-  { label: '🔐 PIN', action: 'adult site er pin ki?' },
-  { label: '❓ সাহায্য', action: 'আমাকে সাহায্য দরকার' },
+  { label: '📋 Price List', action: 'সব ক্যাটাগরির দাম দেখাও', icon: List },
+  { label: '📦 Order Process', action: 'কীভাবে অর্ডার করবো?', icon: Zap },
+  { label: '💳 Payment Number', action: 'bKash number ki?', icon: CreditCard },
+  { label: '🔒 Warranty', action: 'warranty ki vabe pabo?', icon: Shield },
+  { label: '📞 Contact Support', action: 'WhatsApp number ki?', icon: Phone },
+  { label: '⭐ Best Sellers', action: 'ফিচার্ড প্রোডাক্ট দেখাও', icon: BadgeCheck },
 ]
 
 // ─── Trust Indicators ─────────────────────────────────────────────────────────
@@ -89,7 +89,6 @@ function formatMessage(text: string): ReactNode[] {
   const elements: ReactNode[] = []
 
   lines.forEach((line, lineIdx) => {
-    // Process each line for inline formatting
     const processedLine = processInlineFormatting(line)
 
     if (lineIdx < lines.length - 1) {
@@ -117,7 +116,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, indent, , content] = bulletMatch
     elements.push(
       <span key={`bullet-${indent.length}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-blue-500" />
+        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-[#00A6A6] dark:bg-[#14B8A6]" />
         <span>{processInlineFormatting(content)}</span>
       </span>
     )
@@ -130,7 +129,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, , num, content] = numberedMatch
     elements.push(
       <span key={`num-${num}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-500 flex items-center justify-center text-[10px] font-bold leading-none mt-px">
+        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-teal-100 dark:bg-[#0B1F3A]/30 text-[#0B1F3A] dark:text-[#14B8A6] flex items-center justify-center text-[10px] font-bold leading-none mt-px">
           {num}
         </span>
         <span>{processInlineFormatting(content)}</span>
@@ -145,12 +144,11 @@ function processInlineFormatting(line: string): ReactNode[] {
     // Bold pattern: **text**
     const boldMatch = remaining.match(/\*\*(.+?)\*\*/)
     if (boldMatch && boldMatch.index !== undefined) {
-      // Text before the bold
       if (boldMatch.index > 0) {
         elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, boldMatch.index)}</span>)
       }
       elements.push(
-        <strong key={`b-${keyIdx++}`} className="font-semibold text-blue-800 dark:text-blue-500">
+        <strong key={`b-${keyIdx++}`} className="font-semibold text-[#0B1F3A] dark:text-[#14B8A6]">
           {boldMatch[1]}
         </strong>
       )
@@ -170,7 +168,7 @@ function processInlineFormatting(line: string): ReactNode[] {
           href={linkMatch[2]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-700 dark:text-blue-500 underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-400 transition-colors"
+          className="text-[#00A6A6] dark:text-[#14B8A6] underline underline-offset-2 hover:text-[#0B1F3A] dark:hover:text-[#F5B301] transition-colors"
         >
           {linkMatch[1]}
         </a>
@@ -204,12 +202,13 @@ export function AIChatWidget() {
   const [currentMsgIndex, setCurrentMsgIndex] = useState(0)
   const [displayedText, setDisplayedText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
+  const [hasInteracted, setHasInteracted] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastSentRef = useRef<number>(0)
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // ── Typewriter effect for the floating bubble (desktop only) ──
+  // ── Typewriter effect for the floating bubble ──
   useEffect(() => {
     if (isOpen) return
 
@@ -274,6 +273,7 @@ export function AIChatWidget() {
       return
     }
     lastSentRef.current = now
+    setHasInteracted(true)
 
     const userMessage: ChatMessage = {
       role: 'user',
@@ -370,8 +370,8 @@ export function AIChatWidget() {
       <AnimatePresence>
         {!isOpen && (
           <motion.div
-            className="fixed z-[55] flex items-center gap-3
-              right-4 bottom-[72px]
+            className="fixed z-[60] flex items-center gap-2 sm:gap-3
+              right-3 bottom-[72px]
               sm:right-6 sm:bottom-6"
             initial={{ opacity: 0, scale: 0.5, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -383,22 +383,22 @@ export function AIChatWidget() {
               initial={{ opacity: 0, x: 10, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.8 }}
-              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-2xl px-4 py-2.5 max-w-[260px] cursor-pointer hover:shadow-xl hover:border-blue-300/50 transition-all group/bubble relative"
+              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-2xl px-4 py-2.5 max-w-[260px] cursor-pointer hover:shadow-xl hover:border-[#00A6A6]/50 transition-all group/bubble relative"
               onClick={() => setIsOpen(true)}
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground leading-snug">
                   {displayedText}
                   {isTyping && (
-                    <span className="inline-block w-[2px] h-4 bg-blue-600 ml-0.5 align-middle animate-pulse" />
+                    <span className="inline-block w-[2px] h-4 bg-[#00A6A6] ml-0.5 align-middle animate-pulse" />
                   )}
                 </p>
               </div>
               {isTyping && (
                 <div className="flex items-center gap-[3px] shrink-0">
-                  <span className="h-1 w-1 rounded-full bg-blue-600 animate-bounce [animation-delay:0ms]" />
-                  <span className="h-1 w-1 rounded-full bg-blue-600 animate-bounce [animation-delay:150ms]" />
-                  <span className="h-1 w-1 rounded-full bg-blue-600 animate-bounce [animation-delay:300ms]" />
+                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
+                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
+                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
                 </div>
               )}
               {/* Speech bubble arrow pointing right toward the button */}
@@ -415,28 +415,23 @@ export function AIChatWidget() {
                 w-14 h-14
                 sm:w-[60px] sm:h-[60px]
                 rounded-full
-                bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500
-                hover:from-blue-800 hover:via-blue-600 hover:to-sky-600
+                bg-gradient-to-br from-[#0B1F3A] via-[#102A43] to-[#00A6A6]
+                hover:from-[#0B1F3A] hover:via-[#0B1F3A] hover:to-[#14B8A6]
                 text-white shadow-lg hover:shadow-2xl
                 transition-all active:scale-90 group
-                ring-2 ring-blue-400/20"
+                ring-2 ring-[#00A6A6]/20
+                touch-manipulation"
               aria-label="Chat with কর্মচারী — AI Assistant"
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.9 }}
             >
               {/* Subtle glow animation */}
-              <span className="absolute inset-[-4px] rounded-full bg-blue-500/20 animate-pulse [animation-duration:2s]" />
-              <span className="absolute inset-0 rounded-full bg-blue-500/25 animate-ping [animation-duration:2.5s]" />
+              <span className="absolute inset-[-4px] rounded-full bg-[#00A6A6]/20 animate-pulse [animation-duration:2s]" />
+              <span className="absolute inset-0 rounded-full bg-[#00A6A6]/25 animate-ping [animation-duration:2.5s]" />
 
-              {/* Avatar image inside the button */}
-              <span className="relative z-10">
-                <Image
-                  src={AVATAR_SRC}
-                  alt="কর্মচারী"
-                  width={44}
-                  height={44}
-                  className="h-[44px] w-[44px] sm:h-12 sm:w-12 rounded-full object-cover ring-2 ring-white/30"
-                />
+              {/* Icon inside the button — use Sparkles icon as fallback when no avatar image */}
+              <span className="relative z-10 flex items-center justify-center">
+                <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-white drop-shadow-lg" />
               </span>
 
               {/* Notification badge — top right */}
@@ -473,39 +468,34 @@ export function AIChatWidget() {
                 sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
             >
               {/* ===== HEADER ===== */}
-              <div className="relative bg-gradient-to-r from-blue-800 via-blue-700 to-sky-600 text-white p-4 flex items-center justify-between shrink-0 overflow-hidden">
+              <div className="relative bg-gradient-to-r from-[#0B1F3A] via-[#102A43] to-[#00A6A6] text-white p-3 sm:p-4 flex items-center justify-between shrink-0 overflow-hidden">
                 {/* Decorative circles */}
                 <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/5" />
                 <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
-                <div className="absolute top-2 right-20 w-10 h-10 rounded-full bg-white/5" />
 
-                <div className="flex items-center gap-3 relative z-10">
+                <div className="flex items-center gap-2.5 sm:gap-3 relative z-10">
                   <div className="relative">
-                    <Image
-                      src={AVATAR_SRC}
-                      alt="কর্মচারী"
-                      width={44}
-                      height={44}
-                      className="h-11 w-11 rounded-full object-cover ring-2 ring-white/30"
-                    />
-                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-sky-500 flex items-center justify-center ring-2 ring-blue-500">
+                    <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gradient-to-br from-[#00A6A6] to-[#14B8A6] flex items-center justify-center ring-2 ring-white/30 shadow-md">
+                      <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                    </div>
+                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-[#00A6A6] flex items-center justify-center ring-2 ring-[#0B1F3A]">
                       <BadgeCheck className="h-2.5 w-2.5 text-white" />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <h3 className="font-bold text-base tracking-tight">কর্মচারী</h3>
-                      <BadgeCheck className="h-4 w-4 text-sky-300" />
+                      <h3 className="font-bold text-sm sm:text-base tracking-tight">কর্মচারী</h3>
+                      <BadgeCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#F5B301]" />
                       <Badge
                         variant="secondary"
-                        className="text-[10px] font-semibold bg-white/15 text-white border-0 rounded-full px-2 py-0 h-5"
+                        className="text-[9px] sm:text-[10px] font-semibold bg-white/15 text-white border-0 rounded-full px-1.5 sm:px-2 py-0 h-4 sm:h-5"
                       >
-                        AI Assistant
+                        AI Sales Assistant
                       </Badge>
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="h-2 w-2 rounded-full bg-green-300 animate-pulse" />
-                      <p className="text-[11px] text-blue-100 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
+                      <p className="text-[10px] sm:text-[11px] text-slate-200 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
                     </div>
                   </div>
                 </div>
@@ -513,17 +503,17 @@ export function AIChatWidget() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white/15 h-8 px-2.5 text-xs font-medium rounded-lg"
+                    className="text-white hover:bg-white/15 h-7 sm:h-8 px-2 sm:px-2.5 text-xs font-medium rounded-lg"
                     onClick={clearChat}
                     aria-label="Reset chat"
                   >
-                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                    রিসেট
+                    <RotateCcw className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1" />
+                    <span className="hidden sm:inline">রিসেট</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-white hover:bg-white/15 h-8 w-8 rounded-lg"
+                    className="text-white hover:bg-white/15 h-7 w-7 sm:h-8 sm:w-8 rounded-lg"
                     onClick={() => setIsOpen(false)}
                     aria-label="Close chat"
                   >
@@ -533,17 +523,17 @@ export function AIChatWidget() {
               </div>
 
               {/* ===== TRUST INDICATORS BAR ===== */}
-              <div className="flex items-center justify-center gap-3 px-4 py-1.5 bg-blue-50/50 dark:bg-blue-950/20 border-b border-border/30 shrink-0">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-slate-50/50 dark:bg-[#0B1F3A]/20 border-b border-border/30 shrink-0">
                 {trustIndicators.map((item, idx) => {
                   const Icon = item.icon
                   return (
                     <div key={item.label} className="flex items-center gap-1">
-                      <div className="flex items-center gap-1 text-[10px] text-blue-800 dark:text-blue-500 font-medium">
+                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-[#0B1F3A] dark:text-[#14B8A6] font-medium">
                         <Icon className="h-2.5 w-2.5" />
                         <span>{item.label}</span>
                       </div>
                       {idx < trustIndicators.length - 1 && (
-                        <div className="w-px h-3 bg-blue-200 dark:bg-blue-800 ml-3" />
+                        <div className="w-px h-3 bg-slate-200 dark:bg-slate-700 ml-2 sm:ml-3" />
                       )}
                     </div>
                   )
@@ -553,10 +543,11 @@ export function AIChatWidget() {
               {/* ===== MESSAGE AREA ===== */}
               <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto p-4 space-y-3 overscroll-contain scroll-smooth"
+                className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 overscroll-contain scroll-smooth"
                 style={{
                   scrollbarWidth: 'thin',
-                  scrollbarColor: 'rgb(5 150 105 / 0.3) transparent',
+                  scrollbarColor: 'rgb(0 166 166 / 0.3) transparent',
+                  WebkitOverflowScrolling: 'touch',
                 }}
               >
                 {messages.map((msg, i) => (
@@ -565,26 +556,19 @@ export function AIChatWidget() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25, ease: 'easeOut' }}
-                    className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex gap-2 sm:gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     {msg.role === 'assistant' && (
                       <div className="relative shrink-0 mt-0.5">
-                        <Image
-                          src={AVATAR_SRC}
-                          alt="কর্মচারী"
-                          width={28}
-                          height={28}
-                          className="h-7 w-7 rounded-full object-cover ring-1 ring-blue-200/50 dark:ring-blue-800/50"
-                        />
-                        <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-sky-500 flex items-center justify-center ring-1 ring-background">
-                          <BadgeCheck className="h-2 w-2 text-white" />
+                        <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#00A6A6] to-[#14B8A6] flex items-center justify-center ring-1 ring-[#00A6A6]/30">
+                          <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                         </div>
                       </div>
                     )}
                     <div
-                      className={`max-w-[82%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed ${
+                      className={`max-w-[85%] sm:max-w-[82%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-[12px] sm:text-[13px] leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-gradient-to-br from-blue-800 to-indigo-800 text-white rounded-br-md shadow-md shadow-blue-700/20'
+                          ? 'bg-gradient-to-br from-[#0B1F3A] to-[#00A6A6] text-white rounded-br-md shadow-md shadow-[#00A6A6]/20'
                           : 'bg-muted/70 dark:bg-muted/50 rounded-bl-md border border-border/30'
                       }`}
                     >
@@ -607,8 +591,8 @@ export function AIChatWidget() {
                       )}
                     </div>
                     {msg.role === 'user' && (
-                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-700 to-indigo-700 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-blue-600/20">
-                        <User className="h-3.5 w-3.5 text-white" />
+                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#0B1F3A] to-[#00A6A6] flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-[#00A6A6]/20">
+                        <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                       </div>
                     )}
                   </motion.div>
@@ -620,25 +604,18 @@ export function AIChatWidget() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="flex gap-2.5 justify-start"
+                    className="flex gap-2 sm:gap-2.5 justify-start"
                   >
                     <div className="relative shrink-0">
-                      <Image
-                        src={AVATAR_SRC}
-                        alt="কর্মচারী"
-                        width={28}
-                        height={28}
-                        className="h-7 w-7 rounded-full object-cover ring-1 ring-blue-200/50 dark:ring-blue-800/50"
-                      />
-                      <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-sky-500 flex items-center justify-center ring-1 ring-background">
-                        <BadgeCheck className="h-2 w-2 text-white" />
+                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#00A6A6] to-[#14B8A6] flex items-center justify-center ring-1 ring-[#00A6A6]/30">
+                        <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                       </div>
                     </div>
                     <div className="bg-muted/70 dark:bg-muted/50 rounded-2xl rounded-bl-md px-4 py-3 border border-border/30">
                       <div className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce [animation-delay:0ms]" />
-                        <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce [animation-delay:150ms]" />
-                        <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce [animation-delay:300ms]" />
+                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
+                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
+                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
                       </div>
                     </div>
                   </motion.div>
@@ -647,17 +624,18 @@ export function AIChatWidget() {
 
               {/* ===== QUICK ACTIONS ===== */}
               <div
-                className="px-3 py-2 flex gap-1.5 overflow-x-auto shrink-0 border-t border-border/30"
+                className="px-2 sm:px-3 py-2 flex gap-1 sm:gap-1.5 overflow-x-auto shrink-0 border-t border-border/30"
                 style={{ scrollbarWidth: 'none' }}
               >
                 {quickActions.map(q => (
                   <button
                     key={q.label}
-                    className="cursor-pointer whitespace-nowrap text-[11px] shrink-0
-                      hover:bg-blue-50 dark:hover:bg-blue-950/40
-                      border border-border/60 hover:border-blue-300 dark:hover:border-blue-700
-                      transition-all active:scale-95 py-2 px-3.5 rounded-full bg-background
-                      font-medium text-foreground/80 hover:text-blue-800 dark:hover:text-blue-500"
+                    className="cursor-pointer whitespace-nowrap text-[10px] sm:text-[11px] shrink-0
+                      hover:bg-teal-50 dark:hover:bg-[#0B1F3A]/40
+                      border border-border/60 hover:border-[#00A6A6]/50 dark:hover:border-[#14B8A6]
+                      transition-all active:scale-95 py-1.5 sm:py-2 px-2.5 sm:px-3.5 rounded-full bg-background
+                      font-medium text-foreground/80 hover:text-[#0B1F3A] dark:hover:text-[#14B8A6]
+                      touch-manipulation"
                     onClick={() => {
                       sendMessage(q.action)
                     }}
@@ -668,7 +646,7 @@ export function AIChatWidget() {
               </div>
 
               {/* ===== INPUT AREA ===== */}
-              <div className="p-3 border-t border-border/30 shrink-0 bg-background/80 backdrop-blur-sm">
+              <div className="p-2 sm:p-3 border-t border-border/30 shrink-0 bg-background/80 backdrop-blur-sm">
                 <div className="flex gap-2 items-center">
                   <Input
                     ref={inputRef}
@@ -676,7 +654,7 @@ export function AIChatWidget() {
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="বাংলা, বাংলিশ বা English এ লিখুন..."
-                    className="h-11 text-base rounded-xl border-border/50 focus-visible:ring-blue-500/30"
+                    className="h-10 sm:h-11 text-sm sm:text-base rounded-xl border-border/50 focus-visible:ring-[#00A6A6]/30"
                     disabled={isLoading || cooldown}
                     style={{ fontSize: '16px' }}
                   />
@@ -684,7 +662,7 @@ export function AIChatWidget() {
                     size="icon"
                     onClick={() => sendMessage()}
                     disabled={!input.trim() || isLoading || cooldown}
-                    className="bg-gradient-to-r from-blue-800 to-indigo-800 hover:from-blue-900 hover:to-indigo-900 h-11 w-11 rounded-xl shadow-md shadow-blue-700/20 shrink-0"
+                    className="bg-gradient-to-r from-[#0B1F3A] to-[#00A6A6] hover:from-[#0B1F3A] hover:to-[#14B8A6] h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-[#00A6A6]/20 shrink-0 touch-manipulation"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

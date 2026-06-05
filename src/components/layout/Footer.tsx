@@ -17,10 +17,10 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-gradient-to-br from-teal-600 to-emerald-700 flex items-center justify-center" aria-hidden="true">
+              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-gradient-to-br from-[#0B1F3A] to-[#00A6A6] flex items-center justify-center" aria-hidden="true">
                 <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
-              <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-teal-700 to-emerald-700 bg-clip-text text-transparent" itemProp="name">
+              <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#00A6A6] to-[#14B8A6] bg-clip-text text-transparent" itemProp="name">
                 Streaming Hub
               </span>
             </div>
@@ -59,7 +59,7 @@ export function Footer() {
                 WhatsApp: {whatsappNumber}
               </a>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CreditCard className="h-4 w-4 text-teal-600" />
+                <CreditCard className="h-4 w-4 text-[#00A6A6]" />
                 Payment: {paymentNumber}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -74,7 +74,7 @@ export function Footer() {
             <h2 className="font-semibold text-xs sm:text-sm uppercase tracking-wider">Why Trust Us</h2>
             <div className="flex flex-col gap-2.5 sm:gap-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Shield className="h-4 w-4 text-teal-600" />
+                <Shield className="h-4 w-4 text-[#00A6A6]" />
                 Warranty Available
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -82,7 +82,7 @@ export function Footer() {
                 Fast Delivery
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CreditCard className="h-4 w-4 text-blue-500" />
+                <CreditCard className="h-4 w-4 text-[#00A6A6]" />
                 Secure Payment
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
