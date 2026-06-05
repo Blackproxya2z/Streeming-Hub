@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTheme } from 'next-themes'
 import { useAppStore } from '@/lib/store'
 import { useCategories } from '@/lib/hooks'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
-import { lockScroll, unlockScroll } from '@/components/shared/ScrollFix'
+// lockScroll/unlockScroll REMOVED — was causing scroll to get permanently stuck on mobile
 import Image from 'next/image'
 import {
   Search,
@@ -66,17 +66,8 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [localSearch, setLocalSearch] = useState('')
 
-  // Manual scroll lock for mobile menu sheet — since Sheet is modal={false}
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      lockScroll()
-    } else {
-      unlockScroll()
-    }
-    return () => {
-      if (isMobileMenuOpen) unlockScroll()
-    }
-  }, [isMobileMenuOpen])
+  // NOTE: No manual scroll lock. CSS :has() selector handles scroll lock when Sheet is open.
+  // Previous lockScroll/unlockScroll caused body.style.overflow='hidden' to get stuck permanently.
 
   const nonAdultCategories = (categories || []).filter(c => !c.isAdult)
   const adultCategory = (categories || []).find(c => c.isAdult)

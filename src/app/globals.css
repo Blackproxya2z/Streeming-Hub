@@ -123,20 +123,82 @@
     @apply border-border outline-ring/50;
   }
   html {
-    scroll-behavior: smooth;
+    /* NOTE: scroll-behavior: smooth REMOVED from html.
+       It was interfering with native touch scroll momentum on iOS Safari and Chrome.
+       Smooth scroll is now applied ONLY via JavaScript scrollTo({ behavior: 'smooth' })
+       in the store's navigate() function, which doesn't break touch scrolling. */
     overflow-y: auto;
-    overflow-x: hidden;
+    /* NOTE: overflow-x: hidden BREAKS touch scrolling on iOS Safari.
+       iOS Safari uses a single UIScrollView for both axes, and clipping one axis
+       can prevent the other from responding to touch events.
+       overflow-x: clip is the safe alternative that doesn't create a new stacking
+       context or break touch scroll. Supported in Chrome 90+, Firefox 81+, Safari 16+. */
+    overflow-x: clip;
   }
   body {
     @apply bg-background text-foreground;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: auto;
+    /* CRITICAL: Ensure body NEVER has overflow:hidden from stale JS.
+       The lockScroll/unlockScroll mechanism was removed because it got stuck.
+       This !important ensures any leftover inline styles are overridden.
+       But CSS-only scroll lock via :has() still overrides this when overlays are open. */
+    overflow-y: auto !important;
+    /* Prevent horizontal scroll on body without breaking iOS touch scroll */
+    overflow-x: clip;
   }
   /* CRITICAL: Only apply touch-action: manipulation to INTERACTIVE elements.
      Applying it to ALL elements (including div, main, section) breaks scroll
      event propagation on mobile browsers, especially iOS Safari and Chrome. */
   button, a, [role="button"], input, select, textarea, summary {
     touch-action: manipulation;
+  }
+}
+
+/* ========================================
+   CSS-ONLY SCROLL LOCK for overlays
+   ========================================
+   When a Sheet (mobile menu) is open, prevent background scrolling.
+   This replaces the JavaScript lockScroll/unlockScroll mechanism that
+   was causing body.style.overflow='hidden' to get stuck permanently.
+   
+   The :has() selector is supported in:
+   - Chrome 105+ (Aug 2022)
+   - Safari 15.4+ (Mar 2022)  
+   - Firefox 121+ (Dec 2023)
+   - Samsung Internet 17+ (2022)
+   This covers 95%+ of mobile browsers in Bangladesh.
+*/
+/* IMPORTANT: We use overflow-y instead of overflow to avoid overriding
+   overflow-x: clip on html/body. Using overflow: hidden !important would
+   reset overflow-x back to visible, potentially causing horizontal scroll.
+   This is a subtle but critical fix for iOS Safari touch scrolling. */
+html:has([data-state="open"][data-slot="sheet-content"]) {
+  overflow-y: hidden !important;
+}
+html:has([data-state="open"][data-slot="sheet-content"]) body {
+  overflow-y: hidden !important;
+}
+
+/* Also lock scroll when Dialog overlay is open on mobile (small screens) */
+@media (max-width: 639px) {
+  html:has([data-state="open"][data-slot="dialog-overlay"]) {
+    overflow-y: hidden !important;
+  }
+  html:has([data-state="open"][data-slot="dialog-overlay"]) body {
+    overflow-y: hidden !important;
+  }
+}
+
+/* Also lock scroll when AI chat widget is open on mobile.
+   The chat uses a fixed inset-0 overlay at z-[59] but doesn't use
+   Radix Dialog/Sheet, so we detect it by its own data attribute. */
+@media (max-width: 639px) {
+  html:has([data-chat-open="true"]) {
+    overflow-y: hidden !important;
+  }
+  html:has([data-chat-open="true"]) body {
+    overflow-y: hidden !important;
   }
 }
 

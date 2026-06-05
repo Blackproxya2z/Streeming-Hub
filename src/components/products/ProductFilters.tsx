@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAppStore } from '@/lib/store'
 import { useCategories } from '@/lib/hooks'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { lockScroll, unlockScroll } from '@/components/shared/ScrollFix'
+// lockScroll/unlockScroll REMOVED — was causing scroll to get permanently stuck on mobile
 import { SlidersHorizontal, X } from 'lucide-react'
 
 const sortOptions = [
@@ -24,17 +24,7 @@ export function ProductFiltersMobile() {
 
   const activeFilterCount = (filters.categorySlug ? 1 : 0) + (filters.sort && filters.sort !== 'popular' ? 1 : 0)
 
-  // Manual scroll lock — since Sheet is modal={false}
-  useEffect(() => {
-    if (sheetOpen) {
-      lockScroll()
-    } else {
-      unlockScroll()
-    }
-    return () => {
-      if (sheetOpen) unlockScroll()
-    }
-  }, [sheetOpen])
+  // NOTE: No manual scroll lock. CSS :has() selector handles scroll lock when Sheet is open.
 
   return (
     <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>

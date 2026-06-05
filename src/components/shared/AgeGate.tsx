@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import { useAppStore } from '@/lib/store'
-import { lockScroll, unlockScroll } from '@/components/shared/ScrollFix'
+// lockScroll/unlockScroll REMOVED — was causing scroll to get permanently stuck on mobile
 import {
   Dialog,
   DialogContent,
@@ -512,17 +512,8 @@ export function AgeGate() {
   const [wrongAttempt, setWrongAttempt] = useState(0)
   const [showConfetti, setShowConfetti] = useState(false)
 
-  // Manual scroll lock — since Dialog is modal={false}, we control scrolling ourselves
-  useEffect(() => {
-    if (ageGateOpen) {
-      lockScroll()
-    } else {
-      unlockScroll()
-    }
-    return () => {
-      if (ageGateOpen) unlockScroll()
-    }
-  }, [ageGateOpen])
+  // NOTE: No manual scroll lock. Dialog modal={false} + overlay prevents background interaction.
+  // Previous lockScroll/unlockScroll caused body.style.overflow='hidden' to get stuck permanently.
 
   const handleAgeConfirm = useCallback(() => {
     setStep('pin')

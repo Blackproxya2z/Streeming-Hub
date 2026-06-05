@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import { useSettings } from '@/lib/hooks'
 import { formatPriceBDT } from '@/lib/price'
@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { lockScroll, unlockScroll } from '@/components/shared/ScrollFix'
+// lockScroll/unlockScroll REMOVED — was causing scroll to get permanently stuck on mobile
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -51,17 +51,8 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
   const [email, setEmail] = useState('')
   const [bkashLastDigit, setBkashLastDigit] = useState('')
 
-  // Manual scroll lock — since Dialog is modal={false}
-  useEffect(() => {
-    if (open) {
-      lockScroll()
-    } else {
-      unlockScroll()
-    }
-    return () => {
-      if (open) unlockScroll()
-    }
-  }, [open])
+  // NOTE: No manual scroll lock. CSS :has() selector handles scroll lock when Dialog is open.
+  // Previous lockScroll/unlockScroll caused body.style.overflow='hidden' to get stuck permanently.
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text)

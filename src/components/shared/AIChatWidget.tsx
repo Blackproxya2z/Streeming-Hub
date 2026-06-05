@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { lockScroll, unlockScroll } from '@/components/shared/ScrollFix'
+// lockScroll/unlockScroll REMOVED — was causing scroll to get permanently stuck on mobile
 import {
   MessageCircle,
   X,
@@ -191,17 +191,8 @@ function processInlineFormatting(line: string): ReactNode[] {
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
 
-  // Manual scroll lock on mobile when chat is open
-  useEffect(() => {
-    if (isOpen) {
-      lockScroll()
-    } else {
-      unlockScroll()
-    }
-    return () => {
-      if (isOpen) unlockScroll()
-    }
-  }, [isOpen])
+  // NOTE: No manual scroll lock. Chat panel covers the screen and overlay prevents background interaction.
+  // Previous lockScroll/unlockScroll caused body.style.overflow='hidden' to get stuck permanently.
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -380,6 +371,9 @@ export function AIChatWidget() {
 
   return (
     <>
+      {/* Data attribute for CSS-only scroll lock when chat is open on mobile */}
+      <div data-chat-open={isOpen ? 'true' : undefined} aria-hidden="true" style={{ display: 'none' }} />
+
       {/* ===== Floating Chat Button (Fixed Bottom-Right) ===== */}
       <AnimatePresence>
         {!isOpen && (
