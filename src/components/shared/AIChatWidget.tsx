@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-// lockScroll/unlockScroll REMOVED — was causing scroll to get permanently stuck on mobile
 import {
   MessageCircle,
   X,
@@ -21,33 +20,45 @@ import {
   List,
   Phone,
   Sparkles,
+  Mic,
+  MicOff,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ProductCard {
+  id: string
+  name: string
+  slug: string
+  image: string | null
+  basePriceBDT: string
+  priceOptions: string
+  warranty: string | null
+  deliveryTime: string
+  stockStatus: string
+  category: { name: string; slug: string }
+}
 
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  products?: ProductCard[]
+  suggestions?: string[]
   whatsappUrl?: string
   timestamp: number
+  isStreaming?: boolean
 }
 
-interface ChatResponse {
-  response: string
-  whatsappUrl?: string
-  error?: string
-}
-
-// ─── Quick Actions (Sales-Focused) ───────────────────────────────────────────
+// ─── Quick Actions (Bengali, Sales-Focused) ──────────────────────────────────
 
 const quickActions = [
-  { label: '📋 Price List', action: 'সব ক্যাটাগরির দাম দেখাও', icon: List },
-  { label: '📦 Order Process', action: 'কীভাবে অর্ডার করবো?', icon: Zap },
-  { label: '💳 Payment Number', action: 'bKash number ki?', icon: CreditCard },
-  { label: '🔒 Warranty', action: 'warranty ki vabe pabo?', icon: Shield },
-  { label: '📞 Contact Support', action: 'WhatsApp number ki?', icon: Phone },
-  { label: '⭐ Best Sellers', action: 'ফিচার্ড প্রোডাক্ট দেখাও', icon: BadgeCheck },
+  { label: '📋 প্রাইস লিস্ট', action: 'সব ক্যাটাগরির দাম দেখাও' },
+  { label: '📦 অর্ডার করুন', action: 'কীভাবে অর্ডার করবো?' },
+  { label: '💳 bKash নম্বর', action: 'bKash number ki?' },
+  { label: '🔒 ওয়ারেন্টি', action: 'warranty ki vabe pabo?' },
+  { label: '📞 যোগাযোগ', action: 'WhatsApp number ki?' },
+  { label: '⭐ বেস্ট সেলার', action: 'ফিচার্ড প্রোডাক্ট দেখাও' },
 ]
 
 // ─── Trust Indicators ─────────────────────────────────────────────────────────
@@ -59,7 +70,7 @@ const trustIndicators = [
   { icon: BadgeCheck, label: 'Verified' },
 ]
 
-// ─── Typewriter Messages ─────────────────────────────────────────────────────
+// ─── Typewriter Messages (8 Rotating Bengali) ────────────────────────────────
 
 const typewriterMessages = [
   '👋 আমি কর্মচারী — বলুন কী লাগবে!',
@@ -82,6 +93,25 @@ const KORMOCHARY_GREETING = `আসসালামু আলাইকুম! �
 🔒 VPN, AI Tools, আরও অনেক কিছু!
 
 কী লাগবে বলুন — সেরা ডিল খুঁজে দেবো! 😊`
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getCheapestPrice(product: ProductCard): string {
+  try {
+    const opts = JSON.parse(product.priceOptions || '[]')
+    if (Array.isArray(opts) && opts.length > 0) {
+      const sorted = [...opts].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+        const priceA = parseInt(String(a.priceBDT).replace(/\D/g, '') || '0')
+        const priceB = parseInt(String(b.priceBDT).replace(/\D/g, '') || '0')
+        return priceA - priceB
+      })
+      return String(sorted[0].priceBDT)
+    }
+  } catch {
+    // fallback to base price
+  }
+  return product.basePriceBDT
+}
 
 // ─── formatMessage: Markdown-like text → React elements ──────────────────────
 
@@ -149,7 +179,7 @@ function processInlineFormatting(line: string): ReactNode[] {
         elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, boldMatch.index)}</span>)
       }
       elements.push(
-        <strong key={`b-${keyIdx++}`} className="font-semibold text-[#0f172a] dark:text-[#34d399]">
+        <strong key={`b-${keyIdx++}`} className="font-semibold text-[#0B1F3A] dark:text-[#34d399]">
           {boldMatch[1]}
         </strong>
       )
@@ -169,7 +199,7 @@ function processInlineFormatting(line: string): ReactNode[] {
           href={linkMatch[2]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#10b981] dark:text-[#34d399] underline underline-offset-2 hover:text-[#0f172a] dark:hover:text-[#f59e0b] transition-colors"
+          className="text-[#00A6A6] dark:text-[#34d399] underline underline-offset-2 hover:text-[#0B1F3A] dark:hover:text-[#F5B301] transition-colors"
         >
           {linkMatch[1]}
         </a>
@@ -186,14 +216,88 @@ function processInlineFormatting(line: string): ReactNode[] {
   return elements
 }
 
+// ─── Product Card Component ──────────────────────────────────────────────────
+
+function ProductCardItem({ product }: { product: ProductCard }) {
+  const cheapestPrice = getCheapestPrice(product)
+  const whatsappUrl = `https://wa.me/8801647236359?text=${encodeURIComponent(`🛒 Order: ${product.name} — ${cheapestPrice}`)}`
+  const initial = product.name.charAt(0).toUpperCase()
+
+  return (
+    <div className="rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 bg-background border border-border/40 overflow-hidden">
+      <div className="flex items-center gap-3 p-3">
+        {/* Image or gradient placeholder */}
+        <div className="h-12 w-12 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-[#00A6A6] to-[#0B1F3A] flex items-center justify-center">
+          {product.image ? (
+            <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-white font-bold text-lg">{initial}</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold truncate">{product.name}</p>
+          <p className="text-xs text-muted-foreground">{product.category.name}</p>
+        </div>
+        <div className="bg-gradient-to-r from-[#00A6A6] to-emerald-500 text-white px-2.5 py-1 rounded-lg text-sm font-bold shrink-0">
+          ৳{cheapestPrice}
+        </div>
+      </div>
+      <div className="px-3 pb-3">
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 w-full py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-semibold transition-all active:scale-95"
+        >
+          <MessageCircle className="h-3.5 w-3.5" />
+          WhatsApp এ অর্ডার
+        </a>
+      </div>
+    </div>
+  )
+}
+
+// ─── AI Avatar Component ─────────────────────────────────────────────────────
+
+function AIAvatar({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
+  const sizeClasses = {
+    sm: 'h-6 w-6 sm:h-7 sm:w-7',
+    md: 'h-10 w-10 sm:h-11 sm:w-11',
+    lg: 'h-12 w-12',
+  }
+  const iconSizes = {
+    sm: 'h-3 w-3 sm:h-3.5 sm:w-3.5',
+    md: 'h-5 w-5 sm:h-6 sm:w-6',
+    lg: 'h-7 w-7',
+  }
+
+  return (
+    <div
+      className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-[#00A6A6] to-[#0B1F3A] flex items-center justify-center ring-1 ring-[#00A6A6]/30 overflow-hidden`}
+    >
+      {/* Try to load avatar image, fallback to Sparkles */}
+      <img
+        src="/assistant-avatar.png"
+        alt="কর্মচারী"
+        className="h-full w-full object-cover hidden"
+        onLoad={(e) => {
+          ;(e.target as HTMLImageElement).classList.remove('hidden')
+          ;(e.target as HTMLImageElement).nextElementSibling?.classList.add('hidden')
+        }}
+        onError={(e) => {
+          ;(e.target as HTMLImageElement).classList.add('hidden')
+          ;(e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden')
+        }}
+      />
+      <Sparkles className={`${iconSizes[size]} text-white`} />
+    </div>
+  )
+}
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
-
-  // NOTE: No manual scroll lock. Chat panel covers the screen and overlay prevents background interaction.
-  // Previous lockScroll/unlockScroll caused body.style.overflow='hidden' to get stuck permanently.
-
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
@@ -207,7 +311,21 @@ export function AIChatWidget() {
   const [currentMsgIndex, setCurrentMsgIndex] = useState(0)
   const [displayedText, setDisplayedText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
-  const [hasInteracted, setHasInteracted] = useState(false)
+
+  // Voice input state
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef<{ current: unknown } | null>(null)
+  const sendMessageRef = useRef<(msg?: string) => Promise<void>>()
+
+  // Check speech support once at mount
+  const [speechSupported] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return !!(
+      (window as unknown as Record<string, unknown>)['SpeechRecognition'] ||
+      (window as unknown as Record<string, unknown>)['webkitSpeechRecognition']
+    )
+  })
+
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastSentRef = useRef<number>(0)
@@ -264,7 +382,7 @@ export function AIChatWidget() {
     }
   }, [isOpen])
 
-  // ── Send message handler ──
+  // ── Send message handler (with SSE streaming) ──
   const sendMessage = useCallback(async (overrideMessage?: string) => {
     const trimmed = (overrideMessage || input).trim()
     if (!trimmed || isLoading || cooldown) return
@@ -278,7 +396,6 @@ export function AIChatWidget() {
       return
     }
     lastSentRef.current = now
-    setHasInteracted(true)
 
     const userMessage: ChatMessage = {
       role: 'user',
@@ -288,6 +405,13 @@ export function AIChatWidget() {
     setMessages(prev => [...prev, userMessage])
     if (!overrideMessage) setInput('')
     setIsLoading(true)
+
+    // Add empty streaming assistant message
+    const assistantTimestamp = Date.now()
+    setMessages(prev => [
+      ...prev,
+      { role: 'assistant', content: '', timestamp: assistantTimestamp, isStreaming: true },
+    ])
 
     try {
       const history = messages.slice(-10).map(m => ({
@@ -307,46 +431,177 @@ export function AIChatWidget() {
 
       // Handle rate limiting
       if (res.status === 429) {
-        const assistantMessage: ChatMessage = {
-          role: 'assistant',
-          content:
-            '⏳ একটু ব্যস্ত আছি, কিছুক্ষণ পর আবার চেষ্টা করুন। অথবা সরাসরি WhatsApp এ যোগাযোগ করুন: +8801647236359 💬',
-          whatsappUrl:
-            'https://wa.me/8801647236359?text=' +
-            encodeURIComponent('Hi, Streaming Hub এ সাহায্য দরকার'),
-          timestamp: Date.now(),
-        }
-        setMessages(prev => [...prev, assistantMessage])
+        setMessages(prev => {
+          const updated = [...prev]
+          const lastIdx = updated.length - 1
+          if (updated[lastIdx]?.role === 'assistant') {
+            updated[lastIdx] = {
+              ...updated[lastIdx],
+              content: '⏳ একটু ব্যস্ত আছি, কিছুক্ষণ পর আবার চেষ্টা করুন। অথবা সরাসরি WhatsApp এ যোগাযোগ করুন: +8801647236359 💬',
+              whatsappUrl: 'https://wa.me/8801647236359?text=' + encodeURIComponent('Hi, Streaming Hub এ সাহায্য দরকার'),
+              isStreaming: false,
+            }
+          }
+          return updated
+        })
         setIsLoading(false)
         return
       }
 
       if (!res.ok) throw new Error('Failed to get response')
 
-      const data: ChatResponse = await res.json()
+      const reader = res.body?.getReader()
+      if (!reader) throw new Error('No reader available')
 
-      const assistantMessage: ChatMessage = {
-        role: 'assistant',
-        content: data.response || 'দুঃখিত, বুঝতে পারিনি। আবার লিখে চেষ্টা করুন।',
-        whatsappUrl: data.whatsappUrl,
-        timestamp: Date.now(),
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          try {
+            const data = JSON.parse(line.slice(6))
+
+            if (data.type === 'token' && data.content) {
+              setMessages(prev => {
+                const updated = [...prev]
+                const lastIdx = updated.length - 1
+                if (updated[lastIdx]?.role === 'assistant' && updated[lastIdx].isStreaming) {
+                  updated[lastIdx] = {
+                    ...updated[lastIdx],
+                    content: updated[lastIdx].content + data.content,
+                  }
+                }
+                return updated
+              })
+            } else if (data.type === 'products') {
+              setMessages(prev => {
+                const updated = [...prev]
+                const lastIdx = updated.length - 1
+                if (updated[lastIdx]?.role === 'assistant') {
+                  updated[lastIdx] = { ...updated[lastIdx], products: data.products }
+                }
+                return updated
+              })
+            } else if (data.type === 'suggestions') {
+              setMessages(prev => {
+                const updated = [...prev]
+                const lastIdx = updated.length - 1
+                if (updated[lastIdx]?.role === 'assistant') {
+                  updated[lastIdx] = { ...updated[lastIdx], suggestions: data.suggestions }
+                }
+                return updated
+              })
+            } else if (data.type === 'done') {
+              setMessages(prev => {
+                const updated = [...prev]
+                const lastIdx = updated.length - 1
+                if (updated[lastIdx]?.role === 'assistant') {
+                  updated[lastIdx] = {
+                    ...updated[lastIdx],
+                    isStreaming: false,
+                    whatsappUrl: data.whatsappUrl,
+                  }
+                }
+                return updated
+              })
+            }
+          } catch {
+            // ignore parse errors for malformed SSE events
+          }
+        }
       }
-      setMessages(prev => [...prev, assistantMessage])
+
+      // If stream ended without 'done', mark as not streaming
+      setMessages(prev => {
+        const updated = [...prev]
+        const lastIdx = updated.length - 1
+        if (updated[lastIdx]?.role === 'assistant' && updated[lastIdx].isStreaming) {
+          updated[lastIdx] = { ...updated[lastIdx], isStreaming: false }
+        }
+        return updated
+      })
     } catch {
-      const errorMessage: ChatMessage = {
-        role: 'assistant',
-        content:
-          '❌ সংযোগে সমস্যা হচ্ছে। আবার চেষ্টা করুন অথবা WhatsApp এ যোগাযোগ করুন: +8801647236359',
-        whatsappUrl:
-          'https://wa.me/8801647236359?text=' +
-          encodeURIComponent('Hi, Streaming Hub এ সাহায্য দরকার'),
-        timestamp: Date.now(),
-      }
-      setMessages(prev => [...prev, errorMessage])
+      setMessages(prev => {
+        const updated = [...prev]
+        const lastIdx = updated.length - 1
+        if (updated[lastIdx]?.role === 'assistant') {
+          updated[lastIdx] = {
+            ...updated[lastIdx],
+            content: '❌ সংযোগে সমস্যা হচ্ছে। আবার চেষ্টা করুন অথবা WhatsApp এ যোগাযোগ করুন: +8801647236359',
+            isStreaming: false,
+          }
+        }
+        return updated
+      })
     } finally {
       setIsLoading(false)
     }
   }, [input, isLoading, cooldown, messages])
+
+  // ── Keep sendMessage ref updated for voice input ──
+  useEffect(() => {
+    sendMessageRef.current = sendMessage
+  }, [sendMessage])
+
+  // ── Initialize Speech Recognition (after sendMessage is defined) ──
+  useEffect(() => {
+    if (!speechSupported) return
+    const SR = (window as unknown as Record<string, unknown>)['SpeechRecognition'] ||
+      (window as unknown as Record<string, unknown>)['webkitSpeechRecognition']
+    if (!SR) return
+
+    const recognition = new (SR as new () => SpeechRecognition)()
+    recognition.lang = 'bn-BD'
+    recognition.continuous = false
+    recognition.interimResults = true
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript
+      setInput(transcript)
+      if (event.results[0].isFinal) {
+        setIsListening(false)
+        // Auto-send after final result using ref
+        setTimeout(() => {
+          sendMessageRef.current?.(transcript)
+        }, 100)
+      }
+    }
+
+    recognition.onerror = () => {
+      setIsListening(false)
+    }
+
+    recognition.onend = () => {
+      setIsListening(false)
+    }
+
+    recognitionRef.current = recognition
+  }, [speechSupported])
+
+  const toggleListening = useCallback(() => {
+    const recognition = recognitionRef.current
+    if (!recognition) return
+    if (isListening) {
+      ;(recognition as unknown as { stop: () => void }).stop()
+      setIsListening(false)
+    } else {
+      try {
+        ;(recognition as unknown as { start: () => void }).start()
+        setIsListening(true)
+      } catch {
+        // Already started or not available
+        setIsListening(false)
+      }
+    }
+  }, [isListening])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -365,15 +620,16 @@ export function AIChatWidget() {
     ])
   }
 
+  const handleSuggestionClick = (suggestion: string) => {
+    sendMessage(suggestion)
+  }
+
   // ──────────────────────────────────────────────────────────────────────────────
   // RENDER
   // ──────────────────────────────────────────────────────────────────────────────
 
   return (
     <>
-      {/* Data attribute for CSS-only scroll lock when chat is open on mobile */}
-      <div data-chat-open={isOpen ? 'true' : undefined} aria-hidden="true" style={{ display: 'none' }} />
-
       {/* ===== Floating Chat Button (Fixed Bottom-Right) ===== */}
       <AnimatePresence>
         {!isOpen && (
@@ -386,30 +642,30 @@ export function AIChatWidget() {
             exit={{ opacity: 0, scale: 0.5, y: 20 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           >
-            {/* Typewriter Message Bubble — desktop only (to the LEFT of the button) */}
+            {/* Typewriter Message Bubble — desktop only */}
             <motion.div
               initial={{ opacity: 0, x: 10, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.8 }}
-              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-2xl px-4 py-2.5 max-w-[260px] cursor-pointer hover:shadow-xl hover:border-[#10b981]/50 transition-all group/bubble relative"
+              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-2xl px-4 py-2.5 max-w-[260px] cursor-pointer hover:shadow-xl hover:border-[#00A6A6]/50 transition-all group/bubble relative"
               onClick={() => setIsOpen(true)}
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground leading-snug">
                   {displayedText}
                   {isTyping && (
-                    <span className="inline-block w-[2px] h-4 bg-[#10b981] ml-0.5 align-middle animate-pulse" />
+                    <span className="inline-block w-[2px] h-4 bg-[#00A6A6] ml-0.5 align-middle animate-pulse" />
                   )}
                 </p>
               </div>
               {isTyping && (
                 <div className="flex items-center gap-[3px] shrink-0">
-                  <span className="h-1 w-1 rounded-full bg-[#10b981] animate-bounce [animation-delay:0ms]" />
-                  <span className="h-1 w-1 rounded-full bg-[#10b981] animate-bounce [animation-delay:150ms]" />
-                  <span className="h-1 w-1 rounded-full bg-[#10b981] animate-bounce [animation-delay:300ms]" />
+                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
+                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
+                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
                 </div>
               )}
-              {/* Speech bubble arrow pointing right toward the button */}
+              {/* Speech bubble arrow */}
               <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-0 h-0
                 border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent border-l-[9px] border-l-border/60" />
               <div className="absolute -right-[5px] top-1/2 -translate-y-1/2 w-0 h-0
@@ -423,35 +679,35 @@ export function AIChatWidget() {
                 w-14 h-14
                 sm:w-[60px] sm:h-[60px]
                 rounded-full
-                bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#10b981]
-                hover:from-[#0f172a] hover:via-[#0f172a] hover:to-[#34d399]
+                bg-gradient-to-br from-[#0B1F3A] via-[#0f172a] to-[#00A6A6]
+                hover:from-[#0B1F3A] hover:via-[#0f172a] hover:to-[#10b981]
                 text-white shadow-lg hover:shadow-2xl
                 transition-all active:scale-90 group
-                ring-2 ring-[#10b981]/20
+                ring-2 ring-[#00A6A6]/20
                 touch-manipulation"
               aria-label="Chat with কর্মচারী — AI Assistant"
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.9 }}
             >
-              {/* Subtle glow animation */}
-              <span className="absolute inset-[-4px] rounded-full bg-[#10b981]/20 animate-pulse [animation-duration:2s]" />
-              <span className="absolute inset-0 rounded-full bg-[#10b981]/25 animate-ping [animation-duration:2.5s]" />
+              {/* Glow animation */}
+              <span className="absolute inset-[-4px] rounded-full bg-[#00A6A6]/20 animate-pulse [animation-duration:2s]" />
+              <span className="absolute inset-0 rounded-full bg-[#00A6A6]/25 animate-ping [animation-duration:2.5s]" />
 
-              {/* Icon inside the button — use Sparkles icon as fallback when no avatar image */}
+              {/* Icon inside the button */}
               <span className="relative z-10 flex items-center justify-center">
                 <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-white drop-shadow-lg" />
               </span>
 
-              {/* Notification badge — top right */}
-              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-amber-400 border-[2.5px] border-background shadow-sm flex items-center justify-center">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-800 animate-pulse" />
+              {/* Notification badge */}
+              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-[#F5B301] border-[2.5px] border-background shadow-sm flex items-center justify-center">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#0B1F3A] animate-pulse" />
               </span>
             </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ===== Chat Window (Fixed Bottom-Right) ===== */}
+      {/* ===== Chat Window ===== */}
       <AnimatePresence>
         {isOpen && (
           <>
@@ -472,37 +728,35 @@ export function AIChatWidget() {
               exit={{ opacity: 0, y: 40, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               className="fixed z-[60] flex flex-col bg-background border border-border/50 shadow-2xl overflow-hidden
-                inset-x-0 bottom-0 h-[85dvh] rounded-t-2xl
+                inset-x-0 bottom-0 h-[100dvh] rounded-t-2xl
                 sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
             >
               {/* ===== HEADER ===== */}
-              <div className="relative bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#10b981] text-white p-3 sm:p-4 flex items-center justify-between shrink-0 overflow-hidden">
+              <div className="relative bg-gradient-to-r from-[#0B1F3A] via-[#0f172a] to-[#00A6A6] text-white p-3 sm:p-4 flex items-center justify-between shrink-0 overflow-hidden">
                 {/* Decorative circles */}
                 <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/5" />
                 <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
 
                 <div className="flex items-center gap-2.5 sm:gap-3 relative z-10">
                   <div className="relative">
-                    <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gradient-to-br from-[#10b981] to-[#34d399] flex items-center justify-center ring-2 ring-white/30 shadow-md">
-                      <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                    </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-[#10b981] flex items-center justify-center ring-2 ring-[#0f172a]">
+                    <AIAvatar size="md" />
+                    {/* Green "Online" status indicator dot */}
+                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-[#0B1F3A] shadow-[0_0_6px_rgba(16,185,129,0.6)]">
                       <BadgeCheck className="h-2.5 w-2.5 text-white" />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
                       <h3 className="font-bold text-sm sm:text-base tracking-tight">কর্মচারী</h3>
-                      <BadgeCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#f59e0b]" />
                       <Badge
                         variant="secondary"
-                        className="text-[9px] sm:text-[10px] font-semibold bg-white/15 text-white border-0 rounded-full px-1.5 sm:px-2 py-0 h-4 sm:h-5"
+                        className="text-[9px] sm:text-[10px] font-semibold bg-[#F5B301]/20 text-[#F5B301] border-0 rounded-full px-1.5 sm:px-2 py-0 h-4 sm:h-5"
                       >
-                        AI Sales Assistant
+                        AI Assistant
                       </Badge>
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="h-2 w-2 rounded-full bg-green-300 animate-pulse" />
+                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
                       <p className="text-[10px] sm:text-[11px] text-slate-200 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
                     </div>
                   </div>
@@ -531,12 +785,12 @@ export function AIChatWidget() {
               </div>
 
               {/* ===== TRUST INDICATORS BAR ===== */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-slate-50/50 dark:bg-[#0f172a]/20 border-b border-border/30 shrink-0">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-slate-50/50 dark:bg-[#0B1F3A]/20 border-b border-border/30 shrink-0">
                 {trustIndicators.map((item, idx) => {
                   const Icon = item.icon
                   return (
                     <div key={item.label} className="flex items-center gap-1">
-                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-[#0f172a] dark:text-[#34d399] font-medium">
+                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-[#0B1F3A] dark:text-[#00A6A6] font-medium">
                         <Icon className="h-2.5 w-2.5" />
                         <span>{item.label}</span>
                       </div>
@@ -554,7 +808,7 @@ export function AIChatWidget() {
                 className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 overscroll-contain scroll-smooth"
                 style={{
                   scrollbarWidth: 'thin',
-                  scrollbarColor: 'rgb(16 185 129 / 0.3) transparent',
+                  scrollbarColor: 'rgb(0 166 166 / 0.3) transparent',
                   WebkitOverflowScrolling: 'touch',
                 }}
               >
@@ -568,46 +822,92 @@ export function AIChatWidget() {
                   >
                     {msg.role === 'assistant' && (
                       <div className="relative shrink-0 mt-0.5">
-                        <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#10b981] to-[#34d399] flex items-center justify-center ring-1 ring-[#10b981]/30">
-                          <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
-                        </div>
+                        <AIAvatar size="sm" />
                       </div>
                     )}
                     <div
                       className={`max-w-[85%] sm:max-w-[82%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-[12px] sm:text-[13px] leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-gradient-to-br from-[#0f172a] to-[#10b981] text-white rounded-br-md shadow-md shadow-[#10b981]/20'
+                          ? 'bg-gradient-to-br from-[#0B1F3A] to-[#00A6A6] text-white rounded-br-md shadow-md shadow-[#00A6A6]/20'
                           : 'bg-muted/70 dark:bg-muted/50 rounded-bl-md border border-border/30'
                       }`}
                     >
                       {msg.role === 'assistant' ? (
-                        <div className="whitespace-pre-wrap">{formatMessage(msg.content)}</div>
+                        <>
+                          {/* Text content */}
+                          <div className="whitespace-pre-wrap">
+                            {msg.isStreaming && !msg.content ? (
+                              // Show typing dots while streaming with no content yet
+                              <span className="inline-flex items-center gap-1">
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
+                              </span>
+                            ) : (
+                              formatMessage(msg.content)
+                            )}
+                            {msg.isStreaming && msg.content && (
+                              <span className="inline-block w-[2px] h-3.5 bg-[#00A6A6] ml-0.5 align-middle animate-pulse" />
+                            )}
+                          </div>
+
+                          {/* Product cards */}
+                          {msg.products && msg.products.length > 0 && !msg.isStreaming && (
+                            <div className="mt-3 space-y-2">
+                              {msg.products.slice(0, 4).map(product => (
+                                <ProductCardItem key={product.id} product={product} />
+                              ))}
+                              {msg.products.length > 4 && (
+                                <p className="text-[10px] text-muted-foreground text-center italic">
+                                  আরও {msg.products.length - 4}টি প্রোডাক্ট দেখুন...
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Suggestions */}
+                          {msg.suggestions && msg.suggestions.length > 0 && !msg.isStreaming && (
+                            <div className="mt-3 flex flex-wrap gap-1.5">
+                              {msg.suggestions.slice(0, 3).map((suggestion, sIdx) => (
+                                <button
+                                  key={`sug-${sIdx}`}
+                                  onClick={() => handleSuggestionClick(suggestion)}
+                                  className="cursor-pointer text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full border border-[#00A6A6]/30 bg-[#00A6A6]/5 hover:bg-[#00A6A6]/15 text-[#0B1F3A] dark:text-[#00A6A6] hover:border-[#00A6A6]/60 transition-all active:scale-95 font-medium"
+                                >
+                                  {suggestion}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* WhatsApp button */}
+                          {msg.whatsappUrl && !msg.isStreaming && (
+                            <a
+                              href={msg.whatsappUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-xs font-semibold transition-all shadow-sm hover:shadow-md active:scale-95"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5" />
+                              WhatsApp এ অর্ডার করুন
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                        </>
                       ) : (
                         <p className="whitespace-pre-wrap">{msg.content}</p>
                       )}
-                      {msg.whatsappUrl && (
-                        <a
-                          href={msg.whatsappUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-xs font-semibold transition-all shadow-sm hover:shadow-md active:scale-95"
-                        >
-                          <MessageCircle className="h-3.5 w-3.5" />
-                          WhatsApp এ অর্ডার করুন
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
                     </div>
                     {msg.role === 'user' && (
-                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#0f172a] to-[#10b981] flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-[#10b981]/20">
+                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#0B1F3A] to-[#00A6A6] flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-[#00A6A6]/20">
                         <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                       </div>
                     )}
                   </motion.div>
                 ))}
 
-                {/* Typing indicator */}
-                {isLoading && (
+                {/* Typing indicator — only show when loading and last message isn't streaming */}
+                {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -615,15 +915,13 @@ export function AIChatWidget() {
                     className="flex gap-2 sm:gap-2.5 justify-start"
                   >
                     <div className="relative shrink-0">
-                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#10b981] to-[#34d399] flex items-center justify-center ring-1 ring-[#10b981]/30">
-                        <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
-                      </div>
+                      <AIAvatar size="sm" />
                     </div>
                     <div className="bg-muted/70 dark:bg-muted/50 rounded-2xl rounded-bl-md px-4 py-3 border border-border/30">
                       <div className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-[#10b981] animate-bounce [animation-delay:0ms]" />
-                        <span className="h-2 w-2 rounded-full bg-[#10b981] animate-bounce [animation-delay:150ms]" />
-                        <span className="h-2 w-2 rounded-full bg-[#10b981] animate-bounce [animation-delay:300ms]" />
+                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
+                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
+                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
                       </div>
                     </div>
                   </motion.div>
@@ -639,14 +937,12 @@ export function AIChatWidget() {
                   <button
                     key={q.label}
                     className="cursor-pointer whitespace-nowrap text-[10px] sm:text-[11px] shrink-0
-                      hover:bg-emerald-50 dark:hover:bg-[#0f172a]/40
-                      border border-border/60 hover:border-[#10b981]/50 dark:hover:border-[#34d399]
+                      hover:bg-[#00A6A6]/5 dark:hover:bg-[#0B1F3A]/40
+                      border border-border/60 hover:border-[#00A6A6]/50 dark:hover:border-[#00A6A6]
                       transition-all active:scale-95 py-1.5 sm:py-2 px-2.5 sm:px-3.5 rounded-full bg-background
-                      font-medium text-foreground/80 hover:text-[#0f172a] dark:hover:text-[#34d399]
+                      font-medium text-foreground/80 hover:text-[#0B1F3A] dark:hover:text-[#00A6A6]
                       touch-manipulation"
-                    onClick={() => {
-                      sendMessage(q.action)
-                    }}
+                    onClick={() => sendMessage(q.action)}
                   >
                     {q.label}
                   </button>
@@ -662,15 +958,42 @@ export function AIChatWidget() {
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="বাংলা, বাংলিশ বা English এ লিখুন..."
-                    className="h-10 sm:h-11 text-sm sm:text-base rounded-xl border-border/50 focus-visible:ring-[#10b981]/30"
+                    className="h-10 sm:h-11 text-sm sm:text-base rounded-xl border-border/50 focus-visible:ring-[#00A6A6]/30"
                     disabled={isLoading || cooldown}
                     style={{ fontSize: '16px' }}
                   />
+
+                  {/* Voice Input Button */}
+                  {speechSupported && (
+                    <button
+                      onClick={toggleListening}
+                      disabled={isLoading}
+                      className={`relative shrink-0 h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center transition-all active:scale-95 touch-manipulation ${
+                        isListening
+                          ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30'
+                          : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border/50'
+                      }`}
+                      aria-label={isListening ? 'ভয়েস ইনপুট বন্ধ করুন' : 'ভয়েস ইনপুট শুরু করুন'}
+                    >
+                      {isListening ? (
+                        <>
+                          {/* Pulsing red ring animation */}
+                          <span className="absolute inset-[-3px] rounded-xl bg-red-500/30 animate-ping" />
+                          <span className="absolute inset-[-6px] rounded-xl bg-red-500/15 animate-pulse" />
+                          <MicOff className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" />
+                        </>
+                      ) : (
+                        <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
+                      )}
+                    </button>
+                  )}
+
+                  {/* Send Button */}
                   <Button
                     size="icon"
                     onClick={() => sendMessage()}
                     disabled={!input.trim() || isLoading || cooldown}
-                    className="bg-gradient-to-r from-[#0f172a] to-[#10b981] hover:from-[#0f172a] hover:to-[#34d399] h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-[#10b981]/20 shrink-0 touch-manipulation"
+                    className="bg-gradient-to-r from-[#0B1F3A] to-[#00A6A6] hover:from-[#0B1F3A] hover:to-[#10b981] h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-[#00A6A6]/20 shrink-0 touch-manipulation"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
