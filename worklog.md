@@ -1,78 +1,72 @@
 ---
 Task ID: 1
-Agent: Main Agent
-Task: Find and fix the ROOT CAUSE of touch scrolling not working on mobile (4th time reported)
+Agent: Main Orchestrator
+Task: Examine current project structure and existing files
 
 Work Log:
-- Pulled latest code from GitHub
-- Deep-dive analysis of ALL components: AgeGate, Header/Sheet, AIChatWidget, OrderDialog, ProductFilters, Dialog, Sheet, ScrollFix, globals.css
-- Discovered ROOT CAUSE: The lockScroll()/unlockScroll() JavaScript functions in ScrollFix.tsx used a global counter mechanism that was called by 5 different components. Race conditions between these components caused document.body.style.overflow = 'hidden' to get permanently stuck
-- Previous CSS-only fixes (touch-action, overflow rules, ScrollFix simplification) failed because the problem was JavaScript setting inline styles at runtime
-- Found additional issues: overflow-x: hidden breaks iOS Safari touch scrolling, scroll-behavior: smooth interferes with touch momentum
-
-Fixes Applied:
-1. Removed ALL lockScroll/unlockScroll JavaScript calls from 5 components (AgeGate, Header, AIChatWidget, OrderDialog, ProductFilters)
-2. Replaced with CSS-only scroll locking using :has() selector for Sheet, Dialog, and AI Chat Widget
-3. Changed overflow-x: hidden → overflow-x: clip (prevents iOS Safari touch scroll break)
-4. Removed scroll-behavior: smooth from html (interfered with touch momentum on mobile)
-5. Added body { overflow-y: auto !important } to prevent stale inline styles from blocking scroll
-6. Added data-chat-open sentinel element for AI Chat Widget CSS scroll lock
-7. Rewrote ScrollFix as active safety net that cleans up stale inline styles every 2s + on visibilitychange + on touchstart
-8. All CSS scroll lock rules use overflow-y instead of overflow to preserve overflow-x: clip
+- Read all project files: route.ts, AIChatWidget.tsx, data.ts, AgeGate.tsx, ScrollFix.tsx, dialog.tsx, globals.css
+- Analyzed the existing chat system (SSE streaming, intent detection, product context)
+- Identified the voice agent features needed (dynamic STT/TTS, language matching)
+- Identified the CSS :not(:has()) compound selector bug in scroll fix
 
 Stage Summary:
-- Root cause identified and fixed: JavaScript lockScroll/unlockScroll mechanism was getting stuck
-- Deployed to GitHub/Vercel: commit 7353160
-- Color/design improvements also deployed: commit 3c15a15
+- Complete understanding of all existing code
+- Identified critical CSS bug in scroll unlock rules
+- Mapped out all changes needed for voice-to-voice upgrade
 
 ---
 Task ID: 2
-Agent: Frontend Styling Expert
-Task: Improve color combination and creative design
+Agent: full-stack-developer
+Task: Update Backend API Route to add detectedLang in SSE done event
 
 Work Log:
-- Updated CSS color variables in globals.css for both light and dark modes
-- Light mode: Subtle teal-tinted background, deeper saturated primary, warm coral accent
-- Dark mode: Deeper rich charcoal background, vivid teal/coral that pops
-- HeroSection: Animated gradient background with teal+coral+magenta floating orbs
-- CategoryCards: Enhanced hover with teal+coral glow effect
-- ProductCard: Gradient border on hover (teal→coral), glow shadow
-- Header: Animated gradient accent line at bottom
-- Footer: Animated gradient top border
-- AnnouncementBar: Richer gradient
-- WhyChooseUs: Vibrant feature card gradients with hover glow
-- Added new CSS utilities: animate-gradient, glow-teal, card-gradient-border, category-glow, etc.
+- Modified src/app/api/chat/route.ts line 411
+- Changed `send({ type: 'done', whatsappUrl })` to `send({ type: 'done', whatsappUrl, detectedLang: lang })`
+- Verified with lint (passes)
 
 Stage Summary:
-- Color theme completely overhauled from flat Slate/Emerald/Amber to vibrant Teal/Coral/Magenta
-- All brand colors (#10b981 emerald, bKash pink, Nagad orange, WhatsApp green) preserved
-- Deployed to GitHub/Vercel: commit 3c15a15
+- Backend now returns `detectedLang` field ('bangla'|'banglish'|'english') in SSE done event
+- Frontend TTS can use this to match the response language
 
 ---
 Task ID: 3
-Agent: Bug Fix Agent
-Task: Fix Chat API Timeout (20s hang) and Scrolling/Touch Bug (5th+ time reported)
+Agent: Main Orchestrator
+Task: Rebuild Frontend Chat Widget with full voice-to-voice capabilities
 
 Work Log:
-- Read worklog.md to understand previous agents' work (Task 1 & 2)
-- Analyzed all relevant files: route.ts, AgeGate.tsx, dialog.tsx, sheet.tsx, globals.css, ScrollFix.tsx
-
-Fix 1: Chat API Timeout (src/app/api/chat/route.ts)
-- Added `withTimeout<T>` utility function that wraps a promise with a timeout using Promise.race
-- Wrapped `getZAI()` init call with 5-second timeout
-- Wrapped streaming `zai.chat.completions.create({ stream: true })` with 5-second timeout
-- Implemented per-chunk timeout for streaming reads (resets with each chunk) to handle stalled connections
-- Wrapped non-streaming `zai.chat.completions.create({ stream: false })` with 5-second timeout
-- All timeout failures fall back to `getFallback()` response immediately
-- SSE stream always sends products, suggestions, and done events even on timeout
-
-Fix 2: Scrolling/Touch Bug — Multi-layered approach
-1. AgeGate.tsx: Added explicit `modal={false}` prop to Dialog + `requestAnimationFrame` cleanup on dialog close that removes any residual overflow:hidden and data-scroll-locked attributes from body/html
-2. dialog.tsx: Added scroll lock cleanup in `onCloseAutoFocus` — checks if other overlays are still open before removing inline styles, removes overflow/overflowY/padding-right from both body and html elements, also removes data-scroll-locked attributes
-3. globals.css: Changed Dialog scroll lock from mobile-only to all screen sizes; Added aggressive scroll unlock rules using `:not(:has(...))` pattern that force `overflow-y: auto !important` when NO overlays are open; Added rules targeting Radix UI's `data-scroll-locked` attribute directly
-4. ScrollFix.tsx: Reduced cleanup interval from 2000ms to 500ms; Added cleanup for html element (not just body); Added cleanup for padding-right (RemoveScroll adds this); Added removal of `data-scroll-locked` attribute from body/html; Added cleanup for Radix scroll area viewport; Added resize event listener (orientation change can trigger scroll issues)
+- Rewrote src/components/shared/AIChatWidget.tsx from scratch
+- Added `DetectedLang` type ('bangla'|'banglish'|'english')
+- Added `detectLanguageClient()` function mirroring backend logic
+- Added `speak()` TTS utility with dynamic language matching:
+  - Bangla → utterance.lang = 'bn-BD', searches for bn-BD voice
+  - Banglish → utterance.lang = 'bn-BD' (content is Bengali script)
+  - English → utterance.lang = 'en-US', searches for en-US voice
+- Added `SpeakerButton` component per AI message with TTS toggle
+- Updated Speech Recognition to dynamically switch between 'bn-BD' and 'en-US'
+- Added voice status indicator with animated sound wave bars
+- Added double-pulse animation on mic button while listening
+- Preserved all existing features: streaming, product cards, suggestions, WhatsApp
+- Added `detectedLang` to ChatMessage type and SSE processing
 
 Stage Summary:
-- Chat API will now respond within ~5 seconds (was 20s) when LLM is unreachable, falling back to predefined responses
-- Scrolling fix is now 4-layer defense: CSS :has() lock → CSS :not(:has()) unlock → Dialog onClose cleanup → ScrollFix 500ms aggressive cleanup
-- All changes pass ESLint validation
+- Full voice-to-voice agent: STT (bn-BD/en-US) → AI response → TTS (matching language)
+- Speaker button on every AI message for text-to-speech
+- Dynamic language detection and TTS voice matching
+- Pulsing mic button with sound wave animation
+- Voice status bar: "শুনছি... বাংলা বা English এ কথা বলুন"
+
+---
+Task ID: 4
+Agent: Main Orchestrator
+Task: Fix mobile scrolling bug
+
+Work Log:
+- Found critical CSS bug: :not(:has()) selectors had spaces between them creating descendant selectors instead of compound conditions
+- Fixed globals.css: changed spaced selectors to compound selectors (no spaces)
+- Improved ScrollFix.tsx: cleaner cleanup logic, 300ms interval, better overlay detection
+- Added overflow-x: clip to scroll unlock rules
+
+Stage Summary:
+- CSS :not(:has()) compound selector fix ensures scroll unlock rules actually work
+- ScrollFix component improved with 300ms cleanup interval
+- Both CSS and JS scroll fixes now work together properly

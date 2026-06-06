@@ -408,7 +408,7 @@ export async function POST(request: NextRequest) {
       // Send structured data
       if (products.length > 0) send({ type: 'products', products })
       send({ type: 'suggestions', suggestions })
-      send({ type: 'done', whatsappUrl })
+      send({ type: 'done', whatsappUrl, detectedLang: lang })
       controller.close()
     },
   })

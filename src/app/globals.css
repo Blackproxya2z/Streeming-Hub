@@ -210,27 +210,24 @@ html:has([data-state="open"][data-slot="dialog-overlay"]) body {
    The :not(:has(...)) pattern is the inverse of the lock rules above.
    If none of the overlay selectors match, the body MUST be scrollable.
 */
-html:not(:has([data-state="open"][data-slot="sheet-content"]))
-  :not(:has([data-state="open"][data-slot="dialog-overlay"]))
-  :not(:has([data-chat-open="true"])) {
+/* CRITICAL FIX: All :not(:has()) conditions must be compound (no spaces)
+   to correctly mean "html that does NOT have ANY overlay open".
+   Spaces between :not() create descendant selectors, which never match. */
+html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"])) {
   overflow-y: auto !important;
+  overflow-x: clip !important;
 }
-html:not(:has([data-state="open"][data-slot="sheet-content"]))
-  :not(:has([data-state="open"][data-slot="dialog-overlay"]))
-  :not(:has([data-chat-open="true"])) body {
+html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"])) body {
   overflow-y: auto !important;
+  overflow-x: clip !important;
 }
 
 /* Also target Radix UI's data-scroll-locked attribute directly.
    When this attribute is present but no overlay is open, override it. */
-html:not(:has([data-state="open"][data-slot="sheet-content"]))
-  :not(:has([data-state="open"][data-slot="dialog-overlay"]))
-  :not(:has([data-chat-open="true"]))[data-scroll-locked] {
+html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"]))[data-scroll-locked] {
   overflow-y: auto !important;
 }
-html:not(:has([data-state="open"][data-slot="sheet-content"]))
-  :not(:has([data-state="open"][data-slot="dialog-overlay"]))
-  :not(:has([data-chat-open="true"])) body[data-scroll-locked] {
+html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"])) body[data-scroll-locked] {
   overflow-y: auto !important;
 }
 

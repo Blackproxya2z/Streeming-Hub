@@ -16,16 +16,17 @@ import {
   Headphones,
   ExternalLink,
   Loader2,
-  CreditCard,
-  List,
-  Phone,
   Sparkles,
   Mic,
   MicOff,
+  Volume2,
+  VolumeX,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+type DetectedLang = 'bangla' | 'banglish' | 'english'
 
 interface ProductCard {
   id: string
@@ -48,6 +49,7 @@ interface ChatMessage {
   whatsappUrl?: string
   timestamp: number
   isStreaming?: boolean
+  detectedLang?: DetectedLang
 }
 
 // ─── Quick Actions (Bengali, Sales-Focused) ──────────────────────────────────
@@ -111,6 +113,74 @@ function getCheapestPrice(product: ProductCard): string {
     // fallback to base price
   }
   return product.basePriceBDT
+}
+
+// ─── Language Detection (client-side, mirrors backend) ───────────────────────
+
+function detectLanguageClient(message: string): DetectedLang {
+  if (/[\u0980-\u09FF]/.test(message)) return 'bangla'
+  const patterns = [/koto/i, /taka/i, /lagbe/i, /chai/i, /order\s*korbo/i, /nite\s*chai/i, /kinte\s*chai/i, /dekhao/i, /ki\s*ki/i, /sob/i, /nam/i, /amar/i, /apnar/i, /bhai/i, /kichu/i, /kemon/i, /valo/i, /ase/i, /ache/i, /korbo/i, /parbo/i, /kivabe/i, /keno/i]
+  if (patterns.filter((p) => p.test(message)).length >= 2) return 'banglish'
+  return 'english'
+}
+
+// ─── TTS Utility ─────────────────────────────────────────────────────────────
+
+function speak(text: string, lang: DetectedLang, onEnd?: () => void): SpeechSynthesisUtterance | null {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return null
+
+  // Cancel any ongoing speech
+  window.speechSynthesis.cancel()
+
+  // Clean text for speech (remove emojis, markdown)
+  const cleanText = text
+    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\[(.+?)\]\((.+?)\)/g, '$1')
+    .replace(/[•\-]\s/g, '')
+    .replace(/\d+[.)]\s/g, '')
+    .replace(/৳/g, 'টাকা')
+    .trim()
+
+  if (!cleanText) return null
+
+  const utterance = new SpeechSynthesisUtterance(cleanText)
+
+  // Set language based on detected language
+  if (lang === 'bangla') {
+    utterance.lang = 'bn-BD'
+  } else if (lang === 'banglish') {
+    // Banglish: try Bangla voice first since content is in Bengali script
+    utterance.lang = 'bn-BD'
+  } else {
+    utterance.lang = 'en-US'
+  }
+
+  utterance.rate = 0.95
+  utterance.pitch = 1.0
+  utterance.volume = 1.0
+
+  // Try to find a matching voice
+  const voices = window.speechSynthesis.getVoices()
+  const targetLang = utterance.lang
+  const shortLang = targetLang.split('-')[0]
+
+  // Priority: exact lang match > short lang match > default
+  const exactVoice = voices.find(v => v.lang === targetLang)
+  const shortVoice = exactVoice ? null : voices.find(v => v.lang.startsWith(shortLang))
+  const selectedVoice = exactVoice || shortVoice || null
+
+  if (selectedVoice) {
+    utterance.voice = selectedVoice
+  }
+
+  if (onEnd) {
+    utterance.onend = onEnd
+    utterance.onerror = onEnd
+  }
+
+  window.speechSynthesis.speak(utterance)
+  return utterance
 }
 
 // ─── formatMessage: Markdown-like text → React elements ──────────────────────
@@ -294,6 +364,65 @@ function AIAvatar({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
   )
 }
 
+// ─── Speaker Button Component ────────────────────────────────────────────────
+
+function SpeakerButton({ text, lang, isStreaming }: { text: string; lang: DetectedLang; isStreaming?: boolean }) {
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+
+  const handleSpeak = useCallback(() => {
+    if (isSpeaking) {
+      // Stop speaking
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel()
+      }
+      setIsSpeaking(false)
+      return
+    }
+
+    if (isStreaming || !text) return
+
+    setIsSpeaking(true)
+    const utterance = speak(text, lang, () => {
+      setIsSpeaking(false)
+    })
+    utteranceRef.current = utterance
+
+    // Safety: auto-reset after max 30 seconds
+    setTimeout(() => setIsSpeaking(false), 30000)
+  }, [text, lang, isSpeaking, isStreaming])
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [])
+
+  if (isStreaming) return null
+
+  return (
+    <button
+      onClick={handleSpeak}
+      className={`inline-flex items-center justify-center h-6 w-6 rounded-full transition-all active:scale-90 touch-manipulation ${
+        isSpeaking
+          ? 'bg-[#00A6A6] text-white shadow-md shadow-[#00A6A6]/30 animate-pulse'
+          : 'bg-muted/60 hover:bg-[#00A6A6]/15 text-muted-foreground hover:text-[#00A6A6]'
+      }`}
+      aria-label={isSpeaking ? 'বন্ধ করুন' : 'শুনুন'}
+      title={isSpeaking ? 'Stop' : 'Listen'}
+    >
+      {isSpeaking ? (
+        <VolumeX className="h-3 w-3" />
+      ) : (
+        <Volume2 className="h-3 w-3" />
+      )}
+    </button>
+  )
+}
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export function AIChatWidget() {
@@ -303,6 +432,7 @@ export function AIChatWidget() {
       role: 'assistant',
       content: KORMOCHARY_GREETING,
       timestamp: Date.now(),
+      detectedLang: 'bangla',
     },
   ])
   const [input, setInput] = useState('')
@@ -314,7 +444,7 @@ export function AIChatWidget() {
 
   // Voice input state
   const [isListening, setIsListening] = useState(false)
-  const recognitionRef = useRef<{ current: unknown } | null>(null)
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
   const sendMessageRef = useRef<(msg?: string) => Promise<void>>()
 
   // Check speech support once at mount
@@ -406,11 +536,14 @@ export function AIChatWidget() {
     if (!overrideMessage) setInput('')
     setIsLoading(true)
 
+    // Detect language from user message for TTS matching later
+    const userDetectedLang = detectLanguageClient(trimmed)
+
     // Add empty streaming assistant message
     const assistantTimestamp = Date.now()
     setMessages(prev => [
       ...prev,
-      { role: 'assistant', content: '', timestamp: assistantTimestamp, isStreaming: true },
+      { role: 'assistant', content: '', timestamp: assistantTimestamp, isStreaming: true, detectedLang: userDetectedLang },
     ])
 
     try {
@@ -504,10 +637,14 @@ export function AIChatWidget() {
                 const updated = [...prev]
                 const lastIdx = updated.length - 1
                 if (updated[lastIdx]?.role === 'assistant') {
+                  // Use backend's detectedLang if available, otherwise fall back to client-side detection
+                  const backendLang = data.detectedLang as DetectedLang | undefined
+                  const finalLang = backendLang || userDetectedLang
                   updated[lastIdx] = {
                     ...updated[lastIdx],
                     isStreaming: false,
                     whatsappUrl: data.whatsappUrl,
+                    detectedLang: finalLang,
                   }
                 }
                 return updated
@@ -551,7 +688,7 @@ export function AIChatWidget() {
     sendMessageRef.current = sendMessage
   }, [sendMessage])
 
-  // ── Initialize Speech Recognition (after sendMessage is defined) ──
+  // ── Initialize Speech Recognition (Dynamic Language STT) ──
   useEffect(() => {
     if (!speechSupported) return
     const SR = (window as unknown as Record<string, unknown>)['SpeechRecognition'] ||
@@ -559,15 +696,38 @@ export function AIChatWidget() {
     if (!SR) return
 
     const recognition = new (SR as new () => SpeechRecognition)()
+    // Default to bn-BD, but the engine will auto-detect language
+    // Web Speech API on Chrome supports multilingual recognition
     recognition.lang = 'bn-BD'
     recognition.continuous = false
     recognition.interimResults = true
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript
+      const confidence = event.results[0][0].confidence
       setInput(transcript)
+
       if (event.results[0].isFinal) {
         setIsListening(false)
+
+        // Detect what language the user actually spoke
+        // If the transcript contains Bengali script, it's Bangla
+        // If it's Roman characters with Banglish patterns, treat as Banglish
+        // Otherwise it's English
+        const spokenLang = detectLanguageClient(transcript)
+
+        // Update recognition language for next time based on what user spoke
+        // This helps improve accuracy for the next recognition session
+        try {
+          if (spokenLang === 'english') {
+            recognition.lang = 'en-US'
+          } else {
+            recognition.lang = 'bn-BD'
+          }
+        } catch {
+          // Can't change lang while recognition might be active
+        }
+
         // Auto-send after final result using ref
         setTimeout(() => {
           sendMessageRef.current?.(transcript)
@@ -590,18 +750,25 @@ export function AIChatWidget() {
     const recognition = recognitionRef.current
     if (!recognition) return
     if (isListening) {
-      ;(recognition as unknown as { stop: () => void }).stop()
+      recognition.stop()
       setIsListening(false)
     } else {
       try {
-        ;(recognition as unknown as { start: () => void }).start()
+        // Dynamically set recognition language based on current input pattern
+        // If user has been typing in English, start with en-US
+        // Otherwise default to bn-BD for Bangla/Banglish
+        if (input.trim()) {
+          const inputLang = detectLanguageClient(input)
+          recognition.lang = inputLang === 'english' ? 'en-US' : 'bn-BD'
+        }
+        recognition.start()
         setIsListening(true)
       } catch {
         // Already started or not available
         setIsListening(false)
       }
     }
-  }, [isListening])
+  }, [isListening, input])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -611,11 +778,16 @@ export function AIChatWidget() {
   }
 
   const clearChat = () => {
+    // Stop any ongoing speech
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
     setMessages([
       {
         role: 'assistant',
         content: KORMOCHARY_GREETING,
         timestamp: Date.now(),
+        detectedLang: 'bangla',
       },
     ])
   }
@@ -834,21 +1006,31 @@ export function AIChatWidget() {
                     >
                       {msg.role === 'assistant' ? (
                         <>
-                          {/* Text content */}
-                          <div className="whitespace-pre-wrap">
-                            {msg.isStreaming && !msg.content ? (
-                              // Show typing dots while streaming with no content yet
-                              <span className="inline-flex items-center gap-1">
-                                <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
-                                <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
-                                <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
-                              </span>
-                            ) : (
-                              formatMessage(msg.content)
-                            )}
-                            {msg.isStreaming && msg.content && (
-                              <span className="inline-block w-[2px] h-3.5 bg-[#00A6A6] ml-0.5 align-middle animate-pulse" />
-                            )}
+                          {/* Text content + Speaker button row */}
+                          <div className="flex items-start gap-1.5">
+                            <div className="flex-1 whitespace-pre-wrap">
+                              {msg.isStreaming && !msg.content ? (
+                                // Show typing dots while streaming with no content yet
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
+                                  <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
+                                  <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
+                                </span>
+                              ) : (
+                                formatMessage(msg.content)
+                              )}
+                              {msg.isStreaming && msg.content && (
+                                <span className="inline-block w-[2px] h-3.5 bg-[#00A6A6] ml-0.5 align-middle animate-pulse" />
+                              )}
+                            </div>
+                            {/* Speaker button for TTS */}
+                            <div className="shrink-0 mt-0.5">
+                              <SpeakerButton
+                                text={msg.content}
+                                lang={msg.detectedLang || 'bangla'}
+                                isStreaming={msg.isStreaming}
+                              />
+                            </div>
                           </div>
 
                           {/* Product cards */}
@@ -963,12 +1145,11 @@ export function AIChatWidget() {
                     style={{ fontSize: '16px' }}
                   />
 
-                  {/* Voice Input Button */}
+                  {/* Voice Input Button — Dynamic Language STT */}
                   {speechSupported && (
                     <button
                       onClick={toggleListening}
-                      disabled={isLoading}
-                      className={`relative shrink-0 h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center transition-all active:scale-95 touch-manipulation ${
+                      className={`relative flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-xl transition-all active:scale-90 touch-manipulation shrink-0 ${
                         isListening
                           ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30'
                           : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border/50'
@@ -979,7 +1160,8 @@ export function AIChatWidget() {
                         <>
                           {/* Pulsing red ring animation */}
                           <span className="absolute inset-[-3px] rounded-xl bg-red-500/30 animate-ping" />
-                          <span className="absolute inset-[-6px] rounded-xl bg-red-500/15 animate-pulse" />
+                          {/* Sound wave animation */}
+                          <span className="absolute inset-[-6px] rounded-xl border-2 border-red-400/40 animate-pulse" />
                           <MicOff className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" />
                         </>
                       ) : (
@@ -988,9 +1170,8 @@ export function AIChatWidget() {
                     </button>
                   )}
 
-                  {/* Send Button */}
+                  {/* Send button */}
                   <Button
-                    size="icon"
                     onClick={() => sendMessage()}
                     disabled={!input.trim() || isLoading || cooldown}
                     className="bg-gradient-to-r from-[#0B1F3A] to-[#00A6A6] hover:from-[#0B1F3A] hover:to-[#10b981] h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-[#00A6A6]/20 shrink-0 touch-manipulation"
@@ -1002,10 +1183,25 @@ export function AIChatWidget() {
                     )}
                   </Button>
                 </div>
-                {cooldown && (
-                  <p className="text-[10px] text-muted-foreground mt-1.5 text-center animate-pulse">
-                    একটু অপেক্ষা করুন...
-                  </p>
+
+                {/* Voice status indicator */}
+                {isListening && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    className="flex items-center justify-center gap-2 mt-2 text-xs text-red-500 font-medium"
+                  >
+                    <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                    শুনছি... বাংলা বা English এ কথা বলুন
+                    <span className="flex items-center gap-[2px]">
+                      <span className="h-3 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:0ms]" />
+                      <span className="h-4 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:150ms]" />
+                      <span className="h-5 w-0.5 bg-red-500 rounded-full animate-pulse [animation-delay:300ms]" />
+                      <span className="h-4 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:450ms]" />
+                      <span className="h-3 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:600ms]" />
+                    </span>
+                  </motion.div>
                 )}
               </div>
             </motion.div>
