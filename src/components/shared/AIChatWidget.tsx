@@ -851,8 +851,10 @@ export function AIChatWidget() {
                 w-14 h-14
                 sm:w-[60px] sm:h-[60px]
                 rounded-full
-                bg-gradient-to-br from-[#0B1F3A] via-[#0f172a] to-[#00A6A6]
-                hover:from-[#0B1F3A] hover:via-[#0f172a] hover:to-[#10b981]
+                bg-gradient-to-br from-teal-600 via-teal-700 to-[#00A6A6]
+                dark:from-[#0B1F3A] dark:via-[#0f172a] dark:to-[#00A6A6]
+                hover:from-teal-700 hover:via-teal-800 hover:to-[#10b981]
+                dark:hover:from-[#0B1F3A] dark:hover:via-[#0f172a] dark:hover:to-[#10b981]
                 text-white shadow-lg hover:shadow-2xl
                 transition-all active:scale-90 group
                 ring-2 ring-[#00A6A6]/20
@@ -904,7 +906,7 @@ export function AIChatWidget() {
                 sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
             >
               {/* ===== HEADER ===== */}
-              <div className="relative bg-gradient-to-r from-[#0B1F3A] via-[#0f172a] to-[#00A6A6] text-white p-3 sm:p-4 flex items-center justify-between shrink-0 overflow-hidden">
+              <div className="relative bg-gradient-to-r from-teal-600 via-teal-700 to-[#00A6A6] dark:from-[#0B1F3A] dark:via-[#0f172a] dark:to-[#00A6A6] text-white p-3 sm:p-4 flex items-center justify-between shrink-0 overflow-hidden">
                 {/* Decorative circles */}
                 <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/5" />
                 <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
@@ -913,7 +915,7 @@ export function AIChatWidget() {
                   <div className="relative">
                     <AIAvatar size="md" />
                     {/* Green "Online" status indicator dot */}
-                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-[#0B1F3A] shadow-[0_0_6px_rgba(16,185,129,0.6)]">
+                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-teal-700 dark:ring-[#0B1F3A] shadow-[0_0_6px_rgba(16,185,129,0.6)]">
                       <BadgeCheck className="h-2.5 w-2.5 text-white" />
                     </div>
                   </div>
@@ -929,7 +931,7 @@ export function AIChatWidget() {
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-                      <p className="text-[10px] sm:text-[11px] text-slate-200 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
+                      <p className="text-[10px] sm:text-[11px] text-white/80 dark:text-slate-200 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
                     </div>
                   </div>
                 </div>
@@ -1000,7 +1002,7 @@ export function AIChatWidget() {
                     <div
                       className={`max-w-[85%] sm:max-w-[82%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-[12px] sm:text-[13px] leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-gradient-to-br from-[#0B1F3A] to-[#00A6A6] text-white rounded-br-md shadow-md shadow-[#00A6A6]/20'
+                          ? 'bg-primary text-primary-foreground dark:bg-gradient-to-br dark:from-[#0B1F3A] dark:to-[#00A6A6] dark:text-white rounded-br-md shadow-md shadow-primary/20 dark:shadow-[#00A6A6]/20'
                           : 'bg-muted/70 dark:bg-muted/50 rounded-bl-md border border-border/30'
                       }`}
                     >
@@ -1081,7 +1083,7 @@ export function AIChatWidget() {
                       )}
                     </div>
                     {msg.role === 'user' && (
-                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-[#0B1F3A] to-[#00A6A6] flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-[#00A6A6]/20">
+                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-primary dark:bg-gradient-to-br dark:from-[#0B1F3A] dark:to-[#00A6A6] flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-primary/20 dark:shadow-[#00A6A6]/20">
                         <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                       </div>
                     )}
@@ -1174,7 +1176,7 @@ export function AIChatWidget() {
                   <Button
                     onClick={() => sendMessage()}
                     disabled={!input.trim() || isLoading || cooldown}
-                    className="bg-gradient-to-r from-[#0B1F3A] to-[#00A6A6] hover:from-[#0B1F3A] hover:to-[#10b981] h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-[#00A6A6]/20 shrink-0 touch-manipulation"
+                    className="bg-primary hover:bg-primary/90 dark:bg-gradient-to-r dark:from-[#0B1F3A] dark:to-[#00A6A6] dark:hover:from-[#0B1F3A] dark:hover:to-[#10b981] text-primary-foreground h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-primary/20 dark:shadow-[#00A6A6]/20 shrink-0 touch-manipulation"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

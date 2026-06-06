@@ -120,7 +120,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
               </>
             ) : (
-              <span className="text-3xl sm:text-4xl font-bold text-white/70">{initials}</span>
+              <span className="text-3xl sm:text-4xl font-bold text-white drop-shadow-sm">{initials}</span>
             )}
 
             {/* Badges */}

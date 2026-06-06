@@ -226,7 +226,7 @@ export function OrderForm() {
             <p className="text-xs sm:text-sm font-semibold text-foreground dark:text-[#34d399] mb-1.5 sm:mb-2">
               📱 Send Money করার নিয়ম:
             </p>
-            <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-foreground/70 dark:text-[#34d399]">
+            <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-muted-foreground dark:text-[#34d399]">
               <div className="flex items-start gap-2">
                 <span className="font-bold shrink-0">১.</span>
                 <span>নিচের <strong>bKash</strong> বা <strong>Nagad</strong> বাটনে ক্লিক করুন</span>

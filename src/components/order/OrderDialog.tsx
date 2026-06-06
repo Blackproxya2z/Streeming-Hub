@@ -110,12 +110,12 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md w-[95vw] max-h-[90vh] p-0 gap-0 overflow-hidden">
         {/* Product Header */}
-        <div className="bg-gradient-to-r from-[#0f172a] to-[#10b981] p-3 sm:p-4 text-white">
+        <div className="bg-gradient-to-r from-teal-600 to-emerald-600 dark:from-[#0f172a] dark:to-[#10b981] p-3 sm:p-4 text-white">
           <DialogHeader>
             <DialogTitle className="text-white text-base sm:text-lg font-bold">
               Order: {product.name}
             </DialogTitle>
-            <DialogDescription className="text-slate-200 text-[11px] sm:text-xs">
+            <DialogDescription className="text-white/80 dark:text-slate-200 text-[11px] sm:text-xs">
               সর্বমোট ৩ ধাপে অর্ডার সম্পন্ন করুন
             </DialogDescription>
           </DialogHeader>
@@ -178,7 +178,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
               <p className="text-[11px] sm:text-xs font-semibold text-foreground dark:text-[#34d399] mb-1.5 sm:mb-2">
                 📱 Send Money করার নিয়ম:
               </p>
-              <div className="space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-foreground/70 dark:text-[#34d399]">
+              <div className="space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-muted-foreground dark:text-[#34d399]">
                 <div className="flex items-start gap-1.5 sm:gap-2">
                   <span className="font-bold shrink-0">১.</span>
                   <span>নিচের <strong>bKash</strong> বা <strong>Nagad</strong> বাটনে ক্লিক করুন</span>

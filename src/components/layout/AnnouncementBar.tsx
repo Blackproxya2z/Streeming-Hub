@@ -12,7 +12,7 @@ export function AnnouncementBar() {
     : defaultText
 
   return (
-    <div className="bg-gradient-to-r from-[#0a1628] via-[#0c2a2a] to-[#1a0f0a] text-white py-1.5 sm:py-2 overflow-hidden relative">
+    <div className="bg-gradient-to-r from-teal-600 via-teal-700 to-emerald-700 dark:from-[#0a1628] dark:via-[#0c2a2a] dark:to-[#1a0f0a] text-white py-1.5 sm:py-2 overflow-hidden relative">
       {/* Scrolling marquee */}
       <div className="flex items-center animate-marquee whitespace-nowrap">
         <div className="flex items-center gap-8 px-4">

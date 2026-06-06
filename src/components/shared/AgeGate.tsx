@@ -296,7 +296,7 @@ function SecretCodePuzzle({
                       animate={{ opacity: isActive ? 0 : 0.4 }}
                     >
                       <Lock
-                        className={`h-3 w-3 ${isActive ? 'text-[#10b981]' : 'text-zinc-300 dark:text-zinc-600'}`}
+                        className={`h-3 w-3 ${isActive ? 'text-[#10b981]' : 'text-zinc-400 dark:text-zinc-600'}`}
                       />
                     </motion.div>
                   </motion.button>

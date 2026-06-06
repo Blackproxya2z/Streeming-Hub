@@ -66,7 +66,7 @@ export function CustomerReviews() {
                         <p className="text-xs sm:text-sm text-muted-foreground">{review.product}</p>
                       )}
                     </div>
-                    <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-gradient-to-br from-[#0f172a] to-[#10b981] flex items-center justify-center text-white text-xs sm:text-sm font-bold">
+                    <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-emerald-600 dark:bg-gradient-to-br dark:from-[#0f172a] dark:to-[#10b981] flex items-center justify-center text-white text-xs sm:text-sm font-bold">
                       {review.name.charAt(0)}
                     </div>
                   </div>

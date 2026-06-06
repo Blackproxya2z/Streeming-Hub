@@ -244,7 +244,7 @@ export function ProductDetail() {
                   </div>
                 </>
               ) : (
-                <span className="text-5xl sm:text-6xl font-bold text-white/60">{initials}</span>
+                <span className="text-5xl sm:text-6xl font-bold text-white drop-shadow-md">{initials}</span>
               )}
               {/* Badges on image */}
               {(product.isBestSeller || product.isNewArrival) && (
