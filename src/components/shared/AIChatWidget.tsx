@@ -217,7 +217,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, indent, , content] = bulletMatch
     elements.push(
       <span key={`bullet-${indent.length}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-[#10b981] dark:bg-[#34d399]" />
+        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-primary dark:bg-[#34d399]" />
         <span>{processInlineFormatting(content)}</span>
       </span>
     )
@@ -230,7 +230,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, , num, content] = numberedMatch
     elements.push(
       <span key={`num-${num}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-emerald-100 dark:bg-[#0f172a]/30 text-[#0f172a] dark:text-[#34d399] flex items-center justify-center text-[10px] font-bold leading-none mt-px">
+        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-primary/15 dark:bg-[#0f172a]/30 text-foreground dark:text-[#34d399] flex items-center justify-center text-[10px] font-bold leading-none mt-px">
           {num}
         </span>
         <span>{processInlineFormatting(content)}</span>
@@ -249,7 +249,7 @@ function processInlineFormatting(line: string): ReactNode[] {
         elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, boldMatch.index)}</span>)
       }
       elements.push(
-        <strong key={`b-${keyIdx++}`} className="font-semibold text-[#0B1F3A] dark:text-[#34d399]">
+        <strong key={`b-${keyIdx++}`} className="font-semibold text-foreground dark:text-[#34d399]">
           {boldMatch[1]}
         </strong>
       )
@@ -269,7 +269,7 @@ function processInlineFormatting(line: string): ReactNode[] {
           href={linkMatch[2]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#00A6A6] dark:text-[#34d399] underline underline-offset-2 hover:text-[#0B1F3A] dark:hover:text-[#F5B301] transition-colors"
+          className="text-primary dark:text-[#34d399] underline underline-offset-2 hover:text-foreground dark:hover:text-[#F5B301] transition-colors"
         >
           {linkMatch[1]}
         </a>
@@ -957,17 +957,17 @@ export function AIChatWidget() {
               </div>
 
               {/* ===== TRUST INDICATORS BAR ===== */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-slate-50/50 dark:bg-[#0B1F3A]/20 border-b border-border/30 shrink-0">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-muted/50 dark:bg-[#0B1F3A]/20 border-b border-border/30 shrink-0">
                 {trustIndicators.map((item, idx) => {
                   const Icon = item.icon
                   return (
                     <div key={item.label} className="flex items-center gap-1">
-                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-[#0B1F3A] dark:text-[#00A6A6] font-medium">
+                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-foreground dark:text-[#00A6A6] font-medium">
                         <Icon className="h-2.5 w-2.5" />
                         <span>{item.label}</span>
                       </div>
                       {idx < trustIndicators.length - 1 && (
-                        <div className="w-px h-3 bg-slate-200 dark:bg-slate-700 ml-2 sm:ml-3" />
+                        <div className="w-px h-3 bg-border ml-2 sm:ml-3" />
                       )}
                     </div>
                   )
@@ -1054,7 +1054,7 @@ export function AIChatWidget() {
                                 <button
                                   key={`sug-${sIdx}`}
                                   onClick={() => handleSuggestionClick(suggestion)}
-                                  className="cursor-pointer text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full border border-[#00A6A6]/30 bg-[#00A6A6]/5 hover:bg-[#00A6A6]/15 text-[#0B1F3A] dark:text-[#00A6A6] hover:border-[#00A6A6]/60 transition-all active:scale-95 font-medium"
+                                  className="cursor-pointer text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/15 text-foreground dark:text-[#00A6A6] hover:border-primary/60 transition-all active:scale-95 font-medium"
                                 >
                                   {suggestion}
                                 </button>
@@ -1122,7 +1122,7 @@ export function AIChatWidget() {
                       hover:bg-[#00A6A6]/5 dark:hover:bg-[#0B1F3A]/40
                       border border-border/60 hover:border-[#00A6A6]/50 dark:hover:border-[#00A6A6]
                       transition-all active:scale-95 py-1.5 sm:py-2 px-2.5 sm:px-3.5 rounded-full bg-background
-                      font-medium text-foreground/80 hover:text-[#0B1F3A] dark:hover:text-[#00A6A6]
+                      font-medium text-foreground/80 hover:text-foreground dark:hover:text-[#00A6A6]
                       touch-manipulation"
                     onClick={() => sendMessage(q.action)}
                   >

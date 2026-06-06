@@ -87,7 +87,7 @@ export function HowToOrder() {
                     </span>
                   </div>
                   <h3 className="font-semibold text-base sm:text-lg mb-0.5">{item.title}</h3>
-                  <p className="text-[11px] sm:text-xs text-muted-foreground/60 mb-1">{item.titleEn}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground/80 mb-1">{item.titleEn}</p>
                   <p className="text-sm sm:text-base text-muted-foreground">{item.description}</p>
                 </CardContent>
               </Card>

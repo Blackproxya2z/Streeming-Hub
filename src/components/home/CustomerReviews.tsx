@@ -43,7 +43,7 @@ export function CustomerReviews() {
             >
               <Card className="h-full hover:shadow-lg transition-all duration-300 border-0 shadow-sm">
                 <CardContent className="p-5 sm:p-6">
-                  <Quote className="h-7 w-7 sm:h-8 sm:w-8 text-slate-200 dark:text-slate-700 mb-3" />
+                  <Quote className="h-7 w-7 sm:h-8 sm:w-8 text-primary/20 dark:text-primary/30 mb-3" />
                   <p className="text-sm sm:text-base text-muted-foreground mb-4 line-clamp-4">
                     &ldquo;{review.text}&rdquo;
                   </p>

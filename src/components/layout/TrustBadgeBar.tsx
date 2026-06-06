@@ -17,7 +17,7 @@ const badges = [
     icon: Shield,
     label: 'Full Warranty',
     sublabel: 'গ্যারান্টি সহ',
-    color: 'text-[#10b981] dark:text-[#34d399]',
+    color: 'text-emerald-700 dark:text-[#34d399]',
     bg: 'bg-emerald-50 dark:bg-emerald-950/50',
   },
   {
@@ -52,7 +52,7 @@ const badges = [
     icon: BadgeCheck,
     label: '1000+ Customers',
     sublabel: 'বিশ্বস্ত ক্রেতা',
-    color: 'text-[#0f172a] dark:text-[#10b981]',
+    color: 'text-foreground dark:text-[#10b981]',
     bg: 'bg-slate-50 dark:bg-[#0f172a]/50',
   },
 ]

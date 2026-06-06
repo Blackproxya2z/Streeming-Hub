@@ -711,7 +711,7 @@ export function AgeGate() {
                 />
 
                 {/* Super subtle easter egg hint */}
-                <p className="text-[8px] text-zinc-300 dark:text-zinc-700 text-center select-none mt-1 leading-tight">
+                <p className="text-[8px] text-muted-foreground/30 dark:text-muted-foreground/25 text-center select-none mt-1 leading-tight">
                   hint: same as the number before seventy minus one
                 </p>
               </div>

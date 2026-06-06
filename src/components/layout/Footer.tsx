@@ -59,7 +59,7 @@ export function Footer() {
                 WhatsApp: {whatsappNumber}
               </a>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CreditCard className="h-4 w-4 text-[#10b981]" />
+                <CreditCard className="h-4 w-4 text-primary" />
                 Payment: {paymentNumber}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -74,7 +74,7 @@ export function Footer() {
             <h2 className="font-semibold text-xs sm:text-sm uppercase tracking-wider">Why Trust Us</h2>
             <div className="flex flex-col gap-2.5 sm:gap-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Shield className="h-4 w-4 text-[#10b981]" />
+                <Shield className="h-4 w-4 text-primary" />
                 Warranty Available
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -82,7 +82,7 @@ export function Footer() {
                 Fast Delivery
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CreditCard className="h-4 w-4 text-[#10b981]" />
+                <CreditCard className="h-4 w-4 text-primary" />
                 Secure Payment
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

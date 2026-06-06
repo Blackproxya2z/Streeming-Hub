@@ -174,11 +174,11 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
             </div>
 
             {/* How to Send Money - Instructions */}
-            <div className="bg-slate-50 dark:bg-[#0f172a]/30 rounded-xl p-2.5 sm:p-3 mb-2.5 sm:mb-3 border border-slate-200 dark:border-slate-700">
-              <p className="text-[11px] sm:text-xs font-semibold text-[#0f172a] dark:text-[#34d399] mb-1.5 sm:mb-2">
+            <div className="bg-muted/50 dark:bg-[#0f172a]/30 rounded-xl p-2.5 sm:p-3 mb-2.5 sm:mb-3 border border-border dark:border-slate-700">
+              <p className="text-[11px] sm:text-xs font-semibold text-foreground dark:text-[#34d399] mb-1.5 sm:mb-2">
                 📱 Send Money করার নিয়ম:
               </p>
-              <div className="space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-[#0f172a]/70 dark:text-[#34d399]">
+              <div className="space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-foreground/70 dark:text-[#34d399]">
                 <div className="flex items-start gap-1.5 sm:gap-2">
                   <span className="font-bold shrink-0">১.</span>
                   <span>নিচের <strong>bKash</strong> বা <strong>Nagad</strong> বাটনে ক্লিক করুন</span>
@@ -311,7 +311,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
             {product.warranty && (
               <div className="flex items-start gap-1.5 sm:gap-2">
                 <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 mt-0.5 text-[#10b981]" />
-                <span className="text-[#0f172a] dark:text-[#34d399]">ওয়ারেন্টি: {product.warranty}</span>
+                <span className="text-foreground dark:text-[#34d399]">ওয়ারেন্টি: {product.warranty}</span>
               </div>
             )}
           </div>
