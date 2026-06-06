@@ -70,3 +70,40 @@ Stage Summary:
 - CSS :not(:has()) compound selector fix ensures scroll unlock rules actually work
 - ScrollFix component improved with 300ms cleanup interval
 - Both CSS and JS scroll fixes now work together properly
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix text visibility issues in light mode and dark mode across all components, then deploy
+
+Work Log:
+- Explored all components in the project to identify hardcoded color issues
+- Identified 11 files with text visibility problems in light mode
+- Fixed CustomerReviews.tsx: Quote icon was text-slate-200/dark:text-slate-700 (invisible both modes) → text-primary/20/dark:text-primary/30
+- Fixed AgeGate.tsx: Easter egg hint was text-zinc-300/dark:text-zinc-700 (invisible both modes) → text-muted-foreground/30/dark:text-muted-foreground/25
+- Fixed ProductCard.tsx: Price text was text-[#10b981] (low contrast on white) → text-emerald-700; warranty icon → text-emerald-700
+- Fixed AIChatWidget.tsx: Multiple hardcoded colors:
+  - Bold text: text-[#0B1F3A] → text-foreground
+  - Links: text-[#00A6A6] → text-primary
+  - Numbered list bg: bg-emerald-100 → bg-primary/15; text: text-[#0f172a] → text-foreground
+  - Bullet dots: bg-[#10b981] → bg-primary
+  - Suggestion chips: border-[#00A6A6]/30 → border-primary/30, text-[#0B1F3A] → text-foreground
+  - Trust indicators: text-[#0B1F3A] → text-foreground; bg-slate-50/50 → bg-muted/50
+  - Dividers: bg-slate-200/dark:bg-slate-700 → bg-border
+  - Quick action hover: hover:text-[#0B1F3A] → hover:text-foreground
+- Fixed ProductDetail.tsx: Price, warranty, plan numbers, step indicators all changed from text-[#10b981]/text-[#0f172a] → text-emerald-700/text-foreground
+- Fixed OrderDialog.tsx: Instruction headings and body text from text-[#0f172a] → text-foreground; bg-slate-50 → bg-muted/50; border-slate-200 → border-border
+- Fixed OrderForm.tsx: Same pattern as OrderDialog
+- Fixed TrustBadgeBar.tsx: Shield icon color text-[#10b981] → text-emerald-700; BadgeCheck icon text-[#0f172a] → text-foreground
+- Fixed MobileBottomBar.tsx: Active state colors from text-[#10b981]/dark:text-[#34d399] → text-primary
+- Fixed Footer.tsx: Icon colors from text-[#10b981] → text-primary
+- Fixed HowToOrder.tsx: Secondary text opacity from 60% → 80%
+- Ran lint check - all clean
+- Pushed all changes to GitHub (commit 12629b7)
+- Vercel will auto-deploy from the GitHub push
+
+Stage Summary:
+- Fixed text visibility in both light and dark modes across 11 component files
+- Key pattern: replaced hardcoded dark navy (#0B1F3A, #0f172a) with text-foreground for proper theme support
+- Key pattern: replaced low-contrast green (#10b981 on white) with emerald-700 for WCAG AA compliance
+- Key pattern: replaced invisible light colors (slate-200, zinc-300) with theme-aware alternatives
+- Deployed to GitHub: commit 12629b7 on branch main
