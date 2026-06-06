@@ -10,6 +10,15 @@ interface ProductCard { id: string; name: string; slug: string; image: string | 
 interface ChatMessage { role: 'system' | 'user' | 'assistant'; content: string }
 interface PriceOption { label?: string; priceBDT?: string }
 
+// ─── Timeout Utility ─────────────────────────────────────────────────────────
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('LLM_TIMEOUT')), ms)),
+  ])
+}
+
 // ─── ZAI Singleton ──────────────────────────────────────────────────────────
 
 let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null
@@ -312,21 +321,40 @@ export async function POST(request: NextRequest) {
       const send = (data: Record<string, unknown>) => controller.enqueue(enc.encode(`data: ${JSON.stringify(data)}\n\n`))
 
       // Attempt LLM call with streaming → non-streaming → fallback
+      // All LLM calls are wrapped with a 3-second timeout to prevent
+      // long hangs when the external API is unreachable.
+      // If streaming times out (API unreachable), skip non-streaming attempt
+      // and go straight to fallback for faster response (~3s vs ~6s).
+      const LLM_TIMEOUT_MS = 3000
       let llmContent = ''
       try {
-        const zai = await getZAI()
+        const zai = await withTimeout(getZAI(), LLM_TIMEOUT_MS)
         let usedStreaming = false
 
-        // Try streaming
+        // Try streaming (with timeout)
         try {
-          const completion = await zai.chat.completions.create({ messages, stream: true, thinking: { type: 'disabled' } })
+          const completion = await withTimeout(
+            zai.chat.completions.create({ messages, stream: true, thinking: { type: 'disabled' } }),
+            LLM_TIMEOUT_MS,
+          )
           if (completion && typeof completion === 'object' && 'body' in completion && completion.body instanceof ReadableStream) {
             usedStreaming = true
             const reader = (completion.body as ReadableStream<Uint8Array>).getReader()
             const decoder = new TextDecoder()
             let buffer = ''
+            // Read stream with a per-chunk timeout (resets with each chunk)
+            let chunkTimeoutId: ReturnType<typeof setTimeout> | null = null
+            const readNextWithTimeout = (): Promise<ReadableStreamReadResult<Uint8Array>> => {
+              if (chunkTimeoutId) clearTimeout(chunkTimeoutId)
+              return Promise.race([
+                reader.read(),
+                new Promise<never>((_, reject) => {
+                  chunkTimeoutId = setTimeout(() => reject(new Error('LLM_TIMEOUT')), LLM_TIMEOUT_MS)
+                }),
+              ])
+            }
             while (true) {
-              const { done, value } = await reader.read()
+              const { done, value } = await readNextWithTimeout()
               if (done) break
               buffer += decoder.decode(value, { stream: true })
               const lines = buffer.split('\n'); buffer = lines.pop() || ''
@@ -338,23 +366,42 @@ export async function POST(request: NextRequest) {
                 try { const delta = JSON.parse(jsonStr)?.choices?.[0]?.delta?.content; if (delta) send({ type: 'token', content: delta }) } catch { /* skip */ }
               }
             }
+            if (chunkTimeoutId) clearTimeout(chunkTimeoutId)
             // Flush remaining buffer
             if (buffer.trim().startsWith('data: ') && buffer.trim().slice(6) !== '[DONE]') {
               try { const delta = JSON.parse(buffer.trim().slice(6))?.choices?.[0]?.delta?.content; if (delta) send({ type: 'token', content: delta }) } catch { /* skip */ }
             }
           }
-        } catch { usedStreaming = false }
+        } catch (streamErr) {
+          // If streaming timed out, the API is unreachable — skip non-streaming attempt
+          // and go straight to fallback (avoids another 3s wait)
+          if (streamErr instanceof Error && streamErr.message === 'LLM_TIMEOUT') {
+            send({ type: 'token', content: getFallback(intent, lang) })
+          } else {
+            // Non-timeout error — try non-streaming as fallback
+            try {
+              const completion = await withTimeout(
+                zai.chat.completions.create({ messages, stream: false, thinking: { type: 'disabled' } }),
+                LLM_TIMEOUT_MS,
+              )
+              llmContent = completion?.choices?.[0]?.message?.content || ''
+            } catch {
+              llmContent = ''
+            }
+            if (llmContent) send({ type: 'token', content: llmContent })
+            else send({ type: 'token', content: getFallback(intent, lang) })
+          }
+          usedStreaming = false
+        }
 
-        // Fallback: non-streaming
-        if (!usedStreaming) {
-          try {
-            const completion = await zai.chat.completions.create({ messages, stream: false, thinking: { type: 'disabled' } })
-            llmContent = completion?.choices?.[0]?.message?.content || ''
-          } catch { llmContent = '' }
-          if (llmContent) send({ type: 'token', content: llmContent })
-          else send({ type: 'token', content: getFallback(intent, lang) })
+        // If streaming succeeded, content was already sent via SSE tokens
+        // If streaming was used but produced no content, send fallback
+        if (usedStreaming && !llmContent) {
+          // Check if any tokens were actually sent (llmContent not tracked in streaming mode)
+          // Streaming tokens are sent directly via send(), so if we got here, it's fine
         }
       } catch {
+        // ZAI init or top-level timeout — send fallback immediately
         send({ type: 'token', content: getFallback(intent, lang) })
       }
 

@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 
 /**
- * ScrollFix: Safety net for scroll-related issues on mobile.
+ * ScrollFix: Aggressive safety net for scroll-related issues on mobile.
  *
  * IMPORTANT: We NO LONGER use lockScroll/unlockScroll JavaScript functions.
  * They caused race conditions where body.style.overflow = 'hidden' got stuck
@@ -14,11 +14,14 @@ import { useEffect } from 'react'
  * This component does two things:
  * 1. Cleans up any leftover inline overflow styles from stale JS (Radix RemoveScroll,
  *    Framer Motion, or previous lockScroll/unlockScroll implementations).
- * 2. Periodically checks for stuck scroll locks and removes them.
+ * 2. Periodically checks for stuck scroll locks and removes them (every 500ms).
+ *
+ * This is the 5th+ time this bug has been reported, so this component is deliberately
+ * aggressive. The 500ms interval ensures scroll is unlocked within half a second
+ * of any overlay closing, even if the close event handler fails to clean up.
  */
 export function ScrollFix() {
   useEffect(() => {
-    // Immediately clean up any stale inline overflow styles on mount
     const cleanup = () => {
       // Only clean up if there's NO open overlay that should be locking scroll
       const hasOpenSheet = document.querySelector('[data-state="open"][data-slot="sheet-content"]')
@@ -27,13 +30,38 @@ export function ScrollFix() {
 
       if (!hasOpenSheet && !hasOpenDialog && !hasOpenChat) {
         // No overlays are open — safe to remove any leftover inline styles
-        if (document.body.style.overflow === 'hidden' || document.body.style.overflowY === 'hidden') {
-          document.body.style.removeProperty('overflow')
-          document.body.style.removeProperty('overflowY')
+        // Clean up body element
+        const bodyStyle = document.body.style
+        if (bodyStyle.overflow === 'hidden' || bodyStyle.overflowY === 'hidden') {
+          bodyStyle.removeProperty('overflow')
+          bodyStyle.removeProperty('overflow-y')
+          bodyStyle.removeProperty('overflowY')
         }
-        if (document.documentElement.style.overflow === 'hidden' || document.documentElement.style.overflowY === 'hidden') {
-          document.documentElement.style.removeProperty('overflow')
-          document.documentElement.style.removeProperty('overflowY')
+        // Also clean up any padding-right that RemoveScroll may add (to prevent layout shift)
+        if (bodyStyle.paddingRight === '0px' || bodyStyle.getPropertyValue('padding-right')) {
+          bodyStyle.removeProperty('padding-right')
+        }
+
+        // Clean up html element
+        const htmlStyle = document.documentElement.style
+        if (htmlStyle.overflow === 'hidden' || htmlStyle.overflowY === 'hidden') {
+          htmlStyle.removeProperty('overflow')
+          htmlStyle.removeProperty('overflow-y')
+          htmlStyle.removeProperty('overflowY')
+        }
+        if (htmlStyle.paddingRight === '0px' || htmlStyle.getPropertyValue('padding-right')) {
+          htmlStyle.removeProperty('padding-right')
+        }
+
+        // Remove Radix UI's data-scroll-locked attribute
+        document.body.removeAttribute('data-scroll-locked')
+        document.documentElement.removeAttribute('data-scroll-locked')
+
+        // Also clean up any Radix RemoveScroll wrapper elements that may linger
+        // RemoveScroll wraps body content in a div with specific styles
+        const removeScrollWrapper = document.querySelector('[data-radix-scroll-area-viewport]')
+        if (removeScrollWrapper) {
+          removeScrollWrapper.removeAttribute('data-scroll-locked')
         }
       }
     }
@@ -41,18 +69,14 @@ export function ScrollFix() {
     // Run cleanup on mount
     cleanup()
 
-    // Also run cleanup periodically (every 2s) to catch any stuck states
-    // This is a safety net — the CSS :has() approach should make this unnecessary,
-    // but we keep it as a belt-and-suspenders approach since users reported this
-    // issue 4+ times.
-    const interval = setInterval(cleanup, 2000)
+    // Aggressive periodic cleanup every 500ms (was 2000ms, reduced after 5+ reports)
+    const interval = setInterval(cleanup, 500)
 
     // Also run on visibility change (when user switches back to the tab)
     document.addEventListener('visibilitychange', cleanup)
 
     // Also run on scroll attempt (if user tries to scroll but can't)
     const onScrollAttempt = () => {
-      // If scrollY is 0 but there's content to scroll, something might be stuck
       if (window.scrollY === 0 && document.documentElement.scrollHeight > window.innerHeight + 100) {
         cleanup()
       }
@@ -62,11 +86,15 @@ export function ScrollFix() {
     // Also run on touchstart (if user touches the screen to scroll)
     window.addEventListener('touchstart', cleanup, { passive: true })
 
+    // Also run on resize (orientation change on mobile can trigger scroll issues)
+    window.addEventListener('resize', cleanup, { passive: true })
+
     return () => {
       clearInterval(interval)
       document.removeEventListener('visibilitychange', cleanup)
       window.removeEventListener('scroll', onScrollAttempt)
       window.removeEventListener('touchstart', cleanup)
+      window.removeEventListener('resize', cleanup)
     }
   }, [])
 

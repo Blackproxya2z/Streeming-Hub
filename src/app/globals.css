@@ -180,14 +180,12 @@ html:has([data-state="open"][data-slot="sheet-content"]) body {
   overflow-y: hidden !important;
 }
 
-/* Also lock scroll when Dialog overlay is open on mobile (small screens) */
-@media (max-width: 639px) {
-  html:has([data-state="open"][data-slot="dialog-overlay"]) {
-    overflow-y: hidden !important;
-  }
-  html:has([data-state="open"][data-slot="dialog-overlay"]) body {
-    overflow-y: hidden !important;
-  }
+/* Lock scroll when Dialog overlay is open (ALL screen sizes, not just mobile) */
+html:has([data-state="open"][data-slot="dialog-overlay"]) {
+  overflow-y: hidden !important;
+}
+html:has([data-state="open"][data-slot="dialog-overlay"]) body {
+  overflow-y: hidden !important;
 }
 
 /* Also lock scroll when AI chat widget is open on mobile.
@@ -200,6 +198,40 @@ html:has([data-state="open"][data-slot="sheet-content"]) body {
   html:has([data-chat-open="true"]) body {
     overflow-y: hidden !important;
   }
+}
+
+/* ========================================
+   AGGRESSIVE SCROLL UNLOCK — Safety Net
+   ========================================
+   When NO overlays are open, forcefully ensure body/html can scroll.
+   This catches cases where Radix UI's RemoveScroll or other JS leaves
+   overflow:hidden stuck on body/html after dialog/sheet closes.
+   
+   The :not(:has(...)) pattern is the inverse of the lock rules above.
+   If none of the overlay selectors match, the body MUST be scrollable.
+*/
+html:not(:has([data-state="open"][data-slot="sheet-content"]))
+  :not(:has([data-state="open"][data-slot="dialog-overlay"]))
+  :not(:has([data-chat-open="true"])) {
+  overflow-y: auto !important;
+}
+html:not(:has([data-state="open"][data-slot="sheet-content"]))
+  :not(:has([data-state="open"][data-slot="dialog-overlay"]))
+  :not(:has([data-chat-open="true"])) body {
+  overflow-y: auto !important;
+}
+
+/* Also target Radix UI's data-scroll-locked attribute directly.
+   When this attribute is present but no overlay is open, override it. */
+html:not(:has([data-state="open"][data-slot="sheet-content"]))
+  :not(:has([data-state="open"][data-slot="dialog-overlay"]))
+  :not(:has([data-chat-open="true"]))[data-scroll-locked] {
+  overflow-y: auto !important;
+}
+html:not(:has([data-state="open"][data-slot="sheet-content"]))
+  :not(:has([data-state="open"][data-slot="dialog-overlay"]))
+  :not(:has([data-chat-open="true"])) body[data-scroll-locked] {
+  overflow-y: auto !important;
 }
 
 /* Custom scrollbar utilities */

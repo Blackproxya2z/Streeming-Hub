@@ -554,9 +554,26 @@ export function AgeGate() {
 
   return (
     <Dialog
+      modal={false}
       open={ageGateOpen}
       onOpenChange={(open) => {
-        if (!open) handleCancel()
+        if (!open) {
+          handleCancel()
+          // Force cleanup any residual scroll lock from Radix UI
+          // RemoveScroll can leave overflow:hidden on body/html even after dialog closes
+          requestAnimationFrame(() => {
+            if (document.body.style.overflow || document.body.style.overflowY) {
+              document.body.style.removeProperty('overflow')
+              document.body.style.removeProperty('overflowY')
+            }
+            if (document.documentElement.style.overflow || document.documentElement.style.overflowY) {
+              document.documentElement.style.removeProperty('overflow')
+              document.documentElement.style.removeProperty('overflowY')
+            }
+            document.body.removeAttribute('data-scroll-locked')
+            document.documentElement.removeAttribute('data-scroll-locked')
+          })
+        }
       }}
     >
       <DialogContent

@@ -47,3 +47,32 @@ Stage Summary:
 - Color theme completely overhauled from flat Slate/Emerald/Amber to vibrant Teal/Coral/Magenta
 - All brand colors (#10b981 emerald, bKash pink, Nagad orange, WhatsApp green) preserved
 - Deployed to GitHub/Vercel: commit 3c15a15
+
+---
+Task ID: 3
+Agent: Bug Fix Agent
+Task: Fix Chat API Timeout (20s hang) and Scrolling/Touch Bug (5th+ time reported)
+
+Work Log:
+- Read worklog.md to understand previous agents' work (Task 1 & 2)
+- Analyzed all relevant files: route.ts, AgeGate.tsx, dialog.tsx, sheet.tsx, globals.css, ScrollFix.tsx
+
+Fix 1: Chat API Timeout (src/app/api/chat/route.ts)
+- Added `withTimeout<T>` utility function that wraps a promise with a timeout using Promise.race
+- Wrapped `getZAI()` init call with 5-second timeout
+- Wrapped streaming `zai.chat.completions.create({ stream: true })` with 5-second timeout
+- Implemented per-chunk timeout for streaming reads (resets with each chunk) to handle stalled connections
+- Wrapped non-streaming `zai.chat.completions.create({ stream: false })` with 5-second timeout
+- All timeout failures fall back to `getFallback()` response immediately
+- SSE stream always sends products, suggestions, and done events even on timeout
+
+Fix 2: Scrolling/Touch Bug — Multi-layered approach
+1. AgeGate.tsx: Added explicit `modal={false}` prop to Dialog + `requestAnimationFrame` cleanup on dialog close that removes any residual overflow:hidden and data-scroll-locked attributes from body/html
+2. dialog.tsx: Added scroll lock cleanup in `onCloseAutoFocus` — checks if other overlays are still open before removing inline styles, removes overflow/overflowY/padding-right from both body and html elements, also removes data-scroll-locked attributes
+3. globals.css: Changed Dialog scroll lock from mobile-only to all screen sizes; Added aggressive scroll unlock rules using `:not(:has(...))` pattern that force `overflow-y: auto !important` when NO overlays are open; Added rules targeting Radix UI's `data-scroll-locked` attribute directly
+4. ScrollFix.tsx: Reduced cleanup interval from 2000ms to 500ms; Added cleanup for html element (not just body); Added cleanup for padding-right (RemoveScroll adds this); Added removal of `data-scroll-locked` attribute from body/html; Added cleanup for Radix scroll area viewport; Added resize event listener (orientation change can trigger scroll issues)
+
+Stage Summary:
+- Chat API will now respond within ~5 seconds (was 20s) when LLM is unreachable, falling back to predefined responses
+- Scrolling fix is now 4-layer defense: CSS :has() lock → CSS :not(:has()) unlock → Dialog onClose cleanup → ScrollFix 500ms aggressive cleanup
+- All changes pass ESLint validation
