@@ -107,3 +107,45 @@ Stage Summary:
 - All 10 requirements met: ZAI removed, OpenAI added, client configured, exports added, gpt-4o-mini model, all functionality preserved, same SSE format, for-await-of streaming, history sanitization, same system prompt, fallback on failure
 - OPENAI_API_KEY expected in .env (not hardcoded)
 - Lint passes clean, dev server running without errors
+
+---
+Task ID: 2 (current session)
+Agent: Main Agent
+Task: Upgrade TTS system: Replace Gemini TTS with ElevenLabs (primary) + OpenAI TTS (backup) + Browser fallback
+
+Work Log:
+- Read and analyzed all relevant files: src/app/api/tts/route.ts (87 lines, Gemini TTS), src/components/shared/AIChatWidget.tsx (1652 lines), .env, package.json, src/lib/restricted.ts
+- Rewrote src/app/api/tts/route.ts (complete rewrite, ~170 lines):
+  1. Removed Google Gemini TTS (@google/genai import, getGenAI(), gemini-2.5-flash-preview-tts model)
+  2. Added ElevenLabs TTS as PRIMARY: fetch API to api.elevenlabs.io/v1/text-to-speech/{voice_id}, model eleven_multilingual_v2, stability 0.75, similarity_boost 0.8
+  3. Added OpenAI TTS as BACKUP: openai.audio.speech.create(), model gpt-4o-mini-tts, voice shimmer, speed 0.9
+  4. Added language-specific voice instructions for OpenAI TTS (Bangla/Banglish/English female sales rep style)
+  5. Enhanced cleanTextForTTS: added BDT→টাকা, bKash→বিকাশ, Nagad→নগদ, WhatsApp→হোয়াটসঅ্যাপ replacements
+  6. Added long text summarization: keeps first 2-3 sentences, max ~350 chars for TTS
+  7. Added X-TTS-Provider header in response (elevenlabs/openai) for debugging
+  8. Added maxDuration=15 for longer TTS processing
+- Updated src/components/shared/AIChatWidget.tsx:
+  1. Renamed speakWithGemini() → speakWithServerTTS() (ElevenLabs/OpenAI)
+  2. Renamed stopGeminiAudio() → stopServerAudio() (all references updated)
+  3. Updated section comment from "Gemini TTS" → "Server TTS (ElevenLabs/OpenAI)"
+  4. Added enhanced text cleanup in client-side: BDT, bKash, Nagad, WhatsApp replacements
+  5. Added explicit 503 status check for fallback trigger
+  6. Updated speak() function comment: "Try Server TTS first (ElevenLabs → OpenAI → Browser fallback)"
+  7. Browser speechSynthesis remains as final fallback (unchanged functionality)
+- Updated .env: Added ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID (empty, needs user to fill)
+- Ran bun run lint — passes clean, no errors
+- Tested APIs:
+  - Chat API: ✅ Returns streaming SSE correctly
+  - TTS API: ✅ ElevenLabs skipped (no key), OpenAI 403 (regional block on dev server), falls back to 503 with fallback:true → client uses browser TTS
+  - Homepage: ✅ Renders correctly (HTTP 200)
+
+Stage Summary:
+- TTS priority chain: ElevenLabs (primary) → OpenAI gpt-4o-mini-tts (backup) → Browser speechSynthesis (final fallback)
+- All Gemini TTS references removed from codebase
+- ElevenLabs uses eleven_multilingual_v2 model for Bengali support
+- OpenAI TTS uses shimmer voice with language-specific instructions
+- Text cleanup includes: emoji removal, markdown stripping, BDT/bKash/Nagad/WhatsApp Bengali replacements, long text summarization
+- Browser fallback unchanged — still uses bn-BD/hi-IN/en-US voices
+- ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID need to be set by user for primary TTS to work
+- OpenAI TTS will work on Vercel (US region) but blocked on dev server (regional restriction)
+- Lint passes clean

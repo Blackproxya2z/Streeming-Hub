@@ -177,12 +177,12 @@ function stopChromeKeepAlive() {
   }
 }
 
-// ─── Gemini TTS (primary) → Browser TTS (fallback) ──────────────────────────
+// ─── Server TTS (ElevenLabs/OpenAI) → Browser TTS (fallback) ─────────────────
 
 let currentAudio: HTMLAudioElement | null = null
 
-async function speakWithGemini(text: string, lang: DetectedLang, onEnd?: () => void): Promise<boolean> {
-  // Clean text for TTS
+async function speakWithServerTTS(text: string, lang: DetectedLang, onEnd?: () => void): Promise<boolean> {
+  // Clean text for TTS on the client side too (for the request body)
   const cleanText = text
     .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '')
     .replace(/\*\*(.+?)\*\*/g, '$1')
@@ -190,6 +190,10 @@ async function speakWithGemini(text: string, lang: DetectedLang, onEnd?: () => v
     .replace(/[•\-]\s/g, '')
     .replace(/\d+[.)]\s/g, '')
     .replace(/৳/g, 'টাকা')
+    .replace(/BDT/gi, 'টাকা')
+    .replace(/\bbKash\b/gi, 'বিকাশ')
+    .replace(/\bNagad\b/gi, 'নগদ')
+    .replace(/\bWhatsApp\b/gi, 'হোয়াটসঅ্যাপ')
     .replace(/↵/g, ' ')
     .replace(/\n/g, ' ')
     .trim()
@@ -209,8 +213,14 @@ async function speakWithGemini(text: string, lang: DetectedLang, onEnd?: () => v
       body: JSON.stringify({ text: cleanText, lang }),
     })
 
+    // If server TTS returns 503 with fallback flag, use browser TTS
+    if (res.status === 503) {
+      console.warn('Server TTS unavailable (ElevenLabs + OpenAI failed), falling back to browser TTS')
+      return false
+    }
+
     if (!res.ok) {
-      console.warn('Gemini TTS failed, falling back to browser TTS')
+      console.warn('Server TTS failed, falling back to browser TTS')
       return false
     }
 
@@ -252,12 +262,12 @@ async function speakWithGemini(text: string, lang: DetectedLang, onEnd?: () => v
       })
     })
   } catch {
-    console.warn('Gemini TTS error, falling back to browser TTS')
+    console.warn('Server TTS error, falling back to browser TTS')
     return false
   }
 }
 
-function stopGeminiAudio() {
+function stopServerAudio() {
   if (currentAudio) {
     currentAudio.pause()
     currentAudio = null
@@ -268,13 +278,13 @@ async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Prom
   if (typeof window === 'undefined') return null
 
   // Stop any existing audio
-  stopGeminiAudio()
+  stopServerAudio()
   if (window.speechSynthesis) window.speechSynthesis.cancel()
   stopChromeKeepAlive()
 
-  // Try Gemini TTS first
-  const geminiSuccess = await speakWithGemini(text, lang, onEnd)
-  if (geminiSuccess) return null // Gemini handled it
+  // Try Server TTS first (ElevenLabs → OpenAI → Browser fallback)
+  const serverSuccess = await speakWithServerTTS(text, lang, onEnd)
+  if (serverSuccess) return null // Server TTS handled it
 
   // Fallback to browser TTS
   if (!window.speechSynthesis) { onEnd?.(); return null }
@@ -287,6 +297,10 @@ async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Prom
     .replace(/[•\-]\s/g, '')
     .replace(/\d+[.)]\s/g, '')
     .replace(/৳/g, 'টাকা')
+    .replace(/BDT/gi, 'টাকা')
+    .replace(/\bbKash\b/gi, 'বিকাশ')
+    .replace(/\bNagad\b/gi, 'নগদ')
+    .replace(/\bWhatsApp\b/gi, 'হোয়াটসঅ্যাপ')
     .replace(/↵/g, ' ')
     .replace(/\n/g, ' ')
     .trim()
@@ -516,7 +530,7 @@ function SpeakerButton({ text, lang, isStreaming }: { text: string; lang: Detect
 
   const handleSpeak = useCallback(() => {
     if (isSpeaking) {
-      stopGeminiAudio()
+      stopServerAudio()
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel()
       }
@@ -1026,7 +1040,7 @@ export function AIChatWidget() {
       isVoiceModeRef.current = false
       setIsAISpeaking(false)
       isAISpeakingRef.current = false
-      stopGeminiAudio()
+      stopServerAudio()
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel()
       }
@@ -1059,7 +1073,7 @@ export function AIChatWidget() {
   }
 
   const clearChat = useCallback(() => {
-    stopGeminiAudio()
+    stopServerAudio()
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
@@ -1116,7 +1130,7 @@ export function AIChatWidget() {
     isVoiceModeRef.current = false
     setIsAISpeaking(false)
     isAISpeakingRef.current = false
-    stopGeminiAudio()
+    stopServerAudio()
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
