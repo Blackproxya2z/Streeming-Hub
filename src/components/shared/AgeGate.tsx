@@ -522,9 +522,22 @@ export function AgeGate() {
     setWrongAttempt(0)
   }, [])
 
-  const handlePinSubmit = useCallback(() => {
+  const handlePinSubmit = useCallback(async () => {
     if (pin === '69') {
+      // Verify PIN with backend to set the restricted_access cookie
+      try {
+        await fetch('/api/restricted/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin }),
+        })
+      } catch {
+        // Backend verification failed, but still allow frontend access
+      }
+
       setAgeVerified(true)
+      // Save verification timestamp for 5-minute expiry check
+      localStorage.setItem('restrictedVerifiedAt', String(Date.now()))
       setStep('success')
       setShowConfetti(true)
       setPin('')

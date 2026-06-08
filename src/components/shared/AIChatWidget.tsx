@@ -177,14 +177,109 @@ function stopChromeKeepAlive() {
   }
 }
 
-async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Promise<SpeechSynthesisUtterance | null> {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return null
+// ─── Gemini TTS (primary) → Browser TTS (fallback) ──────────────────────────
 
-  // Cancel any ongoing speech
-  window.speechSynthesis.cancel()
+let currentAudio: HTMLAudioElement | null = null
+
+async function speakWithGemini(text: string, lang: DetectedLang, onEnd?: () => void): Promise<boolean> {
+  // Clean text for TTS
+  const cleanText = text
+    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\[(.+?)\]\((.+?)\)/g, '$1')
+    .replace(/[•\-]\s/g, '')
+    .replace(/\d+[.)]\s/g, '')
+    .replace(/৳/g, 'টাকা')
+    .replace(/↵/g, ' ')
+    .replace(/\n/g, ' ')
+    .trim()
+
+  if (!cleanText) { onEnd?.(); return true }
+
+  try {
+    // Stop any currently playing audio
+    if (currentAudio) {
+      currentAudio.pause()
+      currentAudio = null
+    }
+
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: cleanText, lang }),
+    })
+
+    if (!res.ok) {
+      console.warn('Gemini TTS failed, falling back to browser TTS')
+      return false
+    }
+
+    const audioBlob = await res.blob()
+    const audioUrl = URL.createObjectURL(audioBlob)
+    const audio = new Audio(audioUrl)
+    currentAudio = audio
+
+    return new Promise<boolean>((resolve) => {
+      const safetyTimer = setTimeout(() => {
+        audio.pause()
+        currentAudio = null
+        URL.revokeObjectURL(audioUrl)
+        onEnd?.()
+        resolve(true)
+      }, 45000)
+
+      audio.onended = () => {
+        clearTimeout(safetyTimer)
+        currentAudio = null
+        URL.revokeObjectURL(audioUrl)
+        onEnd?.()
+        resolve(true)
+      }
+
+      audio.onerror = () => {
+        clearTimeout(safetyTimer)
+        currentAudio = null
+        URL.revokeObjectURL(audioUrl)
+        console.warn('Audio playback error, falling back to browser TTS')
+        resolve(false)
+      }
+
+      audio.play().catch(() => {
+        clearTimeout(safetyTimer)
+        currentAudio = null
+        URL.revokeObjectURL(audioUrl)
+        resolve(false)
+      })
+    })
+  } catch {
+    console.warn('Gemini TTS error, falling back to browser TTS')
+    return false
+  }
+}
+
+function stopGeminiAudio() {
+  if (currentAudio) {
+    currentAudio.pause()
+    currentAudio = null
+  }
+}
+
+async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Promise<SpeechSynthesisUtterance | null> {
+  if (typeof window === 'undefined') return null
+
+  // Stop any existing audio
+  stopGeminiAudio()
+  if (window.speechSynthesis) window.speechSynthesis.cancel()
   stopChromeKeepAlive()
 
-  // Clean text for speech (remove emojis, markdown, special chars)
+  // Try Gemini TTS first
+  const geminiSuccess = await speakWithGemini(text, lang, onEnd)
+  if (geminiSuccess) return null // Gemini handled it
+
+  // Fallback to browser TTS
+  if (!window.speechSynthesis) { onEnd?.(); return null }
+
+  // Clean text for speech
   const cleanText = text
     .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '')
     .replace(/\*\*(.+?)\*\*/g, '$1')
@@ -198,27 +293,18 @@ async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Prom
 
   if (!cleanText) { onEnd?.(); return null }
 
-  // Ensure voices are loaded (especially Chrome)
   const voices = await getVoicesAsync()
-
   const utterance = new SpeechSynthesisUtterance(cleanText)
 
-  // Set language based on detected language — try Bengali first, fall back to Hindi, then English
   if (lang === 'bangla' || lang === 'banglish') {
-    // Try bn-BD first, then bn-IN, then hi-IN (Hindi can pronounce most Bengali)
     const bnVoice = voices.find(v => v.lang === 'bn-BD') || voices.find(v => v.lang === 'bn-IN')
     if (bnVoice) {
       utterance.voice = bnVoice
       utterance.lang = bnVoice.lang
     } else {
-      // Fallback to Hindi voice (can pronounce most Bengali words)
       const hiVoice = voices.find(v => v.lang === 'hi-IN')
-      if (hiVoice) {
-        utterance.voice = hiVoice
-        utterance.lang = 'hi-IN'
-      } else {
-        utterance.lang = 'bn-BD' // Let browser use default
-      }
+      if (hiVoice) { utterance.voice = hiVoice; utterance.lang = 'hi-IN' }
+      else { utterance.lang = 'bn-BD' }
     }
   } else {
     utterance.lang = 'en-US'
@@ -228,17 +314,13 @@ async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Prom
   }
 
   utterance.rate = 0.9
-  utterance.pitch = 1.15 // Slightly higher pitch for female voice
+  utterance.pitch = 1.15
   utterance.volume = 1.0
 
-  // Start Chrome keep-alive workaround
   startChromeKeepAlive()
 
-  // Safety timeout: if TTS gets stuck (max 45 seconds), force-end
   const safetyTimer = setTimeout(() => {
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel()
-    }
+    if (window.speechSynthesis?.speaking) window.speechSynthesis.cancel()
     stopChromeKeepAlive()
     onEnd?.()
   }, 45000)
@@ -250,14 +332,9 @@ async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Prom
   }
 
   utterance.onend = wrappedOnEnd
-  utterance.onerror = (event) => {
-    console.warn('TTS error:', event.error)
-    wrappedOnEnd()
-  }
+  utterance.onerror = () => wrappedOnEnd()
 
-  // Small delay before speaking to avoid Chrome race condition
   await new Promise(resolve => setTimeout(resolve, 100))
-
   window.speechSynthesis.speak(utterance)
   return utterance
 }
@@ -439,6 +516,7 @@ function SpeakerButton({ text, lang, isStreaming }: { text: string; lang: Detect
 
   const handleSpeak = useCallback(() => {
     if (isSpeaking) {
+      stopGeminiAudio()
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel()
       }
@@ -948,6 +1026,7 @@ export function AIChatWidget() {
       isVoiceModeRef.current = false
       setIsAISpeaking(false)
       isAISpeakingRef.current = false
+      stopGeminiAudio()
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel()
       }
@@ -980,6 +1059,7 @@ export function AIChatWidget() {
   }
 
   const clearChat = useCallback(() => {
+    stopGeminiAudio()
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
@@ -1036,6 +1116,7 @@ export function AIChatWidget() {
     isVoiceModeRef.current = false
     setIsAISpeaking(false)
     isAISpeakingRef.current = false
+    stopGeminiAudio()
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }

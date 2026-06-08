@@ -81,9 +81,13 @@ export function CategoryCards() {
 
   const handleClick = (cat: Category) => {
     navigate('category', { categorySlug: cat.slug })
-    // If adult and not verified, open age gate dialog after navigating
-    if (cat.isAdult && !ageVerified) {
-      setAgeGateOpen(true)
+    // If adult, check 5-minute expiry
+    if (cat.isAdult) {
+      const verifiedAt = localStorage.getItem('restrictedVerifiedAt')
+      const isExpired = !verifiedAt || Date.now() - parseInt(verifiedAt, 10) > 300_000
+      if (!ageVerified || isExpired) {
+        setAgeGateOpen(true)
+      }
     }
   }
 

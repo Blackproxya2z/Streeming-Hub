@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import OpenAI from 'openai'
 import { searchProducts, searchByCategory, getFeaturedProducts, getCatalogSummary, findSpecificProduct, findRelatedProducts, type Product } from '@/lib/data'
+import { hasRestrictedAccessFromRequest, isRestrictedProduct } from '@/lib/restricted'
 
 // ─── Route Exports ──────────────────────────────────────────────────────────
 
@@ -218,7 +219,7 @@ function buildProductContext(intent: Intent, userMsg: string): string {
 
 // ─── Collect Products for SSE ───────────────────────────────────────────────
 
-function collectProducts(intent: Intent, userMsg: string): ProductCard[] {
+function collectProducts(intent: Intent, userMsg: string, hasRestrictedAccess: boolean): ProductCard[] {
   const products: Product[] = []
   switch (intent) {
     case 'specific_product': { const p = findSpecificProduct(userMsg); if (p) { products.push(p); products.push(...findRelatedProducts(p.id, 3)) } break }
@@ -232,7 +233,10 @@ function collectProducts(intent: Intent, userMsg: string): ProductCard[] {
     default: break
   }
   const seen = new Set<string>()
-  return products.filter((p) => !seen.has(p.id) && seen.add(p.id)).map(toProductCard)
+  return products
+    .filter((p) => !seen.has(p.id) && seen.add(p.id))
+    .filter((p) => hasRestrictedAccess || !isRestrictedProduct(p))
+    .map(toProductCard)
 }
 
 // ─── System Prompt ──────────────────────────────────────────────────────────
@@ -362,7 +366,8 @@ export async function POST(request: NextRequest) {
 
   const intent = detectIntent(message, history)
   const lang = detectLanguage(message)
-  const products = collectProducts(intent, message)
+  const restrictedAccess = hasRestrictedAccessFromRequest(request)
+  const products = collectProducts(intent, message, restrictedAccess)
   const suggestions = generateSuggestions(intent, lang)
   const whatsappUrl = buildWhatsAppUrl({})
   const systemPrompt = buildSystemPrompt(intent, lang, message)

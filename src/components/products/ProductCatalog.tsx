@@ -19,9 +19,11 @@ export function ProductCatalog() {
   const { data: categories } = useCategories()
   const currentCategory = (categories || []).find(c => c.slug === categorySlug)
 
-  // Check if current category is adult and user is not verified
+  // Check if current category is adult and user is not verified (5-min expiry)
   const isAdultCategory = currentCategory?.isAdult === true
-  const needsVerification = isAdultCategory && !ageVerified
+  const verifiedAt = typeof window !== 'undefined' ? localStorage.getItem('restrictedVerifiedAt') : null
+  const isVerificationExpired = !verifiedAt || Date.now() - parseInt(verifiedAt, 10) > 300_000
+  const needsVerification = isAdultCategory && (!ageVerified || isVerificationExpired)
 
   const queryParams: Record<string, string> = {}
   if (searchQuery) queryParams.search = searchQuery
@@ -41,9 +43,13 @@ export function ProductCatalog() {
     setFilter('categorySlug', slug)
     if (slug) {
       navigate('category', { categorySlug: slug })
-      // If adult and not verified, open age gate dialog after navigating
-      if (isAdult && !ageVerified) {
-        setAgeGateOpen(true)
+      // If adult, check 5-minute expiry
+      if (isAdult) {
+        const vAt = localStorage.getItem('restrictedVerifiedAt')
+        const expired = !vAt || Date.now() - parseInt(vAt, 10) > 300_000
+        if (!ageVerified || expired) {
+          setAgeGateOpen(true)
+        }
       }
     } else {
       navigate('products')
