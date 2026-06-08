@@ -17,13 +17,19 @@ interface ProductCard { id: string; name: string; slug: string; image: string | 
 interface ChatMessage { role: 'system' | 'user' | 'assistant'; content: string }
 interface PriceOption { label?: string; priceBDT?: string }
 
-// ─── OpenAI Client ─────────────────────────────────────────────────────────
+// ─── OpenAI Client (lazy init to avoid build-time crash) ──────────────────────
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  timeout: 8_000,
-  maxRetries: 1,
-})
+let openaiClient: OpenAI | null = null
+function getOpenAI(): OpenAI {
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-build',
+      timeout: 8_000,
+      maxRetries: 1,
+    })
+  }
+  return openaiClient
+}
 
 // ─── Timeout Utility ─────────────────────────────────────────────────────────
 
@@ -394,7 +400,7 @@ export async function POST(request: NextRequest) {
         // Try streaming with OpenAI (with timeout)
         try {
           const completion = await withTimeout(
-            openai.chat.completions.create({
+            getOpenAI().chat.completions.create({
               model: 'gpt-4o-mini',
               messages,
               stream: true,
@@ -419,7 +425,7 @@ export async function POST(request: NextRequest) {
             // Non-timeout error — try non-streaming as fallback
             try {
               const completion = await withTimeout(
-                openai.chat.completions.create({
+                getOpenAI().chat.completions.create({
                   model: 'gpt-4o-mini',
                   messages,
                   stream: false,
