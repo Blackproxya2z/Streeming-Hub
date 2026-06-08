@@ -128,7 +128,36 @@ function detectLanguageClient(message: string): DetectedLang {
 
 // ─── TTS Utility ─────────────────────────────────────────────────────────────
 
-function speak(text: string, lang: DetectedLang, onEnd?: () => void): SpeechSynthesisUtterance | null {
+// Chrome loads voices asynchronously — this helper ensures they're available
+function getVoicesAsync(): Promise<SpeechSynthesisVoice[]> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      resolve([])
+      return
+    }
+    const voices = window.speechSynthesis.getVoices()
+    if (voices.length > 0) {
+      resolve(voices)
+      return
+    }
+    // Voices not loaded yet — wait for voiceschanged event
+    const onVoicesChanged = () => {
+      const v = window.speechSynthesis.getVoices()
+      if (v.length > 0) {
+        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged)
+        resolve(v)
+      }
+    }
+    window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged)
+    // Safety: resolve after 2s even if no voices loaded
+    setTimeout(() => {
+      window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged)
+      resolve(window.speechSynthesis.getVoices())
+    }, 2000)
+  })
+}
+
+async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Promise<SpeechSynthesisUtterance | null> {
   if (typeof window === 'undefined' || !window.speechSynthesis) return null
 
   // Cancel any ongoing speech
@@ -144,7 +173,10 @@ function speak(text: string, lang: DetectedLang, onEnd?: () => void): SpeechSynt
     .replace(/৳/g, 'টাকা')
     .trim()
 
-  if (!cleanText) return null
+  if (!cleanText) { onEnd?.(); return null }
+
+  // Ensure voices are loaded (especially Chrome)
+  const voices = await getVoicesAsync()
 
   const utterance = new SpeechSynthesisUtterance(cleanText)
 
@@ -162,7 +194,6 @@ function speak(text: string, lang: DetectedLang, onEnd?: () => void): SpeechSynt
   utterance.volume = 1.0
 
   // Try to find a matching voice
-  const voices = window.speechSynthesis.getVoices()
   const targetLang = utterance.lang
   const shortLang = targetLang.split('-')[0]
 
@@ -175,10 +206,21 @@ function speak(text: string, lang: DetectedLang, onEnd?: () => void): SpeechSynt
     utterance.voice = selectedVoice
   }
 
-  if (onEnd) {
-    utterance.onend = onEnd
-    utterance.onerror = onEnd
+  // Safety timeout: if TTS gets stuck (max 30 seconds), force-end
+  const safetyTimer = setTimeout(() => {
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel()
+    }
+    onEnd?.()
+  }, 30000)
+
+  const wrappedOnEnd = () => {
+    clearTimeout(safetyTimer)
+    onEnd?.()
   }
+
+  utterance.onend = wrappedOnEnd
+  utterance.onerror = wrappedOnEnd
 
   window.speechSynthesis.speak(utterance)
   return utterance
@@ -436,6 +478,17 @@ export function AIChatWidget() {
   const [isAISpeaking, setIsAISpeaking] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const sendMessageRef = useRef<(msg?: string) => Promise<void>>()
+  // Refs to avoid stale closures in async voice loop
+  const isVoiceModeRef = useRef(false)
+  const isAISpeakingRef = useRef(false)
+  const messagesRef = useRef(messages)
+  const isLoadingRef = useRef(false)
+
+  // Keep refs in sync with state
+  useEffect(() => { isVoiceModeRef.current = isVoiceMode }, [isVoiceMode])
+  useEffect(() => { isAISpeakingRef.current = isAISpeaking }, [isAISpeaking])
+  useEffect(() => { messagesRef.current = messages }, [messages])
+  useEffect(() => { isLoadingRef.current = isLoading }, [isLoading])
 
   // Check speech support once at mount
   const [speechSupported] = useState(() => {
@@ -505,7 +558,7 @@ export function AIChatWidget() {
   // ── Send message handler (with SSE streaming) ──
   const sendMessage = useCallback(async (overrideMessage?: string) => {
     const trimmed = (overrideMessage || input).trim()
-    if (!trimmed || isLoading || cooldown) return
+    if (!trimmed || isLoadingRef.current || cooldown) return
 
     // Rate limit: minimum 1.5s between messages
     const now = Date.now()
@@ -537,7 +590,9 @@ export function AIChatWidget() {
     ])
 
     try {
-      const history = messages.slice(-10).map(m => ({
+      // Use messagesRef to avoid stale closure and unnecessary re-creates
+      const currentMessages = messagesRef.current
+      const history = currentMessages.slice(-10).map(m => ({
         role: m.role,
         content: m.content,
       }))
@@ -655,31 +710,9 @@ export function AIChatWidget() {
         return updated
       })
 
-      // ── Gemini-style: After AI finishes, speak the response, then auto-listen ──
-      if (isVoiceMode && speechSupported) {
-        // Get the final message content
-        const finalMessages = [...messages]
-        const lastAssistantMsg = finalMessages[finalMessages.length - 1]
-        // We need to read from the updated state, so use a small delay
-        setTimeout(() => {
-          setMessages(currentMessages => {
-            const lastMsg = currentMessages[currentMessages.length - 1]
-            if (lastMsg?.role === 'assistant' && lastMsg.content && !lastMsg.isStreaming) {
-              const lang = lastMsg.detectedLang || userDetectedLang
-              setIsAISpeaking(true)
-              speak(lastMsg.content, lang, () => {
-                setIsAISpeaking(false)
-                // After AI finishes speaking, auto-start listening again
-                const rec = recognitionRef.current
-                if (rec) {
-                  try { rec.start(); setIsListening(true) } catch { /* */ }
-                }
-              })
-            }
-            return currentMessages // Don't modify, just read
-          })
-        }, 200)
-      }
+      // NOTE: Voice mode TTS is now handled by the useEffect below,
+      // which watches for the last assistant message's isStreaming → false transition.
+      // This avoids the stale closure problem with the old setTimeout approach.
     } catch {
       setMessages(prev => {
         const updated = [...prev]
@@ -696,12 +729,53 @@ export function AIChatWidget() {
     } finally {
       setIsLoading(false)
     }
-  }, [input, isLoading, cooldown, messages, isVoiceMode, speechSupported])
+  }, [input, cooldown])
 
   // ── Keep sendMessage ref updated for voice input ──
   useEffect(() => {
     sendMessageRef.current = sendMessage
   }, [sendMessage])
+
+  // ── Gemini-style Voice Loop: TTS after AI finishes, then auto-listen ──
+  // This useEffect watches for the last assistant message's isStreaming
+  // transitioning to false, and triggers TTS → auto-listen in voice mode.
+  // Using refs avoids stale closure issues.
+  const voiceLoopTriggeredRef = useRef<number>(0) // timestamp of last triggered TTS
+  useEffect(() => {
+    if (!isVoiceModeRef.current || !speechSupported) return
+
+    const lastMsg = messages[messages.length - 1]
+    if (!lastMsg || lastMsg.role !== 'assistant' || lastMsg.isStreaming || !lastMsg.content) return
+
+    // Avoid re-triggering for the same message
+    if (voiceLoopTriggeredRef.current === lastMsg.timestamp) return
+    voiceLoopTriggeredRef.current = lastMsg.timestamp
+
+    // Small delay to ensure the state has settled after isStreaming → false
+    const timer = setTimeout(() => {
+      if (!isVoiceModeRef.current) return // Voice mode was disabled during delay
+
+      setIsAISpeaking(true)
+      const lang = lastMsg.detectedLang || 'bangla'
+
+      speak(lastMsg.content, lang, () => {
+        setIsAISpeaking(false)
+        // After AI finishes speaking, auto-start listening again if still in voice mode
+        if (!isVoiceModeRef.current) return
+        const rec = recognitionRef.current
+        if (rec) {
+          try {
+            rec.start()
+            setIsListening(true)
+          } catch {
+            // Recognition may already be started or not available
+          }
+        }
+      })
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [messages, speechSupported])
 
   // ── Initialize Speech Recognition (Dynamic Language STT) ──
   useEffect(() => {
@@ -724,6 +798,7 @@ export function AIChatWidget() {
 
         const spokenLang = detectLanguageClient(transcript)
 
+        // Update recognition language for next session
         try {
           if (spokenLang === 'english') {
             recognition.lang = 'en-US'
@@ -734,19 +809,46 @@ export function AIChatWidget() {
           // Can't change lang while recognition might be active
         }
 
-        // Auto-send after final result
+        // Auto-send after final result (in both voice mode and regular mic)
         setTimeout(() => {
           sendMessageRef.current?.(transcript)
-        }, 100)
+        }, 150)
       }
     }
 
-    recognition.onerror = () => {
+    recognition.onerror = (event) => {
       setIsListening(false)
+      // In voice mode, if recognition errors (e.g., no-speech), try to restart
+      if (isVoiceModeRef.current && event.error !== 'aborted') {
+        setTimeout(() => {
+          if (isVoiceModeRef.current && !isAISpeakingRef.current && !isLoadingRef.current) {
+            try {
+              recognition.start()
+              setIsListening(true)
+            } catch {
+              // Recognition may already be started
+            }
+          }
+        }, 500)
+      }
     }
 
     recognition.onend = () => {
       setIsListening(false)
+      // In voice mode, auto-restart listening after recognition ends naturally
+      // (but only if AI is not currently speaking/loading)
+      if (isVoiceModeRef.current && !isAISpeakingRef.current && !isLoadingRef.current) {
+        setTimeout(() => {
+          if (isVoiceModeRef.current && !isAISpeakingRef.current && !isLoadingRef.current) {
+            try {
+              recognition.start()
+              setIsListening(true)
+            } catch {
+              // Recognition may already be started
+            }
+          }
+        }, 300)
+      }
     }
 
     recognitionRef.current = recognition
@@ -777,7 +879,9 @@ export function AIChatWidget() {
     if (isVoiceMode) {
       // Exit voice mode
       setIsVoiceMode(false)
+      isVoiceModeRef.current = false
       setIsAISpeaking(false)
+      isAISpeakingRef.current = false
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel()
       }
@@ -788,6 +892,7 @@ export function AIChatWidget() {
     } else {
       // Enter voice mode
       setIsVoiceMode(true)
+      isVoiceModeRef.current = true
       // Start listening immediately
       const recognition = recognitionRef.current
       if (recognition) {
@@ -808,12 +913,14 @@ export function AIChatWidget() {
     }
   }
 
-  const clearChat = () => {
+  const clearChat = useCallback(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
     setIsVoiceMode(false)
+    isVoiceModeRef.current = false
     setIsAISpeaking(false)
+    isAISpeakingRef.current = false
     setMessages([
       {
         role: 'assistant',
@@ -822,11 +929,31 @@ export function AIChatWidget() {
         detectedLang: 'bangla',
       },
     ])
-  }
+  }, [])
 
   const handleSuggestionClick = (suggestion: string) => {
     sendMessage(suggestion)
   }
+
+  // ── Close chat helper: clean up voice mode & scroll lock ──
+  const closeChat = useCallback(() => {
+    setIsOpen(false)
+    setIsVoiceMode(false)
+    isVoiceModeRef.current = false
+    setIsAISpeaking(false)
+    isAISpeakingRef.current = false
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
+    // Remove data-chat-open attribute immediately (before exit animation)
+    // to release the CSS scroll lock on mobile
+    requestAnimationFrame(() => {
+      const chatPanel = document.querySelector('[data-chat-open="true"]')
+      if (chatPanel) {
+        chatPanel.removeAttribute('data-chat-open')
+      }
+    })
+  }, [])
 
   // ──────────────────────────────────────────────────────────────────────────────
   // RENDER
@@ -940,7 +1067,7 @@ export function AIChatWidget() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              onClick={() => { setIsOpen(false); setIsVoiceMode(false) }}
+              onClick={closeChat}
             />
 
             {/* Chat panel */}
@@ -982,14 +1109,14 @@ export function AIChatWidget() {
                       {isVoiceMode ? (
                         <>
                           <span className="h-2 w-2 rounded-full bg-red-400 animate-pulse shadow-[0_0_6px_rgba(248,113,113,0.6)]" />
-                          <p className="text-[10px] sm:text-[11px] text-white/80 dark:text-slate-200 font-medium">
+                          <p className="text-[10px] sm:text-[11px] text-white/80 font-medium">
                             {isAISpeaking ? 'বলছি...' : isListening ? 'শুনছি...' : 'ভয়েস মোড'}
                           </p>
                         </>
                       ) : (
                         <>
                           <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-                          <p className="text-[10px] sm:text-[11px] text-white/80 dark:text-slate-200 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
+                          <p className="text-[10px] sm:text-[11px] text-white/80 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
                         </>
                       )}
                     </div>
@@ -1025,7 +1152,7 @@ export function AIChatWidget() {
                     variant="ghost"
                     size="icon"
                     className="text-white hover:bg-white/15 h-7 w-7 sm:h-8 sm:w-8 rounded-lg"
-                    onClick={() => { setIsOpen(false); setIsVoiceMode(false) }}
+                    onClick={closeChat}
                     aria-label="Close chat"
                   >
                     <X className="h-4 w-4" />

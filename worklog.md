@@ -171,3 +171,104 @@ Stage Summary:
 - Light mode text visibility fixed
 - LLM timeout increased from 3s to 8s
 - Code pushed to GitHub (Blackproxya2z/Streeming-Hub, main branch)
+---
+Task ID: 3-6
+Agent: fullstack-fix-agent
+Task: Fix voice chat, light mode text, performance, and mobile scroll bugs
+
+Work Log:
+- Read all key files: AIChatWidget.tsx (1357 lines), globals.css, ScrollFix.tsx, AgeGate.tsx, route.ts, data.ts
+- Analyzed the 4 critical issues to fix
+
+**1. VOICE CHAT FIX (HIGHEST PRIORITY)**
+Root cause: The voice conversation loop was broken due to stale closures and fragile timing:
+- `isVoiceMode` was captured in the `sendMessage` closure but could be stale when the SSE stream finished
+- The old approach used `setTimeout(() => { setMessages(current => { ... }) })` which is an anti-pattern (reading state inside a setState callback to trigger side effects)
+- SpeechSynthesis voices weren't loaded on Chrome (needs `voiceschanged` event)
+- No safety timeout for TTS getting stuck
+- SpeechRecognition's `onend` always set `isListening=false`, breaking the auto-restart loop in voice mode
+
+Fixes applied:
+- Added refs (`isVoiceModeRef`, `isAISpeakingRef`, `messagesRef`, `isLoadingRef`) to avoid stale closures
+- Replaced the broken `setTimeout + setMessages callback` approach with a proper `useEffect` that watches for `isStreaming → false` transitions in voice mode
+- Added `voiceLoopTriggeredRef` to prevent re-triggering TTS for the same message
+- Made `speak()` async: added `getVoicesAsync()` helper that waits for Chrome's `voiceschanged` event
+- Added 30-second safety timeout for TTS (auto-cancels and calls onEnd)
+- Fixed `recognition.onerror`: in voice mode, auto-restart listening after non-abort errors (e.g., no-speech)
+- Fixed `recognition.onend`: in voice mode, auto-restart listening if AI isn't speaking/loading
+- Updated `toggleVoiceMode` and `clearChat` to sync refs immediately
+- Created `closeChat()` helper that cleans up voice mode and removes `data-chat-open` immediately
+
+**2. LIGHT MODE TEXT VISIBILITY**
+- Audited all `text-white`, `text-slate-200/300`, `dark:text-slate-*` patterns across components
+- AIChatWidget header: `text-white/80 dark:text-slate-200` → simplified to `text-white/80` (header is on gradient in both modes)
+- All `text-white` usages verified: they're on colored backgrounds (teal gradients, green buttons, dark avatars) — appropriate for both modes
+- HeroSection uses `text-foreground dark:text-slate-200` — already has light mode alternative
+- No remaining standalone `dark:text-slate-*` without light mode alternative found
+
+**3. PERFORMANCE OPTIMIZATION**
+- Removed `messages` and `isVoiceMode` from `sendMessage` dependency array (was `[input, isLoading, cooldown, messages, isVoiceMode, speechSupported]`, now `[input, cooldown]`)
+- Used `messagesRef.current` for reading history instead of the `messages` state variable
+- Used `isLoadingRef.current` for the guard check instead of the `isLoading` state variable
+- This prevents `sendMessage` from being recreated on every message update (was causing unnecessary re-renders)
+- Images already use `loading="lazy"` ✓
+- Data layer already uses module-level Map indexes ✓
+
+**4. MOBILE SCROLL BUG**
+- Added `closeChat()` function that removes `data-chat-open` attribute immediately via `requestAnimationFrame` (before AnimatePresence exit animation)
+- This ensures the CSS scroll lock `html:has([data-chat-open="true"])` releases immediately when user closes chat
+- Both the mobile backdrop `onClick` and the X button now use `closeChat()` instead of inline handlers
+- The `closeChat` also properly cleans up all voice mode state and cancels TTS
+- CSS `:has()` selectors in globals.css already working correctly from previous fixes
+- ScrollFix.tsx already checks for `[data-chat-open="true"]` in `isOverlayOpen()` so it won't interfere
+
+- Ran `bun run lint` — all clean ✓
+
+Stage Summary:
+- Voice chat fully rewritten: useEffect-based loop with refs for stale closure avoidance
+- TTS now works on Chrome with async voice loading and 30s safety timeout
+- SpeechRecognition auto-restarts in voice mode after errors or natural end
+- Performance: sendMessage deps reduced from 6 to 2, eliminating unnecessary re-renders
+- Mobile scroll: immediate data-chat-open removal on close, proper voice cleanup
+- Light mode: audited and confirmed all text has proper contrast in both modes
+- Lint passes clean
+
+---
+Task ID: 1-2
+Agent: Main Orchestrator
+Task: Update product prices and add new products
+
+Work Log:
+- Updated Amazon Prime Video: 6 month 550 Tk, 12 month 1000 Tk (was 1 month 150 Tk)
+- Updated Google Gemini AI: 12 month personal 2300 Tk with 5TB Google One + all features (was 2 month 600 Tk with 2TB)
+- Updated Microsoft Office 365: 12 month with 1TB storage 3500 Tk in personal account (was Inbox Price)
+- Updated YouTube Premium: 6 month 990 Tk, 12 month 2500 Tk (was 1 month 150, 6 month 500)
+- Added ChatGPT Plus: Shared 1 device 500 Tk, Personal 1600 Tk (new product in AI Tools category)
+- Added Seedance AI: $20 plan only 1600 Tk (new product in AI Tools category)
+
+Stage Summary:
+- 4 existing products updated with new prices from user
+- 2 new products added (ChatGPT Plus, Seedance AI)
+- Total products now: 206
+- products.json regenerated with proper formatting
+
+---
+Task ID: 3-6
+Agent: full-stack-developer subagent
+Task: Fix voice chat, light mode, performance, mobile scroll
+
+Work Log:
+- Voice chat: Added 4 refs (isVoiceModeRef, isAISpeakingRef, messagesRef, isLoadingRef) to fix stale closures
+- Voice chat: Replaced broken setTimeout approach with proper useEffect watching isStreaming→false transitions
+- Voice chat: Made speak() async with getVoicesAsync() helper for Chrome voiceschanged event
+- Voice chat: Added 30-second safety timeout for TTS
+- Voice chat: Auto-restart listening after no-speech errors in voice mode
+- Performance: Reduced sendMessage dependency array from 6→2, uses refs for messages/loading state
+- Mobile scroll: Created closeChat() helper that removes data-chat-open attribute immediately
+- Light mode: Verified all text has proper contrast in both modes
+
+Stage Summary:
+- Gemini-style voice conversation loop now properly works with refs instead of stale closures
+- TTS voices are properly loaded before speaking (async getVoicesAsync)
+- Performance improved by reducing unnecessary re-renders
+- Mobile scroll lock properly cleans up on chat close
