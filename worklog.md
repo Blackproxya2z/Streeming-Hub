@@ -132,3 +132,42 @@ Stage Summary:
 - All light mode text visibility issues fixed across 9 component files
 - Code pushed to GitHub: commit 08116ee
 - Vercel will auto-deploy from the GitHub push
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix all mistakes from previous sessions - AI avatar, voice chat, product cards, system prompt, light mode, performance, deploy
+
+Work Log:
+- Read and analyzed all current code files (AIChatWidget.tsx, route.ts, page.tsx, layout.tsx, globals.css, store.ts, data.ts)
+- Identified Bangladeshi call center girl avatar already existed as .jpg but code referenced .png
+- Copied assistant-avatar.jpg to assistant-avatar.png for compatibility
+- Rewrote AIChatWidget.tsx with:
+  - Fixed avatar image path from .png to .jpg
+  - Removed "WhatsApp এ অর্ডার" button from ProductCardItem component (product cards in chat now show info only)
+  - Added Gemini-style voice conversation mode with Phone/PhoneOff toggle button
+  - Voice mode: STT listens → sends to AI → AI responds → TTS speaks response → auto-listen again
+  - Added voice mode status indicators (বলছি.../শুনছি.../ভয়েস মোড)
+  - Fixed light mode text visibility (teal-700/600 instead of dark-only #34d399)
+  - Changed user message bubbles from bg-primary to bg-teal-600 for consistency
+  - Changed "WhatsApp এ অর্ডার করুন" to "WhatsApp এ যোগাযোগ" for the main CTA
+  - Added data-chat-open="true" attribute for mobile scroll lock CSS
+- Updated backend system prompt (route.ts):
+  - Added "CONVERSATIONAL PRODUCT STYLE" section with 6 rules
+  - AI must describe products conversationally like a real salesperson
+  - Must mention ALL variants/plans with prices
+  - Must say "inbox for offers" after showing prices
+  - Must NEVER say "Order Now" or "Buy Now"
+  - Must explain order process naturally when asked
+  - Must handle "Inbox Price"/"Low Price" products
+- Increased LLM timeout from 3s to 8s for better response quality
+- Fixed lint errors (react-hooks/immutability for startListening callback)
+- Pushed to GitHub for Vercel auto-deployment
+
+Stage Summary:
+- AI assistant now has Bangladeshi call center girl avatar
+- Gemini-style voice conversation mode added (toggle in header)
+- Product cards in chat show info only, no order buttons
+- AI responds conversationally with variants, prices, and "inbox for offers"
+- Light mode text visibility fixed
+- LLM timeout increased from 3s to 8s
+- Code pushed to GitHub (Blackproxya2z/Streeming-Hub, main branch)
