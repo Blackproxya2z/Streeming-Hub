@@ -513,7 +513,7 @@ export function AIChatWidget() {
   const [isVoiceMode, setIsVoiceMode] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
-  const sendMessageRef = useRef<(msg?: string) => Promise<void>>()
+  const sendMessageRef = useRef<(msg?: string) => Promise<void>>(undefined)
   // Refs to avoid stale closures in async voice loop
   const isVoiceModeRef = useRef(false)
   const isAISpeakingRef = useRef(false)
