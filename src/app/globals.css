@@ -60,8 +60,8 @@
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.95 0.025 170);
   --secondary-foreground: oklch(0.17 0.03 260);
-  --muted: oklch(0.955 0.015 170);
-  --muted-foreground: oklch(0.48 0.03 260);
+  --muted: oklch(0.94 0.015 170);
+  --muted-foreground: oklch(0.40 0.025 260);
   --accent: oklch(0.72 0.19 30);
   --accent-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -190,12 +190,20 @@ html:has([data-state="open"][data-slot="dialog-overlay"]) body {
 
 /* Also lock scroll when AI chat widget is open on mobile.
    The chat uses a fixed inset-0 overlay at z-[59] but doesn't use
-   Radix Dialog/Sheet, so we detect it by its own data attribute. */
+   Radix Dialog/Sheet, so we detect it by its own data attribute.
+   We check both :has() (for attribute on child elements) and direct
+   attribute on body (set by useEffect for reliable cleanup). */
 @media (max-width: 639px) {
   html:has([data-chat-open="true"]) {
     overflow-y: hidden !important;
   }
   html:has([data-chat-open="true"]) body {
+    overflow-y: hidden !important;
+  }
+  body[data-chat-open="true"] {
+    overflow-y: hidden !important;
+  }
+  html:has(body[data-chat-open="true"]) {
     overflow-y: hidden !important;
   }
 }
@@ -213,21 +221,21 @@ html:has([data-state="open"][data-slot="dialog-overlay"]) body {
 /* CRITICAL FIX: All :not(:has()) conditions must be compound (no spaces)
    to correctly mean "html that does NOT have ANY overlay open".
    Spaces between :not() create descendant selectors, which never match. */
-html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"])) {
+html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"])):not(:has(body[data-chat-open="true"])) {
   overflow-y: auto !important;
   overflow-x: clip !important;
 }
-html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"])) body {
+html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"])):not(:has(body[data-chat-open="true"])) body {
   overflow-y: auto !important;
   overflow-x: clip !important;
 }
 
 /* Also target Radix UI's data-scroll-locked attribute directly.
    When this attribute is present but no overlay is open, override it. */
-html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"]))[data-scroll-locked] {
+html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"])):not(:has(body[data-chat-open="true"]))[data-scroll-locked] {
   overflow-y: auto !important;
 }
-html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"])) body[data-scroll-locked] {
+html:not(:has([data-state="open"][data-slot="sheet-content"])):not(:has([data-state="open"][data-slot="dialog-overlay"])):not(:has([data-chat-open="true"])):not(:has(body[data-chat-open="true"])) body[data-scroll-locked] {
   overflow-y: auto !important;
 }
 

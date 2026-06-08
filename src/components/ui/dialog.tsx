@@ -83,7 +83,7 @@ function DialogContent({
             // Check if any OTHER overlay is still open before removing scroll lock
             const hasOpenSheet = document.querySelector('[data-state="open"][data-slot="sheet-content"]')
             const hasOpenDialog = document.querySelector('[data-state="open"][data-slot="dialog-overlay"]')
-            const hasOpenChat = document.querySelector('[data-chat-open="true"]')
+            const hasOpenChat = document.querySelector('[data-chat-open="true"]') || document.body.hasAttribute('data-chat-open')
             if (!hasOpenSheet && !hasOpenDialog && !hasOpenChat) {
               document.body.style.removeProperty('overflow')
               document.body.style.removeProperty('overflow-y')

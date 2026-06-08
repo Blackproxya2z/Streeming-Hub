@@ -27,10 +27,12 @@ export function ScrollFix() {
       if (document.querySelector('[data-state="open"][data-slot="sheet-content"]')) return true
       // Check for Radix Dialog
       if (document.querySelector('[data-state="open"][data-slot="dialog-overlay"]')) return true
-      // Check for AI Chat overlay
-      if (document.querySelector('[data-chat-open="true"]')) return true
-      // Check for OrderDialog or any modal open state
-      if (document.querySelector('[data-radix-popper-content-wrapper]')) return true
+      // Check for AI Chat overlay (attribute may be on body or on a child element)
+      if (document.body.hasAttribute('data-chat-open') || document.querySelector('[data-chat-open="true"]')) return true
+      // NOTE: Removed check for [data-radix-popper-content-wrapper] because it is too broad.
+      // That attribute persists for tooltips, dropdowns, and other non-modal poppers
+      // even when they are not "open", which prevented this cleanup from running
+      // and left scroll locks stuck after dialogs/sheets closed.
       return false
     }
 

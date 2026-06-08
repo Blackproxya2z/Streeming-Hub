@@ -157,13 +157,34 @@ function getVoicesAsync(): Promise<SpeechSynthesisVoice[]> {
   })
 }
 
+// Chrome workaround: speechSynthesis pauses after ~15s of inactivity.
+// This keeps it alive by calling resume() periodically while speaking.
+let chromeKeepAliveInterval: ReturnType<typeof setInterval> | null = null
+function startChromeKeepAlive() {
+  if (chromeKeepAliveInterval) return
+  chromeKeepAliveInterval = setInterval(() => {
+    if (window.speechSynthesis?.speaking) {
+      window.speechSynthesis.resume()
+    } else {
+      stopChromeKeepAlive()
+    }
+  }, 10000)
+}
+function stopChromeKeepAlive() {
+  if (chromeKeepAliveInterval) {
+    clearInterval(chromeKeepAliveInterval)
+    chromeKeepAliveInterval = null
+  }
+}
+
 async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Promise<SpeechSynthesisUtterance | null> {
   if (typeof window === 'undefined' || !window.speechSynthesis) return null
 
   // Cancel any ongoing speech
   window.speechSynthesis.cancel()
+  stopChromeKeepAlive()
 
-  // Clean text for speech (remove emojis, markdown)
+  // Clean text for speech (remove emojis, markdown, special chars)
   const cleanText = text
     .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '')
     .replace(/\*\*(.+?)\*\*/g, '$1')
@@ -171,6 +192,8 @@ async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Prom
     .replace(/[•\-]\s/g, '')
     .replace(/\d+[.)]\s/g, '')
     .replace(/৳/g, 'টাকা')
+    .replace(/↵/g, ' ')
+    .replace(/\n/g, ' ')
     .trim()
 
   if (!cleanText) { onEnd?.(); return null }
@@ -180,47 +203,60 @@ async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Prom
 
   const utterance = new SpeechSynthesisUtterance(cleanText)
 
-  // Set language based on detected language
-  if (lang === 'bangla') {
-    utterance.lang = 'bn-BD'
-  } else if (lang === 'banglish') {
-    utterance.lang = 'bn-BD'
+  // Set language based on detected language — try Bengali first, fall back to Hindi, then English
+  if (lang === 'bangla' || lang === 'banglish') {
+    // Try bn-BD first, then bn-IN, then hi-IN (Hindi can pronounce most Bengali)
+    const bnVoice = voices.find(v => v.lang === 'bn-BD') || voices.find(v => v.lang === 'bn-IN')
+    if (bnVoice) {
+      utterance.voice = bnVoice
+      utterance.lang = bnVoice.lang
+    } else {
+      // Fallback to Hindi voice (can pronounce most Bengali words)
+      const hiVoice = voices.find(v => v.lang === 'hi-IN')
+      if (hiVoice) {
+        utterance.voice = hiVoice
+        utterance.lang = 'hi-IN'
+      } else {
+        utterance.lang = 'bn-BD' // Let browser use default
+      }
+    }
   } else {
     utterance.lang = 'en-US'
+    const enVoice = voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('female'))
+      || voices.find(v => v.lang === 'en-US')
+    if (enVoice) utterance.voice = enVoice
   }
 
-  utterance.rate = 0.95
-  utterance.pitch = 1.1
+  utterance.rate = 0.9
+  utterance.pitch = 1.15 // Slightly higher pitch for female voice
   utterance.volume = 1.0
 
-  // Try to find a matching voice
-  const targetLang = utterance.lang
-  const shortLang = targetLang.split('-')[0]
+  // Start Chrome keep-alive workaround
+  startChromeKeepAlive()
 
-  // Priority: exact lang match > short lang match > default
-  const exactVoice = voices.find(v => v.lang === targetLang)
-  const shortVoice = exactVoice ? null : voices.find(v => v.lang.startsWith(shortLang))
-  const selectedVoice = exactVoice || shortVoice || null
-
-  if (selectedVoice) {
-    utterance.voice = selectedVoice
-  }
-
-  // Safety timeout: if TTS gets stuck (max 30 seconds), force-end
+  // Safety timeout: if TTS gets stuck (max 45 seconds), force-end
   const safetyTimer = setTimeout(() => {
     if (window.speechSynthesis.speaking) {
       window.speechSynthesis.cancel()
     }
+    stopChromeKeepAlive()
     onEnd?.()
-  }, 30000)
+  }, 45000)
 
   const wrappedOnEnd = () => {
     clearTimeout(safetyTimer)
+    stopChromeKeepAlive()
     onEnd?.()
   }
 
   utterance.onend = wrappedOnEnd
-  utterance.onerror = wrappedOnEnd
+  utterance.onerror = (event) => {
+    console.warn('TTS error:', event.error)
+    wrappedOnEnd()
+  }
+
+  // Small delay before speaking to avoid Chrome race condition
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   window.speechSynthesis.speak(utterance)
   return utterance
@@ -751,6 +787,25 @@ export function AIChatWidget() {
     if (voiceLoopTriggeredRef.current === lastMsg.timestamp) return
     voiceLoopTriggeredRef.current = lastMsg.timestamp
 
+    // Skip speaking the initial greeting when first entering voice mode
+    // (user hasn't asked anything yet)
+    const isInitialGreeting = messages.length <= 1 && lastMsg.content === KORMOCHARY_GREETING
+    if (isInitialGreeting) {
+      // Just start listening immediately
+      const rec = recognitionRef.current
+      if (rec && !isAISpeakingRef.current && !isLoadingRef.current) {
+        setTimeout(() => {
+          try {
+            rec.start()
+            setIsListening(true)
+          } catch {
+            // Recognition may already be started
+          }
+        }, 300)
+      }
+      return
+    }
+
     // Small delay to ensure the state has settled after isStreaming → false
     const timer = setTimeout(() => {
       if (!isVoiceModeRef.current) return // Voice mode was disabled during delay
@@ -764,15 +819,19 @@ export function AIChatWidget() {
         if (!isVoiceModeRef.current) return
         const rec = recognitionRef.current
         if (rec) {
-          try {
-            rec.start()
-            setIsListening(true)
-          } catch {
-            // Recognition may already be started or not available
-          }
+          // Small delay before starting recognition again to avoid race condition
+          setTimeout(() => {
+            if (!isVoiceModeRef.current || isAISpeakingRef.current || isLoadingRef.current) return
+            try {
+              rec.start()
+              setIsListening(true)
+            } catch {
+              // Recognition may already be started or not available
+            }
+          }, 500)
         }
       })
-    }, 300)
+    }, 500)
 
     return () => clearTimeout(timer)
   }, [messages, speechSupported])
@@ -819,7 +878,8 @@ export function AIChatWidget() {
     recognition.onerror = (event) => {
       setIsListening(false)
       // In voice mode, if recognition errors (e.g., no-speech), try to restart
-      if (isVoiceModeRef.current && event.error !== 'aborted') {
+      // Common errors: no-speech (user was quiet), aborted (manual stop), not-allowed (mic denied)
+      if (isVoiceModeRef.current && event.error !== 'aborted' && event.error !== 'not-allowed') {
         setTimeout(() => {
           if (isVoiceModeRef.current && !isAISpeakingRef.current && !isLoadingRef.current) {
             try {
@@ -829,7 +889,13 @@ export function AIChatWidget() {
               // Recognition may already be started
             }
           }
-        }, 500)
+        }, 800) // Longer delay to avoid rapid restart loops
+      }
+      if (event.error === 'not-allowed') {
+        console.warn('Microphone access denied. Voice mode requires microphone permission.')
+        // Auto-exit voice mode if mic is denied
+        setIsVoiceMode(false)
+        isVoiceModeRef.current = false
       }
     }
 
@@ -935,7 +1001,22 @@ export function AIChatWidget() {
     sendMessage(suggestion)
   }
 
-  // ── Close chat helper: clean up voice mode & scroll lock ──
+  // ── Manage data-chat-open on body for CSS scroll lock ──
+  // This is managed declaratively via useEffect instead of imperatively via
+  // requestAnimationFrame, which was unreliable because React could re-add the
+  // attribute on the next render during AnimatePresence exit animations.
+  useEffect(() => {
+    if (isOpen) {
+      document.body.setAttribute('data-chat-open', 'true')
+    } else {
+      document.body.removeAttribute('data-chat-open')
+    }
+    return () => {
+      document.body.removeAttribute('data-chat-open')
+    }
+  }, [isOpen])
+
+  // ── Close chat helper: clean up voice mode ──
   const closeChat = useCallback(() => {
     setIsOpen(false)
     setIsVoiceMode(false)
@@ -945,14 +1026,7 @@ export function AIChatWidget() {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
-    // Remove data-chat-open attribute immediately (before exit animation)
-    // to release the CSS scroll lock on mobile
-    requestAnimationFrame(() => {
-      const chatPanel = document.querySelector('[data-chat-open="true"]')
-      if (chatPanel) {
-        chatPanel.removeAttribute('data-chat-open')
-      }
-    })
+    // data-chat-open is removed by the useEffect above when isOpen becomes false
   }, [])
 
   // ──────────────────────────────────────────────────────────────────────────────
@@ -1079,7 +1153,6 @@ export function AIChatWidget() {
               className="fixed z-[60] flex flex-col bg-background border border-border/50 shadow-2xl overflow-hidden
                 inset-x-0 bottom-0 h-[100dvh] rounded-t-2xl
                 sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
-              data-chat-open="true"
             >
               {/* ===== HEADER ===== */}
               <div className="relative bg-gradient-to-r from-teal-600 via-teal-700 to-[#00A6A6] dark:from-[#0B1F3A] dark:via-[#0f172a] dark:to-[#00A6A6] text-white p-3 sm:p-4 flex items-center justify-between shrink-0 overflow-hidden">
@@ -1161,12 +1234,12 @@ export function AIChatWidget() {
               </div>
 
               {/* ===== TRUST INDICATORS BAR ===== */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-muted/50 dark:bg-[#0B1F3A]/20 border-b border-border/30 shrink-0">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-muted/70 dark:bg-[#0B1F3A]/20 border-b border-border/30 shrink-0">
                 {trustIndicators.map((item, idx) => {
                   const Icon = item.icon
                   return (
                     <div key={item.label} className="flex items-center gap-1">
-                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-teal-700 dark:text-[#00A6A6] font-medium">
+                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-teal-800 dark:text-[#00A6A6] font-medium">
                         <Icon className="h-2.5 w-2.5" />
                         <span>{item.label}</span>
                       </div>
@@ -1205,7 +1278,7 @@ export function AIChatWidget() {
                       className={`max-w-[85%] sm:max-w-[82%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-[12px] sm:text-[13px] leading-relaxed ${
                         msg.role === 'user'
                           ? 'bg-teal-600 text-white dark:bg-gradient-to-br dark:from-[#0B1F3A] dark:to-[#00A6A6] dark:text-white rounded-br-md shadow-md shadow-teal-600/20 dark:shadow-[#00A6A6]/20'
-                          : 'bg-muted/70 dark:bg-muted/50 rounded-bl-md border border-border/30 text-foreground'
+                          : 'bg-muted dark:bg-muted/50 rounded-bl-md border border-border/30 text-foreground'
                       }`}
                     >
                       {msg.role === 'assistant' ? (
@@ -1258,7 +1331,7 @@ export function AIChatWidget() {
                                 <button
                                   key={`sug-${sIdx}`}
                                   onClick={() => handleSuggestionClick(suggestion)}
-                                  className="cursor-pointer text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full border border-teal-600/30 bg-teal-600/5 hover:bg-teal-600/15 text-teal-700 dark:text-[#00A6A6] dark:border-[#00A6A6]/30 dark:bg-[#00A6A6]/5 dark:hover:bg-[#00A6A6]/15 hover:border-teal-600/60 dark:hover:border-[#00A6A6]/60 transition-all active:scale-95 font-medium"
+                                  className="cursor-pointer text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full border border-teal-600/30 bg-teal-50 hover:bg-teal-100 text-teal-800 dark:text-[#00A6A6] dark:border-[#00A6A6]/30 dark:bg-[#00A6A6]/5 dark:hover:bg-[#00A6A6]/15 hover:border-teal-600/60 dark:hover:border-[#00A6A6]/60 transition-all active:scale-95 font-medium"
                                 >
                                   {suggestion}
                                 </button>
@@ -1303,7 +1376,7 @@ export function AIChatWidget() {
                     <div className="relative shrink-0">
                       <AIAvatar size="sm" />
                     </div>
-                    <div className="bg-muted/70 dark:bg-muted/50 rounded-2xl rounded-bl-md px-4 py-3 border border-border/30">
+                    <div className="bg-muted dark:bg-muted/50 rounded-2xl rounded-bl-md px-4 py-3 border border-border/30">
                       <div className="flex items-center gap-1.5">
                         <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
                         <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />

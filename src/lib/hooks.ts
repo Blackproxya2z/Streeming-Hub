@@ -82,6 +82,7 @@ export function useProducts(params: Record<string, string> = {}) {
   return useQuery({
     queryKey: ['products', params],
     queryFn: () => fetchAPI<{ products: Product[]; total: number; page: number; totalPages: number }>(url),
+    staleTime: 60_000, // Cache for 1 minute before refetching
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
@@ -91,6 +92,7 @@ export function useProduct(id: string) {
   return useQuery({
     queryKey: ['product', id],
     queryFn: () => fetchAPI<Product>(`/api/products/${id}`),
+    staleTime: 60_000,
     enabled: !!id,
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
@@ -101,6 +103,7 @@ export function useCategories() {
   return useQuery({
     queryKey: ['categories'],
     queryFn: () => fetchAPI<Category[]>('/api/categories'),
+    staleTime: 5 * 60_000, // Categories rarely change - 5 min cache
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
@@ -110,6 +113,7 @@ export function useReviews() {
   return useQuery({
     queryKey: ['reviews'],
     queryFn: () => fetchAPI<Review[]>('/api/reviews'),
+    staleTime: 2 * 60_000, // Reviews change infrequently - 2 min cache
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
@@ -119,6 +123,7 @@ export function useSettings() {
   return useQuery({
     queryKey: ['settings'],
     queryFn: () => fetchAPI<Settings>('/api/settings'),
+    staleTime: 5 * 60_000, // Settings rarely change - 5 min cache
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
@@ -128,6 +133,7 @@ export function useBanners() {
   return useQuery({
     queryKey: ['banners'],
     queryFn: () => fetchAPI<{ id: string; text: string; isActive: boolean }[]>('/api/banners'),
+    staleTime: 5 * 60_000, // Banners rarely change - 5 min cache
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(3000 * (attemptIndex + 1), 10000),
   })
