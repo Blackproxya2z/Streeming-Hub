@@ -38,5 +38,30 @@
     "id": "cmoikmouz0007k8ai50t7igdr",
     "key": "adminPassword",
     "value": "admin123"
+  },
+  {
+    "id": "set_facebook",
+    "key": "facebookLink",
+    "value": ""
+  },
+  {
+    "id": "set_telegram",
+    "key": "telegramLink",
+    "value": ""
+  },
+  {
+    "id": "set_instagram",
+    "key": "instagramLink",
+    "value": ""
+  },
+  {
+    "id": "set_youtube",
+    "key": "youtubeLink",
+    "value": ""
+  },
+  {
+    "id": "set_tiktok",
+    "key": "tiktokLink",
+    "value": ""
   }
 ]
