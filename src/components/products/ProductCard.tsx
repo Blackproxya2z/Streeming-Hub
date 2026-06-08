@@ -65,7 +65,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
   const isNumericPrice = !isNaN(parseFloat(product.basePriceBDT))
 
   const stockColor =
-    product.stockStatus === 'Available' ? 'text-[#10b981] bg-emerald-50 dark:bg-[#0f172a]/50 dark:text-[#34d399]' :
+    product.stockStatus === 'Available' ? 'text-[#10b981] bg-emerald-50' :
     product.stockStatus === 'Limited Stock' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400' :
     'text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400'
 
@@ -169,7 +169,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
               )}
               {product.warranty && (
                 <span className="flex items-center gap-1 bg-muted rounded-md px-1.5 sm:px-2 py-0.5">
-                  <Shield className="h-3 w-3 text-emerald-700 dark:text-[#34d399]" /> {product.warranty}
+                  <Shield className="h-3 w-3 text-emerald-700" /> {product.warranty}
                 </span>
               )}
             </div>
@@ -177,7 +177,7 @@ export const ProductCard = memo(function ProductCard({ product, showDetails = tr
             {/* Price + Stock row */}
             <div className="mt-auto pt-1.5 sm:pt-2 border-t border-border/50">
               <div className="flex items-baseline justify-between gap-1.5">
-                <span className={`font-bold text-base sm:text-lg ${isNumericPrice ? 'text-emerald-700 dark:text-[#34d399]' : 'text-green-700 dark:text-green-500'}`}>
+                <span className={`font-bold text-base sm:text-lg ${isNumericPrice ? 'text-emerald-700' : 'text-green-700'}`}>
                   {isNumericPrice ? formatPriceBDT(product.basePriceBDT) : product.basePriceBDT}
                 </span>
                 {product.stockStatus && (

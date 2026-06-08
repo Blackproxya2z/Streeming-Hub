@@ -13,7 +13,7 @@ export function HeroSection() {
   const whatsappNumber = settings?.whatsappNumber || '+8801647236359'
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-[#0a1628] dark:via-[#0f2027] dark:to-[#0c1a1a] text-foreground dark:text-white animate-gradient" style={{ backgroundSize: '200% 200%' }} aria-label="Hero Banner — Premium Subscriptions at Best Price in Bangladesh">
+    <section className="relative overflow-hidden bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-[#0a1628] dark:via-[#0f2027] dark:to-[#0c1a1a] text-foreground animate-gradient" style={{ backgroundSize: '200% 200%' }} aria-label="Hero Banner — Premium Subscriptions at Best Price in Bangladesh">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-teal-400/8 dark:bg-teal-400/8 blur-3xl" />
@@ -52,7 +52,7 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-primary/10 dark:bg-white/10 backdrop-blur text-xs sm:text-sm font-medium mb-5 sm:mb-6 border border-primary/20 dark:border-white/10" style={{ boxShadow: '0 0 20px oklch(0.72 0.19 30 / 15%)' }}>
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-primary/10 backdrop-blur text-xs sm:text-sm font-medium mb-5 sm:mb-6 border border-primary/20 text-foreground" style={{ boxShadow: '0 0 20px oklch(0.72 0.19 30 / 15%)' }}>
               <Sparkles className="h-4 w-4 sm:h-4.5 sm:w-4.5" style={{ color: 'oklch(0.72 0.19 30)' }} />
               Trusted by 1000+ customers in Bangladesh
             </div>
@@ -72,7 +72,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base sm:text-lg md:text-xl text-muted-foreground dark:text-slate-200 mb-7 sm:mb-9 md:mb-10 max-w-2xl mx-auto"
+            className="text-base sm:text-lg md:text-xl text-muted-foreground mb-7 sm:mb-9 md:mb-10 max-w-2xl mx-auto"
           >
             OTT, AI tools, education, VPN, software, gaming top-up & more — delivered in 5-20 minutes with full warranty.
           </motion.p>
@@ -101,7 +101,7 @@ export function HeroSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full sm:w-auto border-primary/30 text-primary hover:bg-primary/10 dark:border-white/30 dark:text-white dark:hover:bg-white/10 font-semibold text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-13 rounded-xl backdrop-blur-sm dark:hover:border-[oklch(0.72_0.19_30/0.5)] transition-colors"
+                className="w-full sm:w-auto border-primary/30 text-primary hover:bg-primary/10 font-semibold text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-13 rounded-xl backdrop-blur-sm transition-colors"
               >
                 <MessageCircle className="h-5 w-5 sm:h-5.5 sm:w-5.5 mr-2" />
                 Order on WhatsApp
@@ -117,30 +117,30 @@ export function HeroSection() {
             className="mt-9 sm:mt-11 md:mt-12"
           >
             <div className="flex items-center justify-center gap-5 sm:gap-7 md:gap-9 flex-wrap">
-              <div className="flex items-center gap-2 sm:gap-2.5 text-foreground dark:text-slate-200">
-                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-primary/10 dark:bg-white/10 flex items-center justify-center">
-                  <Shield className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-teal-600 dark:text-teal-300" />
+              <div className="flex items-center gap-2 sm:gap-2.5 text-foreground">
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Shield className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-teal-600" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[10px] sm:text-xs text-muted-foreground dark:text-slate-300/70">Secure</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Secure</p>
                   <p className="text-xs sm:text-sm font-semibold">Warranty</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 sm:gap-2.5 text-foreground dark:text-slate-200">
-                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-primary/10 dark:bg-white/10 flex items-center justify-center">
-                  <Zap className="h-4 w-4 sm:h-4.5 sm:w-4.5" style={{ color: 'oklch(0.72 0.19 30)' }} />
+              <div className="flex items-center gap-2 sm:gap-2.5 text-foreground">
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Zap className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-amber-500" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[10px] sm:text-xs text-muted-foreground dark:text-slate-300/70">Fast</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Fast</p>
                   <p className="text-xs sm:text-sm font-semibold">5-20 Min</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 sm:gap-2.5 text-foreground dark:text-slate-200">
-                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-primary/10 dark:bg-white/10 flex items-center justify-center">
-                  <Clock className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-teal-600 dark:text-teal-300" />
+              <div className="flex items-center gap-2 sm:gap-2.5 text-foreground">
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Clock className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-teal-600" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[10px] sm:text-xs text-muted-foreground dark:text-slate-300/70">24/7</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">24/7</p>
                   <p className="text-xs sm:text-sm font-semibold">Support</p>
                 </div>
               </div>
@@ -152,19 +152,19 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-8 sm:mt-10 grid grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-xs sm:max-w-sm mx-auto rounded-2xl p-4 sm:p-5 backdrop-blur-sm border border-border dark:border-white/10 bg-card dark:bg-transparent" style={{ background: 'linear-gradient(135deg, oklch(1 0 0 / 5%), oklch(0.62 0.19 170 / 8%), oklch(0.72 0.19 30 / 5%))' }}
+            className="mt-8 sm:mt-10 grid grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-xs sm:max-w-sm mx-auto rounded-2xl p-4 sm:p-5 backdrop-blur-sm border border-border bg-card"
           >
             <div className="text-center">
               <p className="text-xl sm:text-2xl md:text-3xl font-bold">200+</p>
-              <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground dark:text-slate-300">Products</p>
+              <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">Products</p>
             </div>
-            <div className="text-center border-x border-border dark:border-white/10">
+            <div className="text-center border-x border-border">
               <p className="text-xl sm:text-2xl md:text-3xl font-bold">11</p>
-              <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground dark:text-slate-300">Categories</p>
+              <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">Categories</p>
             </div>
             <div className="text-center">
               <p className="text-xl sm:text-2xl md:text-3xl font-bold">5-20</p>
-              <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground dark:text-slate-300">Min Delivery</p>
+              <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">Min Delivery</p>
             </div>
           </motion.div>
         </div>

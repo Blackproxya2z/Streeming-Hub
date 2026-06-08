@@ -67,6 +67,22 @@ function SheetContent({
         }}
         onCloseAutoFocus={(e) => {
           e.preventDefault()
+          // Same cleanup as Dialog — remove stale scroll locks after sheet closes
+          setTimeout(() => {
+            const hasOpenSheet = document.querySelector('[data-state="open"][data-slot="sheet-content"]')
+            const hasOpenDialog = document.querySelector('[data-state="open"][data-slot="dialog-overlay"]')
+            const hasOpenChat = document.body.hasAttribute('data-chat-open') || document.querySelector('[data-chat-open="true"]')
+            if (!hasOpenSheet && !hasOpenDialog && !hasOpenChat) {
+              document.body.style.removeProperty('overflow')
+              document.body.style.removeProperty('overflow-y')
+              document.body.style.removeProperty('overflowY')
+              document.documentElement.style.removeProperty('overflow')
+              document.documentElement.style.removeProperty('overflow-y')
+              document.documentElement.style.removeProperty('overflowY')
+              document.body.removeAttribute('data-scroll-locked')
+              document.documentElement.removeAttribute('data-scroll-locked')
+            }
+          }, 350) // After sheet slide-out animation (300ms) + buffer
         }}
         className={cn(
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",

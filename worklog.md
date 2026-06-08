@@ -120,3 +120,86 @@ Work Log:
 Stage Summary:
 - Site live at https://streeming-hub.vercel.app
 - Commit: 184764b pushed successfully
+
+---
+Task ID: 8
+Agent: Sub-agent (bug-fix)
+Task: Fix mobile touch/scrolling bug
+
+Work Log:
+- Analyzed 7 files: AgeGate.tsx, ScrollFix.tsx, AIChatWidget.tsx, dialog.tsx, sheet.tsx, globals.css, page.tsx
+- Identified root causes:
+  1. `-webkit-overflow-scrolling: touch` (deprecated, creates stacking context issues on iOS 13+)
+  2. ScrollFix 300ms interval causing mobile jank (constant DOM queries triggering reflow)
+  3. AgeGate's requestAnimationFrame cleanup racing with CSS :has() evaluation
+  4. AIChatWidget missing cleanup when chat closes (stale overflow styles)
+  5. Sheet component missing onCloseAutoFocus scroll cleanup entirely
+  6. Dialog's requestAnimationFrame cleanup running too early (before CSS re-evaluates :has())
+
+Changes made:
+1. **globals.css**:
+   - Removed deprecated `-webkit-overflow-scrolling: touch` from body (breaks iOS 13+)
+   - Added `touch-action: pan-y` and `-webkit-overflow-scrolling: auto` to `main`, `[role="main"]`, `.scroll-container` for smooth vertical scrolling
+   - Kept `touch-action: manipulation` only on interactive elements (buttons, links, inputs)
+
+2. **ScrollFix.tsx** — Complete rewrite:
+   - Replaced aggressive 300ms setInterval with MutationObserver (only triggers on actual DOM changes)
+   - Added 2s fallback interval (down from 300ms) for edge cases
+   - Removed touchstart listener (was causing passive event listener conflicts)
+   - Removed scroll listener (unnecessary overhead)
+   - Kept visibilitychange and resize listeners for orientation changes
+
+3. **AgeGate.tsx**:
+   - Changed requestAnimationFrame → setTimeout(350ms) for scroll cleanup after dialog closes
+   - Added overlay-open checks before removing overflow styles (don't interfere with other overlays)
+   - Added comment explaining that modal={false} means Radix doesn't apply RemoveScroll
+
+4. **AIChatWidget.tsx**:
+   - Added requestAnimationFrame cleanup when chat closes (removes stale overflow inline styles)
+   - Added overlay-open checks before removing styles
+   - Removed deprecated `WebkitOverflowScrolling: 'touch'` from message area inline styles
+
+5. **dialog.tsx**:
+   - Changed onCloseAutoFocus cleanup from requestAnimationFrame → setTimeout(100ms)
+   - Ensures cleanup runs AFTER Radix's own cleanup and CSS :has() re-evaluation
+   - Fixed hasOpenChat check order (body.hasAttribute first, then querySelector)
+
+6. **sheet.tsx**:
+   - Added onCloseAutoFocus scroll cleanup (was completely missing!)
+   - Uses setTimeout(350ms) to wait for sheet slide-out animation to complete (300ms duration)
+   - Same overlay-open checks as dialog.tsx
+
+Stage Summary:
+- Removed all deprecated `-webkit-overflow-scrolling: touch` (3 locations)
+- Replaced 300ms polling with efficient MutationObserver in ScrollFix
+- All overlay close handlers now properly clean up stale overflow styles
+- Sheet component now has scroll cleanup (was missing entirely)
+- Added `touch-action: pan-y` to main content areas for smooth mobile scrolling
+- All cleanup handlers check for other open overlays before removing scroll locks
+
+---
+Task ID: 4
+Agent: Sub-agent (bug-fix)
+Task: Fix light mode text visibility — remove hardcoded dark-mode colors without proper light/dark variants
+
+Work Log:
+- Audited all 14+ component files for hardcoded dark-themed colors that are invisible on light backgrounds
+- Replaced all `dark:text-[#34d399]` and `dark:text-[#00A6A6]` overrides with semantic tokens that work in both modes
+- Replaced hardcoded dark backgrounds (`bg-[#0f172a]`, `dark:bg-[#0f172a]`) with semantic alternatives (`bg-primary`, `bg-muted/50`, `bg-emerald-100`)
+- Removed unnecessary `dark:bg-gradient-to-br` / `dark:bg-gradient-to-r` on user avatars and send buttons
+- Fixed announcement bar: darkened gradient from teal-600→teal-700 for better white text contrast in light mode
+- Fixed HeroSection: removed `dark:text-white`, `dark:text-slate-200/300` overrides; replaced with semantic `text-foreground`, `text-muted-foreground`
+- Fixed AIChatWidget: replaced `dark:text-[#34d399]`, `dark:text-[#00A6A6]` with light-mode-safe alternatives; removed `dark:bg-[#0B1F3A]` on trust bar; simplified user bubble and send button gradients
+- Fixed CustomerReviews: removed `dark:bg-gradient-to-br dark:from-[#0f172a]` from avatar
+- Fixed ProductDetail: replaced `dark:bg-[#0f172a]/20` price section bg, `dark:text-[#34d399]` price text, `dark:bg-[#0f172a]` step circles
+- Fixed ProductCard: removed `dark:bg-[#0f172a]/50`, `dark:text-[#34d399]`, `dark:text-green-500` from stock badges and prices
+- Fixed OrderDialog: replaced `dark:from-[#0f172a]` header gradient, `dark:bg-[#0f172a]` step icons, `dark:text-[#34d399]` instruction text, `dark:border-slate-700/800` borders
+- Fixed OrderForm: replaced `bg-[#0f172a]` dark buttons with `bg-primary`, removed `dark:bg-[#0f172a]` circles, `dark:text-[#34d399]` text, `dark:border-slate-700`
+- Fixed TrustBadgeBar: removed `dark:text-[#10b981]` and `dark:bg-[#0f172a]/50`
+- Fixed AgeGate: replaced `bg-[#0f172a]` buttons with `bg-primary`, removed `dark:bg-[#0f172a]` success circle, `dark:text-[#34d399]`
+
+Stage Summary:
+- 12 component files fixed across layout, home, products, order, and shared components
+- All hardcoded dark-mode-only colors replaced with semantic tokens that work in both light and dark mode
+- Dark mode continues to work via CSS variables; light mode now properly uses light text on light backgrounds
+- Lint check passes cleanly

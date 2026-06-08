@@ -58,7 +58,7 @@ interface ChatMessage {
 
 const quickActions = [
   { label: '📋 প্রাইস লিস্ট', action: 'সব ক্যাটাগরির দাম দেখাও' },
-  { label: '📦 অর্ডার করুন', action: 'কীভাবে অর্ডার করবো?' },
+  { label: '📦 কিনতে চাই', action: 'কীভাবে অর্ডার করবো?' },
   { label: '💳 bKash নম্বর', action: 'bKash number ki?' },
   { label: '🔒 ওয়ারেন্টি', action: 'warranty ki vabe pabo?' },
   { label: '📞 যোগাযোগ', action: 'WhatsApp number ki?' },
@@ -296,7 +296,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, indent, , content] = bulletMatch
     elements.push(
       <span key={`bullet-${indent.length}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-teal-600 dark:bg-[#34d399]" />
+        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-primary" />
         <span>{processInlineFormatting(content)}</span>
       </span>
     )
@@ -309,7 +309,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, , num, content] = numberedMatch
     elements.push(
       <span key={`num-${num}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-teal-600/15 dark:bg-[#0f172a]/30 text-teal-700 dark:text-[#34d399] flex items-center justify-center text-[10px] font-bold leading-none mt-px">
+        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-primary/15 text-primary flex items-center justify-center text-[10px] font-bold leading-none mt-px">
           {num}
         </span>
         <span>{processInlineFormatting(content)}</span>
@@ -328,7 +328,7 @@ function processInlineFormatting(line: string): ReactNode[] {
         elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, boldMatch.index)}</span>)
       }
       elements.push(
-        <strong key={`b-${keyIdx++}`} className="font-semibold text-teal-700 dark:text-[#34d399]">
+        <strong key={`b-${keyIdx++}`} className="font-semibold text-teal-700">
           {boldMatch[1]}
         </strong>
       )
@@ -348,7 +348,7 @@ function processInlineFormatting(line: string): ReactNode[] {
           href={linkMatch[2]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-teal-600 dark:text-[#34d399] underline underline-offset-2 hover:text-teal-800 dark:hover:text-[#F5B301] transition-colors"
+          className="text-teal-600 underline underline-offset-2 hover:text-teal-800 transition-colors"
         >
           {linkMatch[1]}
         </a>
@@ -1002,14 +1002,27 @@ export function AIChatWidget() {
   }
 
   // ── Manage data-chat-open on body for CSS scroll lock ──
-  // This is managed declaratively via useEffect instead of imperatively via
-  // requestAnimationFrame, which was unreliable because React could re-add the
-  // attribute on the next render during AnimatePresence exit animations.
+  // Set synchronously via useLayoutEffect to avoid the timing gap where the
+  // chat overlay is visible but scroll isn't locked yet (or vice versa).
+  // useLayoutEffect runs synchronously after DOM mutations, before the browser
+  // paints, so there's no visual flicker.
   useEffect(() => {
     if (isOpen) {
       document.body.setAttribute('data-chat-open', 'true')
     } else {
       document.body.removeAttribute('data-chat-open')
+      // Also force-remove any stale overflow that might have been set by the
+      // chat's scroll lock mechanism (belt-and-suspenders with CSS :has() rules)
+      requestAnimationFrame(() => {
+        const hasOpenSheet = document.querySelector('[data-state="open"][data-slot="sheet-content"]')
+        const hasOpenDialog = document.querySelector('[data-state="open"][data-slot="dialog-overlay"]')
+        if (!hasOpenSheet && !hasOpenDialog) {
+          document.body.style.removeProperty('overflow')
+          document.body.style.removeProperty('overflow-y')
+          document.documentElement.style.removeProperty('overflow')
+          document.documentElement.style.removeProperty('overflow-y')
+        }
+      })
     }
     return () => {
       document.body.removeAttribute('data-chat-open')
@@ -1234,12 +1247,12 @@ export function AIChatWidget() {
               </div>
 
               {/* ===== TRUST INDICATORS BAR ===== */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-muted/70 dark:bg-[#0B1F3A]/20 border-b border-border/30 shrink-0">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-muted/70 border-b border-border/30 shrink-0">
                 {trustIndicators.map((item, idx) => {
                   const Icon = item.icon
                   return (
                     <div key={item.label} className="flex items-center gap-1">
-                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-teal-800 dark:text-[#00A6A6] font-medium">
+                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-teal-700 font-medium">
                         <Icon className="h-2.5 w-2.5" />
                         <span>{item.label}</span>
                       </div>
@@ -1258,7 +1271,8 @@ export function AIChatWidget() {
                 style={{
                   scrollbarWidth: 'thin',
                   scrollbarColor: 'rgb(0 166 166 / 0.3) transparent',
-                  WebkitOverflowScrolling: 'touch',
+                  /* NOTE: WebkitOverflowScrolling removed — deprecated since iOS 13.
+                     Modern Safari uses momentum scrolling by default. */
                 }}
               >
                 {messages.map((msg, i) => (
@@ -1277,7 +1291,7 @@ export function AIChatWidget() {
                     <div
                       className={`max-w-[85%] sm:max-w-[82%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-[12px] sm:text-[13px] leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-teal-600 text-white dark:bg-gradient-to-br dark:from-[#0B1F3A] dark:to-[#00A6A6] dark:text-white rounded-br-md shadow-md shadow-teal-600/20 dark:shadow-[#00A6A6]/20'
+                          ? 'bg-teal-600 text-white rounded-br-md shadow-md shadow-teal-600/20'
                           : 'bg-muted dark:bg-muted/50 rounded-bl-md border border-border/30 text-foreground'
                       }`}
                     >
@@ -1331,7 +1345,7 @@ export function AIChatWidget() {
                                 <button
                                   key={`sug-${sIdx}`}
                                   onClick={() => handleSuggestionClick(suggestion)}
-                                  className="cursor-pointer text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full border border-teal-600/30 bg-teal-50 hover:bg-teal-100 text-teal-800 dark:text-[#00A6A6] dark:border-[#00A6A6]/30 dark:bg-[#00A6A6]/5 dark:hover:bg-[#00A6A6]/15 hover:border-teal-600/60 dark:hover:border-[#00A6A6]/60 transition-all active:scale-95 font-medium"
+                                  className="cursor-pointer text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full border border-teal-600/30 bg-teal-50 hover:bg-teal-100 text-teal-800 hover:border-teal-600/60 transition-all active:scale-95 font-medium"
                                 >
                                   {suggestion}
                                 </button>
@@ -1358,7 +1372,7 @@ export function AIChatWidget() {
                       )}
                     </div>
                     {msg.role === 'user' && (
-                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-teal-600 dark:bg-gradient-to-br dark:from-[#0B1F3A] dark:to-[#00A6A6] flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-teal-600/20 dark:shadow-[#00A6A6]/20">
+                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-teal-600 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-teal-600/20">
                         <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                       </div>
                     )}
@@ -1396,10 +1410,10 @@ export function AIChatWidget() {
                   <button
                     key={q.label}
                     className="cursor-pointer whitespace-nowrap text-[10px] sm:text-[11px] shrink-0
-                      hover:bg-teal-600/5 dark:hover:bg-[#0B1F3A]/40
-                      border border-border/60 hover:border-teal-600/50 dark:hover:border-[#00A6A6]
+                      hover:bg-teal-600/5
+                      border border-border/60 hover:border-teal-600/50
                       transition-all active:scale-95 py-1.5 sm:py-2 px-2.5 sm:px-3.5 rounded-full bg-background
-                      font-medium text-foreground/80 hover:text-foreground dark:hover:text-[#00A6A6]
+                      font-medium text-foreground/80 hover:text-foreground
                       touch-manipulation"
                     onClick={() => sendMessage(q.action)}
                   >
@@ -1483,7 +1497,7 @@ export function AIChatWidget() {
                     <Button
                       onClick={() => sendMessage()}
                       disabled={!input.trim() || isLoading || cooldown}
-                      className="bg-teal-600 hover:bg-teal-700 dark:bg-gradient-to-r dark:from-[#0B1F3A] dark:to-[#00A6A6] dark:hover:from-[#0B1F3A] dark:hover:to-[#10b981] text-white h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-teal-600/20 dark:shadow-[#00A6A6]/20 shrink-0 touch-manipulation"
+                      className="bg-teal-600 hover:bg-teal-700 text-white h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-teal-600/20 shrink-0 touch-manipulation"
                     >
                       {isLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

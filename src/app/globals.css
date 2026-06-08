@@ -137,7 +137,10 @@
   }
   body {
     @apply bg-background text-foreground;
-    -webkit-overflow-scrolling: touch;
+    /* NOTE: -webkit-overflow-scrolling: touch REMOVED.
+       It is deprecated since iOS Safari 13 and creates a new stacking context
+       that breaks position:fixed elements and causes rubber-band scroll glitches.
+       Modern iOS Safari uses momentum scrolling by default. */
     overscroll-behavior-y: auto;
     /* CRITICAL: Ensure body NEVER has overflow:hidden from stale JS.
        The lockScroll/unlockScroll mechanism was removed because it got stuck.
@@ -152,6 +155,12 @@
      event propagation on mobile browsers, especially iOS Safari and Chrome. */
   button, a, [role="button"], input, select, textarea, summary {
     touch-action: manipulation;
+  }
+  /* Allow smooth vertical panning on main scrollable areas.
+     This prevents accidental horizontal swipes from blocking vertical scroll. */
+  main, [role="main"], .scroll-container {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: auto; /* Explicitly avoid 'touch' — it's deprecated */
   }
 }
 

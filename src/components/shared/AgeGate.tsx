@@ -273,7 +273,7 @@ function SecretCodePuzzle({
                         className={`block text-[11px] font-semibold leading-tight ${
                           isActive
                             ? lock.color === 'blue'
-                              ? 'text-[#10b981] dark:text-[#34d399]'
+                              ? 'text-[#10b981]'
                               : lock.color === 'amber'
                                 ? 'text-amber-600 dark:text-amber-400'
                                 : 'text-purple-600 dark:text-purple-400'
@@ -559,20 +559,27 @@ export function AgeGate() {
       onOpenChange={(open) => {
         if (!open) {
           handleCancel()
-          // Force cleanup any residual scroll lock from Radix UI
-          // RemoveScroll can leave overflow:hidden on body/html even after dialog closes
-          requestAnimationFrame(() => {
-            if (document.body.style.overflow || document.body.style.overflowY) {
+          // NOTE: With modal={false}, Radix doesn't apply RemoveScroll.
+          // CSS :has() rules in globals.css handle scroll locking/unlocking.
+          // ScrollFix component + MutationObserver catch any stale inline styles.
+          // We keep a minimal safety cleanup with a longer delay to avoid
+          // racing with CSS :has() selector evaluation.
+          setTimeout(() => {
+            // Only clean up if NO other overlay is open
+            const hasOpenSheet = document.querySelector('[data-state="open"][data-slot="sheet-content"]')
+            const hasOpenDialog = document.querySelector('[data-state="open"][data-slot="dialog-overlay"]')
+            const hasOpenChat = document.body.hasAttribute('data-chat-open') || document.querySelector('[data-chat-open="true"]')
+            if (!hasOpenSheet && !hasOpenDialog && !hasOpenChat) {
               document.body.style.removeProperty('overflow')
+              document.body.style.removeProperty('overflow-y')
               document.body.style.removeProperty('overflowY')
-            }
-            if (document.documentElement.style.overflow || document.documentElement.style.overflowY) {
               document.documentElement.style.removeProperty('overflow')
+              document.documentElement.style.removeProperty('overflow-y')
               document.documentElement.style.removeProperty('overflowY')
+              document.body.removeAttribute('data-scroll-locked')
+              document.documentElement.removeAttribute('data-scroll-locked')
             }
-            document.body.removeAttribute('data-scroll-locked')
-            document.documentElement.removeAttribute('data-scroll-locked')
-          })
+          }, 350) // Delay must be > CSS transition duration (200ms) + buffer
         }
       }}
     >
@@ -619,7 +626,7 @@ export function AgeGate() {
                   না, ফিরে যান
                 </Button>
                 <Button
-                  className="flex-1 bg-[#0f172a] hover:bg-[#1e293b] h-11"
+                  className="flex-1 bg-primary hover:bg-primary/90 h-11"
                   onClick={handleAgeConfirm}
                 >
                   হ্যাঁ, আমি ১৮+
@@ -724,7 +731,7 @@ export function AgeGate() {
                   বাতিল
                 </Button>
                 <Button
-                  className="flex-1 bg-[#0f172a] hover:bg-[#1e293b] h-11"
+                  className="flex-1 bg-primary hover:bg-primary/90 h-11"
                   onClick={handlePinSubmit}
                   disabled={pin.length === 0}
                 >
@@ -744,7 +751,7 @@ export function AgeGate() {
               <ConfettiBurst active={showConfetti} />
               <DialogHeader className="text-center">
                 <motion.div
-                  className="mx-auto mb-4 h-16 w-16 rounded-full bg-emerald-100 dark:bg-[#0f172a] flex items-center justify-center"
+                  className="mx-auto mb-4 h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center"
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{

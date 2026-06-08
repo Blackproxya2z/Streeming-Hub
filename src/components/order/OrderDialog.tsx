@@ -110,12 +110,12 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md w-[95vw] max-h-[90vh] p-0 gap-0 overflow-hidden">
         {/* Product Header */}
-        <div className="bg-gradient-to-r from-teal-600 to-emerald-600 dark:from-[#0f172a] dark:to-[#10b981] p-3 sm:p-4 text-white">
+        <div className="bg-gradient-to-r from-teal-600 to-emerald-600 p-3 sm:p-4 text-white">
           <DialogHeader>
             <DialogTitle className="text-white text-base sm:text-lg font-bold">
               Order: {product.name}
             </DialogTitle>
-            <DialogDescription className="text-white/80 dark:text-slate-200 text-[11px] sm:text-xs">
+            <DialogDescription className="text-white/80 text-[11px] sm:text-xs">
               সর্বমোট ৩ ধাপে অর্ডার সম্পন্ন করুন
             </DialogDescription>
           </DialogHeader>
@@ -136,7 +136,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
                 />
               </div>
             ) : (
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-slate-100 dark:bg-[#0f172a] flex items-center justify-center shrink-0">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
                 <span className="text-[#10b981] font-bold text-xs sm:text-sm">
                   {product.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                 </span>
@@ -158,7 +158,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
           {/* Step 1: Send Money */}
           <div>
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
-              <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-[#0f172a] text-white flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0">1</div>
+              <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0">1</div>
               <span className="font-semibold text-xs sm:text-sm">Send Money করুন 💸</span>
             </div>
 
@@ -174,11 +174,11 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
             </div>
 
             {/* How to Send Money - Instructions */}
-            <div className="bg-muted/50 dark:bg-[#0f172a]/30 rounded-xl p-2.5 sm:p-3 mb-2.5 sm:mb-3 border border-border dark:border-slate-700">
-              <p className="text-[11px] sm:text-xs font-semibold text-foreground dark:text-[#34d399] mb-1.5 sm:mb-2">
+            <div className="bg-muted/50 rounded-xl p-2.5 sm:p-3 mb-2.5 sm:mb-3 border border-border">
+              <p className="text-[11px] sm:text-xs font-semibold text-foreground mb-1.5 sm:mb-2">
                 📱 Send Money করার নিয়ম:
               </p>
-              <div className="space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-muted-foreground dark:text-[#34d399]">
+              <div className="space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-muted-foreground">
                 <div className="flex items-start gap-1.5 sm:gap-2">
                   <span className="font-bold shrink-0">১.</span>
                   <span>নিচের <strong>bKash</strong> বা <strong>Nagad</strong> বাটনে ক্লিক করুন</span>
@@ -311,7 +311,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
             {product.warranty && (
               <div className="flex items-start gap-1.5 sm:gap-2">
                 <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 mt-0.5 text-[#10b981]" />
-                <span className="text-foreground dark:text-[#34d399]">ওয়ারেন্টি: {product.warranty}</span>
+                <span className="text-foreground">ওয়ারেন্টি: {product.warranty}</span>
               </div>
             )}
           </div>
@@ -325,7 +325,7 @@ export function OrderDialog({ open, onOpenChange, product, selectedPlan }: Order
               <span className="font-semibold text-xs sm:text-sm">অর্ডার ডিটেইলস দিন 📝</span>
             </div>
 
-            <div className="space-y-2.5 sm:space-y-3 bg-slate-50/50 dark:bg-[#0f172a]/20 rounded-xl p-2.5 sm:p-3 border border-slate-100 dark:border-slate-800">
+            <div className="space-y-2.5 sm:space-y-3 bg-slate-50/50 rounded-xl p-2.5 sm:p-3 border border-border">
               {/* Email */}
               <div>
                 <label className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">

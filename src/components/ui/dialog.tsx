@@ -79,11 +79,13 @@ function DialogContent({
           // CRITICAL: Force cleanup any residual scroll lock from Radix UI RemoveScroll.
           // Even with modal={false}, some scenarios (e.g., Framer Motion animation race
           // conditions) can leave overflow:hidden on body/html, breaking mobile scrolling.
-          requestAnimationFrame(() => {
+          // Use setTimeout instead of requestAnimationFrame to ensure this runs AFTER
+          // Radix's own cleanup and after CSS :has() selectors have been re-evaluated.
+          setTimeout(() => {
             // Check if any OTHER overlay is still open before removing scroll lock
             const hasOpenSheet = document.querySelector('[data-state="open"][data-slot="sheet-content"]')
             const hasOpenDialog = document.querySelector('[data-state="open"][data-slot="dialog-overlay"]')
-            const hasOpenChat = document.querySelector('[data-chat-open="true"]') || document.body.hasAttribute('data-chat-open')
+            const hasOpenChat = document.body.hasAttribute('data-chat-open') || document.querySelector('[data-chat-open="true"]')
             if (!hasOpenSheet && !hasOpenDialog && !hasOpenChat) {
               document.body.style.removeProperty('overflow')
               document.body.style.removeProperty('overflow-y')
@@ -94,7 +96,7 @@ function DialogContent({
               document.body.removeAttribute('data-scroll-locked')
               document.documentElement.removeAttribute('data-scroll-locked')
             }
-          })
+          }, 100)
         }}
         className={cn(
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",

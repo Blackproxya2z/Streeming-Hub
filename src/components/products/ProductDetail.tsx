@@ -310,7 +310,7 @@ export function ProductDetail() {
                   <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-[#10b981] shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[11px] sm:text-xs text-muted-foreground">Warranty</p>
-                    <p className="text-sm sm:text-base font-medium text-emerald-700 dark:text-[#34d399] truncate">{product.warranty}</p>
+                    <p className="text-sm sm:text-base font-medium text-emerald-700 truncate">{product.warranty}</p>
                   </div>
                 </div>
               )}
@@ -324,10 +324,10 @@ export function ProductDetail() {
             </div>
 
             {/* Price Section */}
-            <div className="bg-emerald-50 dark:bg-[#0f172a]/20 rounded-xl p-4 sm:p-5">
+            <div className="bg-emerald-50 rounded-xl p-4 sm:p-5">
               <p className="text-xs sm:text-sm text-muted-foreground mb-1">Starting from</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-emerald-700 dark:text-[#34d399]">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-emerald-700">
                   {formatPriceBDT(product.basePriceBDT)}
                 </span>
               </div>
@@ -343,16 +343,16 @@ export function ProductDetail() {
                       key={i}
                       type="button"
                       onClick={() => handlePlanClick(opt)}
-                      className="flex items-center justify-between bg-background border rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 hover:border-[#10b981] hover:bg-emerald-50/50 dark:hover:bg-[#0f172a]/20 transition-colors group text-left"
+                      className="flex items-center justify-between bg-background border rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 hover:border-[#10b981] hover:bg-emerald-50/50 transition-colors group text-left"
                     >
                       <div className="flex items-center gap-2.5 sm:gap-3">
-                        <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-emerald-100 text-foreground dark:bg-[#0f172a] dark:text-[#34d399]' : 'bg-muted text-muted-foreground'}`}>
+                        <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-emerald-100 text-foreground' : 'bg-muted text-muted-foreground'}`}>
                           {i + 1}
                         </div>
                         <span className="text-sm sm:text-base font-medium">{opt.label}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-base sm:text-lg text-emerald-700 dark:text-[#34d399]">
+                        <span className="font-bold text-base sm:text-lg text-emerald-700">
                           {formatPriceBDT(opt.priceBDT)}
                         </span>
                       </div>
@@ -390,7 +390,7 @@ export function ProductDetail() {
           <h2 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-6">অর্ডার করার নিয়ম / How to Order</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="flex flex-col items-center text-center gap-2">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-emerald-100 dark:bg-[#0f172a] flex items-center justify-center text-foreground dark:text-[#34d399] font-bold text-sm sm:text-base">1</div>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-emerald-100 flex items-center justify-center text-foreground font-bold text-sm sm:text-base">1</div>
               <div>
                 <p className="text-sm sm:text-base font-medium">Send Money</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">bKash / Nagad দিয়ে</p>

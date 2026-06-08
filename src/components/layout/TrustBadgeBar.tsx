@@ -52,8 +52,8 @@ const badges = [
     icon: BadgeCheck,
     label: '1000+ Customers',
     sublabel: 'বিশ্বস্ত ক্রেতা',
-    color: 'text-foreground dark:text-[#10b981]',
-    bg: 'bg-slate-50 dark:bg-[#0f172a]/50',
+    color: 'text-foreground',
+    bg: 'bg-slate-50',
   },
 ]
 

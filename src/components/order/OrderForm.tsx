@@ -104,7 +104,7 @@ export function OrderForm() {
           <div className="text-center py-6 sm:py-8">
             {/* Success animation */}
             <div className="relative mx-auto mb-4 sm:mb-6">
-              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-emerald-100 dark:bg-[#0f172a] flex items-center justify-center mx-auto">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
                 <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-[#10b981]" />
               </div>
               <div className="absolute -top-1 -right-1 h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-green-500 flex items-center justify-center animate-bounce">
@@ -222,11 +222,11 @@ export function OrderForm() {
             </p>
           </div>
 
-          <div className="bg-muted/50 dark:bg-[#0f172a]/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 border border-border dark:border-slate-700">
-            <p className="text-xs sm:text-sm font-semibold text-foreground dark:text-[#34d399] mb-1.5 sm:mb-2">
+          <div className="bg-muted/50 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 border border-border">
+            <p className="text-xs sm:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">
               📱 Send Money করার নিয়ম:
             </p>
-            <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-muted-foreground dark:text-[#34d399]">
+            <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-muted-foreground">
               <div className="flex items-start gap-2">
                 <span className="font-bold shrink-0">১.</span>
                 <span>নিচের <strong>bKash</strong> বা <strong>Nagad</strong> বাটনে ক্লিক করুন</span>
@@ -366,7 +366,7 @@ export function OrderForm() {
           <Button
             size="lg"
             onClick={handlePaymentDone}
-            className="w-full bg-[#0f172a] hover:bg-[#1e293b] font-semibold rounded-xl h-11 sm:h-12 text-sm sm:text-base min-h-[44px]"
+            className="w-full bg-primary hover:bg-primary/90 font-semibold rounded-xl h-11 sm:h-12 text-sm sm:text-base min-h-[44px]"
           >
             <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             আমি Send Money করেছি
@@ -398,7 +398,7 @@ export function OrderForm() {
           <Card className="border shadow-sm mb-4 sm:mb-6">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-emerald-100 dark:bg-[#0f172a] flex items-center justify-center shrink-0">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
                   <ShoppingBagIcon className="h-5 w-5 sm:h-6 sm:w-6 text-[#10b981]" />
                 </div>
                 <div className="min-w-0">
@@ -419,7 +419,7 @@ export function OrderForm() {
                       onClick={() => handleChange('plan', `${opt.label} — ${formatPriceBDT(opt.priceBDT)}`)}
                       className={`w-full flex items-center justify-between rounded-lg px-2.5 sm:px-3 py-2 text-xs sm:text-sm transition-colors ${
                         form.plan === `${opt.label} — ${formatPriceBDT(opt.priceBDT)}`
-                          ? 'bg-emerald-100 dark:bg-[#0f172a] border border-[#10b981]/50 dark:border-[#34d399]'
+                          ? 'bg-emerald-100 border border-[#10b981]/50'
                           : 'bg-muted/50 hover:bg-muted border border-transparent'
                       }`}
                     >
@@ -503,7 +503,7 @@ export function OrderForm() {
             size="lg"
             onClick={handleProceed}
             disabled={!form.customerName || !form.customerWhatsApp}
-            className="w-full bg-[#0f172a] hover:bg-[#1e293b] font-semibold rounded-xl h-11 sm:h-12 text-sm sm:text-base mt-2 disabled:opacity-50 min-h-[44px]"
+            className="w-full bg-primary hover:bg-primary/90 font-semibold rounded-xl h-11 sm:h-12 text-sm sm:text-base mt-2 disabled:opacity-50 min-h-[44px]"
           >
             <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             Send Money পেজে যান
