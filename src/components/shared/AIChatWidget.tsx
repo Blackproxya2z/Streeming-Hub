@@ -21,6 +21,8 @@ import {
   MicOff,
   Volume2,
   VolumeX,
+  Phone,
+  PhoneOff,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -150,14 +152,13 @@ function speak(text: string, lang: DetectedLang, onEnd?: () => void): SpeechSynt
   if (lang === 'bangla') {
     utterance.lang = 'bn-BD'
   } else if (lang === 'banglish') {
-    // Banglish: try Bangla voice first since content is in Bengali script
     utterance.lang = 'bn-BD'
   } else {
     utterance.lang = 'en-US'
   }
 
   utterance.rate = 0.95
-  utterance.pitch = 1.0
+  utterance.pitch = 1.1
   utterance.volume = 1.0
 
   // Try to find a matching voice
@@ -217,7 +218,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, indent, , content] = bulletMatch
     elements.push(
       <span key={`bullet-${indent.length}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-primary dark:bg-[#34d399]" />
+        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-teal-600 dark:bg-[#34d399]" />
         <span>{processInlineFormatting(content)}</span>
       </span>
     )
@@ -230,7 +231,7 @@ function processInlineFormatting(line: string): ReactNode[] {
     const [, , num, content] = numberedMatch
     elements.push(
       <span key={`num-${num}`} className="flex items-start gap-1.5 my-0.5">
-        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-primary/15 dark:bg-[#0f172a]/30 text-foreground dark:text-[#34d399] flex items-center justify-center text-[10px] font-bold leading-none mt-px">
+        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-teal-600/15 dark:bg-[#0f172a]/30 text-teal-700 dark:text-[#34d399] flex items-center justify-center text-[10px] font-bold leading-none mt-px">
           {num}
         </span>
         <span>{processInlineFormatting(content)}</span>
@@ -249,7 +250,7 @@ function processInlineFormatting(line: string): ReactNode[] {
         elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, boldMatch.index)}</span>)
       }
       elements.push(
-        <strong key={`b-${keyIdx++}`} className="font-semibold text-foreground dark:text-[#34d399]">
+        <strong key={`b-${keyIdx++}`} className="font-semibold text-teal-700 dark:text-[#34d399]">
           {boldMatch[1]}
         </strong>
       )
@@ -269,7 +270,7 @@ function processInlineFormatting(line: string): ReactNode[] {
           href={linkMatch[2]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary dark:text-[#34d399] underline underline-offset-2 hover:text-foreground dark:hover:text-[#F5B301] transition-colors"
+          className="text-teal-600 dark:text-[#34d399] underline underline-offset-2 hover:text-teal-800 dark:hover:text-[#F5B301] transition-colors"
         >
           {linkMatch[1]}
         </a>
@@ -286,11 +287,10 @@ function processInlineFormatting(line: string): ReactNode[] {
   return elements
 }
 
-// ─── Product Card Component ──────────────────────────────────────────────────
+// ─── Product Card Component (NO Order Button — conversational only) ──────────
 
 function ProductCardItem({ product }: { product: ProductCard }) {
   const cheapestPrice = getCheapestPrice(product)
-  const whatsappUrl = `https://wa.me/8801647236359?text=${encodeURIComponent(`🛒 Order: ${product.name} — ${cheapestPrice}`)}`
   const initial = product.name.charAt(0).toUpperCase()
 
   return (
@@ -299,29 +299,18 @@ function ProductCardItem({ product }: { product: ProductCard }) {
         {/* Image or gradient placeholder */}
         <div className="h-12 w-12 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-[#00A6A6] to-[#0B1F3A] flex items-center justify-center">
           {product.image ? (
-            <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+            <img src={product.image} alt={product.name} className="h-full w-full object-cover" loading="lazy" />
           ) : (
             <span className="text-white font-bold text-lg">{initial}</span>
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate">{product.name}</p>
+          <p className="text-sm font-semibold text-foreground truncate">{product.name}</p>
           <p className="text-xs text-muted-foreground">{product.category.name}</p>
         </div>
         <div className="bg-gradient-to-r from-[#00A6A6] to-emerald-500 text-white px-2.5 py-1 rounded-lg text-sm font-bold shrink-0">
           ৳{cheapestPrice}
         </div>
-      </div>
-      <div className="px-3 pb-3">
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 w-full py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-semibold transition-all active:scale-95"
-        >
-          <MessageCircle className="h-3.5 w-3.5" />
-          WhatsApp এ অর্ডার
-        </a>
       </div>
     </div>
   )
@@ -347,9 +336,10 @@ function AIAvatar({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
     >
       {/* Try to load avatar image, fallback to Sparkles */}
       <img
-        src="/assistant-avatar.png"
+        src="/assistant-avatar.jpg"
         alt="কর্মচারী"
         className="h-full w-full object-cover hidden"
+        loading="lazy"
         onLoad={(e) => {
           ;(e.target as HTMLImageElement).classList.remove('hidden')
           ;(e.target as HTMLImageElement).nextElementSibling?.classList.add('hidden')
@@ -368,11 +358,9 @@ function AIAvatar({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
 
 function SpeakerButton({ text, lang, isStreaming }: { text: string; lang: DetectedLang; isStreaming?: boolean }) {
   const [isSpeaking, setIsSpeaking] = useState(false)
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
 
   const handleSpeak = useCallback(() => {
     if (isSpeaking) {
-      // Stop speaking
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel()
       }
@@ -383,10 +371,9 @@ function SpeakerButton({ text, lang, isStreaming }: { text: string; lang: Detect
     if (isStreaming || !text) return
 
     setIsSpeaking(true)
-    const utterance = speak(text, lang, () => {
+    speak(text, lang, () => {
       setIsSpeaking(false)
     })
-    utteranceRef.current = utterance
 
     // Safety: auto-reset after max 30 seconds
     setTimeout(() => setIsSpeaking(false), 30000)
@@ -444,6 +431,9 @@ export function AIChatWidget() {
 
   // Voice input state
   const [isListening, setIsListening] = useState(false)
+  // Gemini-style voice conversation mode
+  const [isVoiceMode, setIsVoiceMode] = useState(false)
+  const [isAISpeaking, setIsAISpeaking] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const sendMessageRef = useRef<(msg?: string) => Promise<void>>()
 
@@ -507,10 +497,10 @@ export function AIChatWidget() {
 
   // ── Focus input when opened ──
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    if (isOpen && inputRef.current && !isVoiceMode) {
       setTimeout(() => inputRef.current?.focus(), 350)
     }
-  }, [isOpen])
+  }, [isOpen, isVoiceMode])
 
   // ── Send message handler (with SSE streaming) ──
   const sendMessage = useCallback(async (overrideMessage?: string) => {
@@ -637,7 +627,6 @@ export function AIChatWidget() {
                 const updated = [...prev]
                 const lastIdx = updated.length - 1
                 if (updated[lastIdx]?.role === 'assistant') {
-                  // Use backend's detectedLang if available, otherwise fall back to client-side detection
                   const backendLang = data.detectedLang as DetectedLang | undefined
                   const finalLang = backendLang || userDetectedLang
                   updated[lastIdx] = {
@@ -665,6 +654,32 @@ export function AIChatWidget() {
         }
         return updated
       })
+
+      // ── Gemini-style: After AI finishes, speak the response, then auto-listen ──
+      if (isVoiceMode && speechSupported) {
+        // Get the final message content
+        const finalMessages = [...messages]
+        const lastAssistantMsg = finalMessages[finalMessages.length - 1]
+        // We need to read from the updated state, so use a small delay
+        setTimeout(() => {
+          setMessages(currentMessages => {
+            const lastMsg = currentMessages[currentMessages.length - 1]
+            if (lastMsg?.role === 'assistant' && lastMsg.content && !lastMsg.isStreaming) {
+              const lang = lastMsg.detectedLang || userDetectedLang
+              setIsAISpeaking(true)
+              speak(lastMsg.content, lang, () => {
+                setIsAISpeaking(false)
+                // After AI finishes speaking, auto-start listening again
+                const rec = recognitionRef.current
+                if (rec) {
+                  try { rec.start(); setIsListening(true) } catch { /* */ }
+                }
+              })
+            }
+            return currentMessages // Don't modify, just read
+          })
+        }, 200)
+      }
     } catch {
       setMessages(prev => {
         const updated = [...prev]
@@ -681,7 +696,7 @@ export function AIChatWidget() {
     } finally {
       setIsLoading(false)
     }
-  }, [input, isLoading, cooldown, messages])
+  }, [input, isLoading, cooldown, messages, isVoiceMode, speechSupported])
 
   // ── Keep sendMessage ref updated for voice input ──
   useEffect(() => {
@@ -696,28 +711,19 @@ export function AIChatWidget() {
     if (!SR) return
 
     const recognition = new (SR as new () => SpeechRecognition)()
-    // Default to bn-BD, but the engine will auto-detect language
-    // Web Speech API on Chrome supports multilingual recognition
     recognition.lang = 'bn-BD'
     recognition.continuous = false
     recognition.interimResults = true
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript
-      const confidence = event.results[0][0].confidence
       setInput(transcript)
 
       if (event.results[0].isFinal) {
         setIsListening(false)
 
-        // Detect what language the user actually spoke
-        // If the transcript contains Bengali script, it's Bangla
-        // If it's Roman characters with Banglish patterns, treat as Banglish
-        // Otherwise it's English
         const spokenLang = detectLanguageClient(transcript)
 
-        // Update recognition language for next time based on what user spoke
-        // This helps improve accuracy for the next recognition session
         try {
           if (spokenLang === 'english') {
             recognition.lang = 'en-US'
@@ -728,7 +734,7 @@ export function AIChatWidget() {
           // Can't change lang while recognition might be active
         }
 
-        // Auto-send after final result using ref
+        // Auto-send after final result
         setTimeout(() => {
           sendMessageRef.current?.(transcript)
         }, 100)
@@ -754,9 +760,6 @@ export function AIChatWidget() {
       setIsListening(false)
     } else {
       try {
-        // Dynamically set recognition language based on current input pattern
-        // If user has been typing in English, start with en-US
-        // Otherwise default to bn-BD for Bangla/Banglish
         if (input.trim()) {
           const inputLang = detectLanguageClient(input)
           recognition.lang = inputLang === 'english' ? 'en-US' : 'bn-BD'
@@ -764,11 +767,39 @@ export function AIChatWidget() {
         recognition.start()
         setIsListening(true)
       } catch {
-        // Already started or not available
         setIsListening(false)
       }
     }
   }, [isListening, input])
+
+  // ── Gemini-style Voice Mode Toggle ──
+  const toggleVoiceMode = useCallback(() => {
+    if (isVoiceMode) {
+      // Exit voice mode
+      setIsVoiceMode(false)
+      setIsAISpeaking(false)
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel()
+      }
+      if (isListening && recognitionRef.current) {
+        recognitionRef.current.stop()
+        setIsListening(false)
+      }
+    } else {
+      // Enter voice mode
+      setIsVoiceMode(true)
+      // Start listening immediately
+      const recognition = recognitionRef.current
+      if (recognition) {
+        try {
+          recognition.start()
+          setIsListening(true)
+        } catch {
+          setIsListening(false)
+        }
+      }
+    }
+  }, [isVoiceMode, isListening])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -778,10 +809,11 @@ export function AIChatWidget() {
   }
 
   const clearChat = () => {
-    // Stop any ongoing speech
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
+    setIsVoiceMode(false)
+    setIsAISpeaking(false)
     setMessages([
       {
         role: 'assistant',
@@ -867,8 +899,24 @@ export function AIChatWidget() {
               <span className="absolute inset-[-4px] rounded-full bg-[#00A6A6]/20 animate-pulse [animation-duration:2s]" />
               <span className="absolute inset-0 rounded-full bg-[#00A6A6]/25 animate-ping [animation-duration:2.5s]" />
 
-              {/* Icon inside the button */}
+              {/* Avatar inside the button */}
               <span className="relative z-10 flex items-center justify-center">
+                <img
+                  src="/assistant-avatar.jpg"
+                  alt="কর্মচারী"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover hidden"
+                  loading="lazy"
+                  onLoad={(e) => {
+                    (e.target as HTMLImageElement).classList.remove('hidden')
+                    const fallback = (e.target as HTMLImageElement).nextElementSibling
+                    if (fallback) fallback.classList.add('hidden')
+                  }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).classList.add('hidden')
+                    const fallback = (e.target as HTMLImageElement).nextElementSibling
+                    if (fallback) fallback.classList.remove('hidden')
+                  }}
+                />
                 <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-white drop-shadow-lg" />
               </span>
 
@@ -892,7 +940,7 @@ export function AIChatWidget() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              onClick={() => setIsOpen(false)}
+              onClick={() => { setIsOpen(false); setIsVoiceMode(false) }}
             />
 
             {/* Chat panel */}
@@ -904,6 +952,7 @@ export function AIChatWidget() {
               className="fixed z-[60] flex flex-col bg-background border border-border/50 shadow-2xl overflow-hidden
                 inset-x-0 bottom-0 h-[100dvh] rounded-t-2xl
                 sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
+              data-chat-open="true"
             >
               {/* ===== HEADER ===== */}
               <div className="relative bg-gradient-to-r from-teal-600 via-teal-700 to-[#00A6A6] dark:from-[#0B1F3A] dark:via-[#0f172a] dark:to-[#00A6A6] text-white p-3 sm:p-4 flex items-center justify-between shrink-0 overflow-hidden">
@@ -930,12 +979,38 @@ export function AIChatWidget() {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-                      <p className="text-[10px] sm:text-[11px] text-white/80 dark:text-slate-200 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
+                      {isVoiceMode ? (
+                        <>
+                          <span className="h-2 w-2 rounded-full bg-red-400 animate-pulse shadow-[0_0_6px_rgba(248,113,113,0.6)]" />
+                          <p className="text-[10px] sm:text-[11px] text-white/80 dark:text-slate-200 font-medium">
+                            {isAISpeaking ? 'বলছি...' : isListening ? 'শুনছি...' : 'ভয়েস মোড'}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+                          <p className="text-[10px] sm:text-[11px] text-white/80 dark:text-slate-200 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 relative z-10">
+                  {/* Voice Mode Toggle */}
+                  {speechSupported && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`text-white hover:bg-white/15 h-7 w-7 sm:h-8 sm:w-8 rounded-lg transition-all ${
+                        isVoiceMode ? 'bg-red-500/30 hover:bg-red-500/40' : ''
+                      }`}
+                      onClick={toggleVoiceMode}
+                      aria-label={isVoiceMode ? 'ভয়েস মোড বন্ধ' : 'ভয়েস মোড চালু'}
+                      title={isVoiceMode ? 'ভয়েস মোড বন্ধ করুন' : 'Gemini-style ভয়েস চ্যাট'}
+                    >
+                      {isVoiceMode ? <PhoneOff className="h-3.5 w-3.5" /> : <Phone className="h-3.5 w-3.5" />}
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -950,7 +1025,7 @@ export function AIChatWidget() {
                     variant="ghost"
                     size="icon"
                     className="text-white hover:bg-white/15 h-7 w-7 sm:h-8 sm:w-8 rounded-lg"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => { setIsOpen(false); setIsVoiceMode(false) }}
                     aria-label="Close chat"
                   >
                     <X className="h-4 w-4" />
@@ -964,7 +1039,7 @@ export function AIChatWidget() {
                   const Icon = item.icon
                   return (
                     <div key={item.label} className="flex items-center gap-1">
-                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-foreground dark:text-[#00A6A6] font-medium">
+                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-teal-700 dark:text-[#00A6A6] font-medium">
                         <Icon className="h-2.5 w-2.5" />
                         <span>{item.label}</span>
                       </div>
@@ -1002,8 +1077,8 @@ export function AIChatWidget() {
                     <div
                       className={`max-w-[85%] sm:max-w-[82%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-[12px] sm:text-[13px] leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-primary text-primary-foreground dark:bg-gradient-to-br dark:from-[#0B1F3A] dark:to-[#00A6A6] dark:text-white rounded-br-md shadow-md shadow-primary/20 dark:shadow-[#00A6A6]/20'
-                          : 'bg-muted/70 dark:bg-muted/50 rounded-bl-md border border-border/30'
+                          ? 'bg-teal-600 text-white dark:bg-gradient-to-br dark:from-[#0B1F3A] dark:to-[#00A6A6] dark:text-white rounded-br-md shadow-md shadow-teal-600/20 dark:shadow-[#00A6A6]/20'
+                          : 'bg-muted/70 dark:bg-muted/50 rounded-bl-md border border-border/30 text-foreground'
                       }`}
                     >
                       {msg.role === 'assistant' ? (
@@ -1035,7 +1110,7 @@ export function AIChatWidget() {
                             </div>
                           </div>
 
-                          {/* Product cards */}
+                          {/* Product cards — NO order button, just info display */}
                           {msg.products && msg.products.length > 0 && !msg.isStreaming && (
                             <div className="mt-3 space-y-2">
                               {msg.products.slice(0, 4).map(product => (
@@ -1056,7 +1131,7 @@ export function AIChatWidget() {
                                 <button
                                   key={`sug-${sIdx}`}
                                   onClick={() => handleSuggestionClick(suggestion)}
-                                  className="cursor-pointer text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/15 text-foreground dark:text-[#00A6A6] hover:border-primary/60 transition-all active:scale-95 font-medium"
+                                  className="cursor-pointer text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full border border-teal-600/30 bg-teal-600/5 hover:bg-teal-600/15 text-teal-700 dark:text-[#00A6A6] dark:border-[#00A6A6]/30 dark:bg-[#00A6A6]/5 dark:hover:bg-[#00A6A6]/15 hover:border-teal-600/60 dark:hover:border-[#00A6A6]/60 transition-all active:scale-95 font-medium"
                                 >
                                   {suggestion}
                                 </button>
@@ -1073,7 +1148,7 @@ export function AIChatWidget() {
                               className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-xs font-semibold transition-all shadow-sm hover:shadow-md active:scale-95"
                             >
                               <MessageCircle className="h-3.5 w-3.5" />
-                              WhatsApp এ অর্ডার করুন
+                              WhatsApp এ যোগাযোগ
                               <ExternalLink className="h-3 w-3" />
                             </a>
                           )}
@@ -1083,7 +1158,7 @@ export function AIChatWidget() {
                       )}
                     </div>
                     {msg.role === 'user' && (
-                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-primary dark:bg-gradient-to-br dark:from-[#0B1F3A] dark:to-[#00A6A6] flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-primary/20 dark:shadow-[#00A6A6]/20">
+                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-teal-600 dark:bg-gradient-to-br dark:from-[#0B1F3A] dark:to-[#00A6A6] flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-teal-600/20 dark:shadow-[#00A6A6]/20">
                         <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                       </div>
                     )}
@@ -1121,8 +1196,8 @@ export function AIChatWidget() {
                   <button
                     key={q.label}
                     className="cursor-pointer whitespace-nowrap text-[10px] sm:text-[11px] shrink-0
-                      hover:bg-[#00A6A6]/5 dark:hover:bg-[#0B1F3A]/40
-                      border border-border/60 hover:border-[#00A6A6]/50 dark:hover:border-[#00A6A6]
+                      hover:bg-teal-600/5 dark:hover:bg-[#0B1F3A]/40
+                      border border-border/60 hover:border-teal-600/50 dark:hover:border-[#00A6A6]
                       transition-all active:scale-95 py-1.5 sm:py-2 px-2.5 sm:px-3.5 rounded-full bg-background
                       font-medium text-foreground/80 hover:text-foreground dark:hover:text-[#00A6A6]
                       touch-manipulation"
@@ -1142,13 +1217,13 @@ export function AIChatWidget() {
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="বাংলা, বাংলিশ বা English এ লিখুন..."
-                    className="h-10 sm:h-11 text-sm sm:text-base rounded-xl border-border/50 focus-visible:ring-[#00A6A6]/30"
-                    disabled={isLoading || cooldown}
+                    className="h-10 sm:h-11 text-sm sm:text-base rounded-xl border-border/50 focus-visible:ring-[#00A6A6]/30 text-foreground"
+                    disabled={isLoading || cooldown || isVoiceMode}
                     style={{ fontSize: '16px' }}
                   />
 
                   {/* Voice Input Button — Dynamic Language STT */}
-                  {speechSupported && (
+                  {speechSupported && !isVoiceMode && (
                     <button
                       onClick={toggleListening}
                       className={`relative flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-xl transition-all active:scale-90 touch-manipulation shrink-0 ${
@@ -1160,9 +1235,7 @@ export function AIChatWidget() {
                     >
                       {isListening ? (
                         <>
-                          {/* Pulsing red ring animation */}
                           <span className="absolute inset-[-3px] rounded-xl bg-red-500/30 animate-ping" />
-                          {/* Sound wave animation */}
                           <span className="absolute inset-[-6px] rounded-xl border-2 border-red-400/40 animate-pulse" />
                           <MicOff className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" />
                         </>
@@ -1172,22 +1245,57 @@ export function AIChatWidget() {
                     </button>
                   )}
 
-                  {/* Send button */}
-                  <Button
-                    onClick={() => sendMessage()}
-                    disabled={!input.trim() || isLoading || cooldown}
-                    className="bg-primary hover:bg-primary/90 dark:bg-gradient-to-r dark:from-[#0B1F3A] dark:to-[#00A6A6] dark:hover:from-[#0B1F3A] dark:hover:to-[#10b981] text-primary-foreground h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-primary/20 dark:shadow-[#00A6A6]/20 shrink-0 touch-manipulation"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
-                  </Button>
+                  {/* Voice Mode — Gemini-style conversation button */}
+                  {speechSupported && isVoiceMode && (
+                    <button
+                      onClick={toggleListening}
+                      disabled={isAISpeaking}
+                      className={`relative flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-xl transition-all active:scale-90 touch-manipulation shrink-0 ${
+                        isListening
+                          ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30'
+                          : isAISpeaking
+                          ? 'bg-[#00A6A6] text-white shadow-lg shadow-[#00A6A6]/30 animate-pulse'
+                          : 'bg-[#00A6A6] hover:bg-[#00A6A6]/80 text-white shadow-lg shadow-[#00A6A6]/30'
+                      }`}
+                      aria-label={isListening ? 'শুনছি...' : 'কথা বলুন'}
+                    >
+                      {isListening ? (
+                        <>
+                          <span className="absolute inset-[-3px] rounded-xl bg-red-500/30 animate-ping" />
+                          <MicOff className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" />
+                        </>
+                      ) : isAISpeaking ? (
+                        <>
+                          <span className="absolute inset-[-3px] rounded-xl bg-[#00A6A6]/30 animate-ping" />
+                          <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" />
+                        </>
+                      ) : (
+                        <>
+                          <span className="absolute inset-[-3px] rounded-xl bg-[#00A6A6]/20 animate-pulse" />
+                          <Mic className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" />
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Send button — hidden in voice mode */}
+                  {!isVoiceMode && (
+                    <Button
+                      onClick={() => sendMessage()}
+                      disabled={!input.trim() || isLoading || cooldown}
+                      className="bg-teal-600 hover:bg-teal-700 dark:bg-gradient-to-r dark:from-[#0B1F3A] dark:to-[#00A6A6] dark:hover:from-[#0B1F3A] dark:hover:to-[#10b981] text-white h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-teal-600/20 dark:shadow-[#00A6A6]/20 shrink-0 touch-manipulation"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Voice status indicator */}
-                {isListening && (
+                {isListening && !isVoiceMode && (
                   <motion.div
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1203,6 +1311,39 @@ export function AIChatWidget() {
                       <span className="h-4 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:450ms]" />
                       <span className="h-3 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:600ms]" />
                     </span>
+                  </motion.div>
+                )}
+
+                {/* Voice mode status indicator */}
+                {isVoiceMode && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-center gap-2 mt-2 text-xs font-medium"
+                  >
+                    {isAISpeaking ? (
+                      <span className="text-[#00A6A6] flex items-center gap-1.5">
+                        <Volume2 className="h-3.5 w-3.5" />
+                        বলছি...
+                      </span>
+                    ) : isListening ? (
+                      <span className="text-red-500 flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                        শুনছি... কথা বলুন
+                        <span className="flex items-center gap-[2px]">
+                          <span className="h-3 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:0ms]" />
+                          <span className="h-4 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:150ms]" />
+                          <span className="h-5 w-0.5 bg-red-500 rounded-full animate-pulse [animation-delay:300ms]" />
+                          <span className="h-4 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:450ms]" />
+                          <span className="h-3 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:600ms]" />
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <Phone className="h-3.5 w-3.5" />
+                        ভয়েস মোড — মাইক বাটনে চাপুন
+                      </span>
+                    )}
                   </motion.div>
                 )}
               </div>
