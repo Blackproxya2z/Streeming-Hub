@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
     // ── Priority 1: ElevenLabs TTS ──
     const elevenLabsAudio = await synthesizeWithElevenLabs(cleanText, lang)
     if (elevenLabsAudio) {
-      return new NextResponse(elevenLabsAudio, {
+      return new NextResponse(new Uint8Array(elevenLabsAudio), {
         status: 200,
         headers: {
           'Content-Type': 'audio/mpeg',
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
     // ── Priority 2: OpenAI TTS ──
     const openaiAudio = await synthesizeWithOpenAI(cleanText, lang)
     if (openaiAudio) {
-      return new NextResponse(openaiAudio, {
+      return new NextResponse(new Uint8Array(openaiAudio), {
         status: 200,
         headers: {
           'Content-Type': 'audio/mpeg',
