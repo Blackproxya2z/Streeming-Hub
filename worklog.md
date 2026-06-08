@@ -78,3 +78,32 @@ Stage Summary:
 - Avatar image generated at public/assistant-avatar.jpg (183KB)
 - Code compiles and serves correctly (HTTP 200)
 - Deployment blocked - GitHub token needs to be refreshed
+
+---
+Task ID: 1 (current session)
+Agent: Main Agent
+Task: Replace z-ai-web-dev-sdk with OpenAI API in /home/z/my-project/src/app/api/chat/route.ts
+
+Work Log:
+- Read current route.ts (452 lines) — identified all ZAI-related code: import, singleton, getZAI(), zai.chat.completions.create() calls
+- Read worklog.md for project context
+- Verified openai package already installed (^6.42.0) in package.json
+- Rewrote route.ts with the following changes:
+  1. Removed `import ZAI from 'z-ai-web-dev-sdk'` and ZAI singleton (getZAI, zaiInstance)
+  2. Added `import OpenAI from 'openai'` and created OpenAI client with apiKey, timeout: 8000, maxRetries: 1
+  3. Added route exports: `export const runtime = 'nodejs'`, `export const dynamic = 'force-dynamic'`, `export const maxDuration = 10`
+  4. Replaced ZAI streaming with OpenAI streaming using `for await (const chunk of completion)` loop
+  5. Changed model to `gpt-4o-mini` for both streaming and non-streaming calls
+  6. Added `sanitizeHistory()` function: filters to system/user/assistant roles only, removes empty content, keeps latest 10 messages
+  7. Used `OpenAI.ChatCompletionMessageParam[]` type for messages array
+  8. Kept all existing functionality: intent detection, language detection, product context, system prompt, SSE format, product cards, suggestions, WhatsApp URL, rate limiting, content filtering, fallback responses, 8-second timeout
+  9. Kept exact same SSE format: token → products → suggestions → done
+  10. Kept timeout/fallback logic: streaming timeout → fallback, non-timeout → try non-streaming → fallback
+- Ran `bun run lint` — passes clean, no errors
+- Checked dev.log — server running normally, no runtime errors
+
+Stage Summary:
+- Successfully replaced z-ai-web-dev-sdk with OpenAI API in route.ts
+- All 10 requirements met: ZAI removed, OpenAI added, client configured, exports added, gpt-4o-mini model, all functionality preserved, same SSE format, for-await-of streaming, history sanitization, same system prompt, fallback on failure
+- OPENAI_API_KEY expected in .env (not hardcoded)
+- Lint passes clean, dev server running without errors

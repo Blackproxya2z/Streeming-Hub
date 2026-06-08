@@ -1,6 +1,12 @@
 import { NextRequest } from 'next/server'
-import ZAI from 'z-ai-web-dev-sdk'
+import OpenAI from 'openai'
 import { searchProducts, searchByCategory, getFeaturedProducts, getCatalogSummary, findSpecificProduct, findRelatedProducts, type Product } from '@/lib/data'
+
+// ─── Route Exports ──────────────────────────────────────────────────────────
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 10
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -10,6 +16,14 @@ interface ProductCard { id: string; name: string; slug: string; image: string | 
 interface ChatMessage { role: 'system' | 'user' | 'assistant'; content: string }
 interface PriceOption { label?: string; priceBDT?: string }
 
+// ─── OpenAI Client ─────────────────────────────────────────────────────────
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  timeout: 8_000,
+  maxRetries: 1,
+})
+
 // ─── Timeout Utility ─────────────────────────────────────────────────────────
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -18,11 +32,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     new Promise<never>((_, reject) => setTimeout(() => reject(new Error('LLM_TIMEOUT')), ms)),
   ])
 }
-
-// ─── ZAI Singleton ──────────────────────────────────────────────────────────
-
-let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null
-async function getZAI() { if (!zaiInstance) zaiInstance = await ZAI.create(); return zaiInstance }
 
 // ─── Rate Limiting ──────────────────────────────────────────────────────────
 
@@ -333,7 +342,16 @@ function getFallback(intent: Intent, lang: Language): string {
   return e[lang]
 }
 
-// ─── POST Handler (SSE Streaming) ──────────────────────────────────────────
+// ─── History Sanitization ───────────────────────────────────────────────────
+
+function sanitizeHistory(history: ChatMessage[]): ChatMessage[] {
+  const allowedRoles = new Set(['system', 'user', 'assistant'])
+  return history
+    .filter((m) => allowedRoles.has(m.role) && m.content && m.content.trim().length > 0)
+    .slice(-10)
+}
+
+// ─── POST Handler (SSE Streaming with OpenAI) ──────────────────────────────
 
 export async function POST(request: NextRequest) {
   let body: { message?: string; history?: ChatMessage[]; sessionId?: string }
@@ -348,75 +366,59 @@ export async function POST(request: NextRequest) {
   const suggestions = generateSuggestions(intent, lang)
   const whatsappUrl = buildWhatsAppUrl({})
   const systemPrompt = buildSystemPrompt(intent, lang, message)
-  const messages: ChatMessage[] = [{ role: 'system', content: systemPrompt }, ...history.slice(-10), { role: 'user', content: message }]
+
+  // Sanitize history: only allow system/user/assistant roles, latest 8-10 messages, remove empty content
+  const cleanHistory = sanitizeHistory(history)
+  const messages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: 'system', content: systemPrompt },
+    ...cleanHistory.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+    { role: 'user', content: message },
+  ]
 
   const stream = new ReadableStream({
     async start(controller) {
       const enc = new TextEncoder()
       const send = (data: Record<string, unknown>) => controller.enqueue(enc.encode(`data: ${JSON.stringify(data)}\n\n`))
 
-      // Attempt LLM call with streaming → non-streaming → fallback
       // All LLM calls are wrapped with an 8-second timeout to prevent
       // long hangs when the external API is unreachable.
-      // If streaming times out (API unreachable), skip non-streaming attempt
-      // and go straight to fallback for faster response.
       const LLM_TIMEOUT_MS = 8000
       let llmContent = ''
-      try {
-        const zai = await withTimeout(getZAI(), LLM_TIMEOUT_MS)
-        let usedStreaming = false
 
-        // Try streaming (with timeout)
+      try {
+        // Try streaming with OpenAI (with timeout)
         try {
           const completion = await withTimeout(
-            zai.chat.completions.create({ messages, stream: true, thinking: { type: 'disabled' } }),
+            openai.chat.completions.create({
+              model: 'gpt-4o-mini',
+              messages,
+              stream: true,
+            }),
             LLM_TIMEOUT_MS,
           )
-          if (completion && typeof completion === 'object' && 'body' in completion && completion.body instanceof ReadableStream) {
-            usedStreaming = true
-            const reader = (completion.body as ReadableStream<Uint8Array>).getReader()
-            const decoder = new TextDecoder()
-            let buffer = ''
-            // Read stream with a per-chunk timeout (resets with each chunk)
-            let chunkTimeoutId: ReturnType<typeof setTimeout> | null = null
-            const readNextWithTimeout = (): Promise<ReadableStreamReadResult<Uint8Array>> => {
-              if (chunkTimeoutId) clearTimeout(chunkTimeoutId)
-              return Promise.race([
-                reader.read(),
-                new Promise<never>((_, reject) => {
-                  chunkTimeoutId = setTimeout(() => reject(new Error('LLM_TIMEOUT')), LLM_TIMEOUT_MS)
-                }),
-              ])
-            }
-            while (true) {
-              const { done, value } = await readNextWithTimeout()
-              if (done) break
-              buffer += decoder.decode(value, { stream: true })
-              const lines = buffer.split('\n'); buffer = lines.pop() || ''
-              for (const line of lines) {
-                const t = line.trim()
-                if (!t.startsWith('data: ')) continue
-                const jsonStr = t.slice(6)
-                if (jsonStr === '[DONE]') continue
-                try { const delta = JSON.parse(jsonStr)?.choices?.[0]?.delta?.content; if (delta) send({ type: 'token', content: delta }) } catch { /* skip */ }
-              }
-            }
-            if (chunkTimeoutId) clearTimeout(chunkTimeoutId)
-            // Flush remaining buffer
-            if (buffer.trim().startsWith('data: ') && buffer.trim().slice(6) !== '[DONE]') {
-              try { const delta = JSON.parse(buffer.trim().slice(6))?.choices?.[0]?.delta?.content; if (delta) send({ type: 'token', content: delta }) } catch { /* skip */ }
+
+          // Use for-await-of loop over the async iterable stream
+          for await (const chunk of completion) {
+            const delta = chunk.choices?.[0]?.delta?.content
+            if (delta) {
+              send({ type: 'token', content: delta })
+              llmContent += delta
             }
           }
         } catch (streamErr) {
           // If streaming timed out, the API is unreachable — skip non-streaming attempt
-          // and go straight to fallback (avoids another 3s wait)
+          // and go straight to fallback (avoids another wait)
           if (streamErr instanceof Error && streamErr.message === 'LLM_TIMEOUT') {
             send({ type: 'token', content: getFallback(intent, lang) })
           } else {
             // Non-timeout error — try non-streaming as fallback
             try {
               const completion = await withTimeout(
-                zai.chat.completions.create({ messages, stream: false, thinking: { type: 'disabled' } }),
+                openai.chat.completions.create({
+                  model: 'gpt-4o-mini',
+                  messages,
+                  stream: false,
+                }),
                 LLM_TIMEOUT_MS,
               )
               llmContent = completion?.choices?.[0]?.message?.content || ''
@@ -426,17 +428,14 @@ export async function POST(request: NextRequest) {
             if (llmContent) send({ type: 'token', content: llmContent })
             else send({ type: 'token', content: getFallback(intent, lang) })
           }
-          usedStreaming = false
         }
 
-        // If streaming succeeded, content was already sent via SSE tokens
-        // If streaming was used but produced no content, send fallback
-        if (usedStreaming && !llmContent) {
-          // Check if any tokens were actually sent (llmContent not tracked in streaming mode)
-          // Streaming tokens are sent directly via send(), so if we got here, it's fine
+        // If streaming succeeded but produced no content, send fallback
+        if (!llmContent) {
+          // Already handled in the catch block or streaming produced nothing
         }
       } catch {
-        // ZAI init or top-level timeout — send fallback immediately
+        // Top-level error (e.g. OpenAI client init failure) — send fallback immediately
         send({ type: 'token', content: getFallback(intent, lang) })
       }
 
