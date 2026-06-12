@@ -601,7 +601,7 @@ export function AIChatWidget() {
 
   // Voice input state
   const [isListening, setIsListening] = useState(false)
-  // Gemini-style voice conversation mode
+  // Voice conversation mode (listen → AI speak → listen loop)
   const [isVoiceMode, setIsVoiceMode] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
@@ -864,7 +864,7 @@ export function AIChatWidget() {
     sendMessageRef.current = sendMessage
   }, [sendMessage])
 
-  // ── Gemini-style Voice Loop: TTS after AI finishes, then auto-listen ──
+  // ── Voice Loop: TTS after AI finishes, then auto-listen ──
   // This useEffect watches for the last assistant message's isStreaming
   // transitioning to false, and triggers TTS → auto-listen in voice mode.
   // Using refs avoids stale closure issues.
@@ -1032,7 +1032,7 @@ export function AIChatWidget() {
     }
   }, [isListening, input])
 
-  // ── Gemini-style Voice Mode Toggle ──
+  // ── Voice Mode Toggle ──
   const toggleVoiceMode = useCallback(() => {
     if (isVoiceMode) {
       // Exit voice mode
@@ -1314,7 +1314,7 @@ export function AIChatWidget() {
                       }`}
                       onClick={toggleVoiceMode}
                       aria-label={isVoiceMode ? 'ভয়েস মোড বন্ধ' : 'ভয়েস মোড চালু'}
-                      title={isVoiceMode ? 'ভয়েস মোড বন্ধ করুন' : 'Gemini-style ভয়েস চ্যাট'}
+                      title={isVoiceMode ? 'ভয়েস মোড বন্ধ করুন' : 'ভয়েস চ্যাট মোড'}
                     >
                       {isVoiceMode ? <PhoneOff className="h-3.5 w-3.5" /> : <Phone className="h-3.5 w-3.5" />}
                     </Button>
@@ -1554,7 +1554,7 @@ export function AIChatWidget() {
                     </button>
                   )}
 
-                  {/* Voice Mode — Gemini-style conversation button */}
+                  {/* Voice Mode — conversation button */}
                   {speechSupported && isVoiceMode && (
                     <button
                       onClick={toggleListening}
