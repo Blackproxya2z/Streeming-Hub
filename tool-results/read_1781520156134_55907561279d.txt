@@ -1,0 +1,1666 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react'
+     4→     4→import { Button } from '@/components/ui/button'
+     5→     5→import { Input } from '@/components/ui/input'
+     6→     6→import { Badge } from '@/components/ui/badge'
+     7→     7→import {
+     8→     8→  MessageCircle,
+     9→     9→  X,
+    10→    10→  Send,
+    11→    11→  User,
+    12→    12→  RotateCcw,
+    13→    13→  BadgeCheck,
+    14→    14→  Shield,
+    15→    15→  Zap,
+    16→    16→  Headphones,
+    17→    17→  ExternalLink,
+    18→    18→  Loader2,
+    19→    19→  Sparkles,
+    20→    20→  Mic,
+    21→    21→  MicOff,
+    22→    22→  Volume2,
+    23→    23→  VolumeX,
+    24→    24→  Phone,
+    25→    25→  PhoneOff,
+    26→    26→} from 'lucide-react'
+    27→    27→import { motion, AnimatePresence } from 'framer-motion'
+    28→    28→
+    29→    29→// ─── Types ────────────────────────────────────────────────────────────────────
+    30→    30→
+    31→    31→type DetectedLang = 'bangla' | 'banglish' | 'english'
+    32→    32→
+    33→    33→interface ProductCard {
+    34→    34→  id: string
+    35→    35→  name: string
+    36→    36→  slug: string
+    37→    37→  image: string | null
+    38→    38→  basePriceBDT: string
+    39→    39→  priceOptions: string
+    40→    40→  warranty: string | null
+    41→    41→  deliveryTime: string
+    42→    42→  stockStatus: string
+    43→    43→  category: { name: string; slug: string }
+    44→    44→}
+    45→    45→
+    46→    46→interface ChatMessage {
+    47→    47→  role: 'user' | 'assistant'
+    48→    48→  content: string
+    49→    49→  products?: ProductCard[]
+    50→    50→  suggestions?: string[]
+    51→    51→  whatsappUrl?: string
+    52→    52→  timestamp: number
+    53→    53→  isStreaming?: boolean
+    54→    54→  detectedLang?: DetectedLang
+    55→    55→}
+    56→    56→
+    57→    57→// ─── Quick Actions (Bengali, Sales-Focused) ──────────────────────────────────
+    58→    58→
+    59→    59→const quickActions = [
+    60→    60→  { label: '📋 প্রাইস লিস্ট', action: 'সব ক্যাটাগরির দাম দেখাও' },
+    61→    61→  { label: '📦 কিনতে চাই', action: 'কীভাবে অর্ডার করবো?' },
+    62→    62→  { label: '💳 bKash নম্বর', action: 'bKash number ki?' },
+    63→    63→  { label: '🔒 ওয়ারেন্টি', action: 'warranty ki vabe pabo?' },
+    64→    64→  { label: '📞 যোগাযোগ', action: 'WhatsApp number ki?' },
+    65→    65→  { label: '⭐ বেস্ট সেলার', action: 'ফিচার্ড প্রোডাক্ট দেখাও' },
+    66→    66→]
+    67→    67→
+    68→    68→// ─── Trust Indicators ─────────────────────────────────────────────────────────
+    69→    69→
+    70→    70→const trustIndicators = [
+    71→    71→  { icon: Shield, label: 'Warranty' },
+    72→    72→  { icon: Zap, label: '5-20 Min' },
+    73→    73→  { icon: Headphones, label: '24/7' },
+    74→    74→  { icon: BadgeCheck, label: 'Verified' },
+    75→    75→]
+    76→    76→
+    77→    77→// ─── Typewriter Messages (8 Rotating Bengali) ────────────────────────────────
+    78→    78→
+    79→    79→const typewriterMessages = [
+    80→    80→  '👋 আমি কর্মচারী — বলুন কী লাগবে!',
+    81→    81→  '🎬 Netflix এর দাম জানতে চান?',
+    82→    82→  '⭐ সেরা ডিল দেখুন — Featured Products!',
+    83→    83→  '💎 বাংলাদেশে সেরা দাম গ্যারান্টি!',
+    84→    84→  '🛒 অর্ডার করতে চান? গাইড করবো!',
+    85→    85→  '🔐 PIN জানতে চান? আমাকে জিজ্ঞেস করুন!',
+    86→    86→  '⚡ মাত্র 5-20 মিনিটে ডেলিভারি!',
+    87→    87→  '💳 bKash/Nagad পেমেন্ট সহজ!',
+    88→    88→]
+    89→    89→
+    90→    90→// ─── Greeting Message ────────────────────────────────────────────────────────
+    91→    91→
+    92→    92→const KORMOCHARY_GREETING = `আসসালামু আলাইকুম! 🎉 Streaming Hub-এ স্বাগতম!
+    93→    93→
+    94→    94→আমি কর্মচারী — আপনার পার্সোনাল শপিং অ্যাসিস্ট্যান্ট। বাংলাদেশে সেরা দামে প্রিমিয়াম সাবস্ক্রিপশন পেতে আমি সাহায্য করবো! 💯
+    95→    95→
+    96→    96→🎬 Netflix, Spotify, ChatGPT Plus
+    97→    97→🔒 VPN, AI Tools, আরও অনেক কিছু!
+    98→    98→
+    99→    99→কী লাগবে বলুন — সেরা ডিল খুঁজে দেবো! 😊`
+   100→   100→
+   101→   101→// ─── Helpers ──────────────────────────────────────────────────────────────────
+   102→   102→
+   103→   103→function getCheapestPrice(product: ProductCard): string {
+   104→   104→  try {
+   105→   105→    const opts = JSON.parse(product.priceOptions || '[]')
+   106→   106→    if (Array.isArray(opts) && opts.length > 0) {
+   107→   107→      const sorted = [...opts].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+   108→   108→        const priceA = parseInt(String(a.priceBDT).replace(/\D/g, '') || '0')
+   109→   109→        const priceB = parseInt(String(b.priceBDT).replace(/\D/g, '') || '0')
+   110→   110→        return priceA - priceB
+   111→   111→      })
+   112→   112→      return String(sorted[0].priceBDT)
+   113→   113→    }
+   114→   114→  } catch {
+   115→   115→    // fallback to base price
+   116→   116→  }
+   117→   117→  return product.basePriceBDT
+   118→   118→}
+   119→   119→
+   120→   120→// ─── Language Detection (client-side, mirrors backend) ───────────────────────
+   121→   121→
+   122→   122→function detectLanguageClient(message: string): DetectedLang {
+   123→   123→  if (/[\u0980-\u09FF]/.test(message)) return 'bangla'
+   124→   124→  const patterns = [/koto/i, /taka/i, /lagbe/i, /chai/i, /order\s*korbo/i, /nite\s*chai/i, /kinte\s*chai/i, /dekhao/i, /ki\s*ki/i, /sob/i, /nam/i, /amar/i, /apnar/i, /bhai/i, /kichu/i, /kemon/i, /valo/i, /ase/i, /ache/i, /korbo/i, /parbo/i, /kivabe/i, /keno/i]
+   125→   125→  if (patterns.filter((p) => p.test(message)).length >= 2) return 'banglish'
+   126→   126→  return 'english'
+   127→   127→}
+   128→   128→
+   129→   129→// ─── TTS Utility ─────────────────────────────────────────────────────────────
+   130→   130→
+   131→   131→// Chrome loads voices asynchronously — this helper ensures they're available
+   132→   132→function getVoicesAsync(): Promise<SpeechSynthesisVoice[]> {
+   133→   133→  return new Promise((resolve) => {
+   134→   134→    if (typeof window === 'undefined' || !window.speechSynthesis) {
+   135→   135→      resolve([])
+   136→   136→      return
+   137→   137→    }
+   138→   138→    const voices = window.speechSynthesis.getVoices()
+   139→   139→    if (voices.length > 0) {
+   140→   140→      resolve(voices)
+   141→   141→      return
+   142→   142→    }
+   143→   143→    // Voices not loaded yet — wait for voiceschanged event
+   144→   144→    const onVoicesChanged = () => {
+   145→   145→      const v = window.speechSynthesis.getVoices()
+   146→   146→      if (v.length > 0) {
+   147→   147→        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged)
+   148→   148→        resolve(v)
+   149→   149→      }
+   150→   150→    }
+   151→   151→    window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged)
+   152→   152→    // Safety: resolve after 2s even if no voices loaded
+   153→   153→    setTimeout(() => {
+   154→   154→      window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged)
+   155→   155→      resolve(window.speechSynthesis.getVoices())
+   156→   156→    }, 2000)
+   157→   157→  })
+   158→   158→}
+   159→   159→
+   160→   160→// Chrome workaround: speechSynthesis pauses after ~15s of inactivity.
+   161→   161→// This keeps it alive by calling resume() periodically while speaking.
+   162→   162→let chromeKeepAliveInterval: ReturnType<typeof setInterval> | null = null
+   163→   163→function startChromeKeepAlive() {
+   164→   164→  if (chromeKeepAliveInterval) return
+   165→   165→  chromeKeepAliveInterval = setInterval(() => {
+   166→   166→    if (window.speechSynthesis?.speaking) {
+   167→   167→      window.speechSynthesis.resume()
+   168→   168→    } else {
+   169→   169→      stopChromeKeepAlive()
+   170→   170→    }
+   171→   171→  }, 10000)
+   172→   172→}
+   173→   173→function stopChromeKeepAlive() {
+   174→   174→  if (chromeKeepAliveInterval) {
+   175→   175→    clearInterval(chromeKeepAliveInterval)
+   176→   176→    chromeKeepAliveInterval = null
+   177→   177→  }
+   178→   178→}
+   179→   179→
+   180→   180→// ─── Server TTS (ElevenLabs/OpenAI) → Browser TTS (fallback) ─────────────────
+   181→   181→
+   182→   182→let currentAudio: HTMLAudioElement | null = null
+   183→   183→
+   184→   184→async function speakWithServerTTS(text: string, lang: DetectedLang, onEnd?: () => void): Promise<boolean> {
+   185→   185→  // Clean text for TTS on the client side too (for the request body)
+   186→   186→  const cleanText = text
+   187→   187→    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '')
+   188→   188→    .replace(/\*\*(.+?)\*\*/g, '$1')
+   189→   189→    .replace(/\[(.+?)\]\((.+?)\)/g, '$1')
+   190→   190→    .replace(/[•\-]\s/g, '')
+   191→   191→    .replace(/\d+[.)]\s/g, '')
+   192→   192→    .replace(/৳/g, 'টাকা')
+   193→   193→    .replace(/BDT/gi, 'টাকা')
+   194→   194→    .replace(/\bbKash\b/gi, 'বিকাশ')
+   195→   195→    .replace(/\bNagad\b/gi, 'নগদ')
+   196→   196→    .replace(/\bWhatsApp\b/gi, 'হোয়াটসঅ্যাপ')
+   197→   197→    .replace(/↵/g, ' ')
+   198→   198→    .replace(/\n/g, ' ')
+   199→   199→    .trim()
+   200→   200→
+   201→   201→  if (!cleanText) { onEnd?.(); return true }
+   202→   202→
+   203→   203→  try {
+   204→   204→    // Stop any currently playing audio
+   205→   205→    if (currentAudio) {
+   206→   206→      currentAudio.pause()
+   207→   207→      currentAudio = null
+   208→   208→    }
+   209→   209→
+   210→   210→    const res = await fetch('/api/tts', {
+   211→   211→      method: 'POST',
+   212→   212→      headers: { 'Content-Type': 'application/json' },
+   213→   213→      body: JSON.stringify({ text: cleanText, lang }),
+   214→   214→    })
+   215→   215→
+   216→   216→    // If server TTS returns 503 with fallback flag, use browser TTS
+   217→   217→    if (res.status === 503) {
+   218→   218→      console.warn('Server TTS unavailable (ElevenLabs + OpenAI failed), falling back to browser TTS')
+   219→   219→      return false
+   220→   220→    }
+   221→   221→
+   222→   222→    if (!res.ok) {
+   223→   223→      console.warn('Server TTS failed, falling back to browser TTS')
+   224→   224→      return false
+   225→   225→    }
+   226→   226→
+   227→   227→    const audioBlob = await res.blob()
+   228→   228→    const audioUrl = URL.createObjectURL(audioBlob)
+   229→   229→    const audio = new Audio(audioUrl)
+   230→   230→    currentAudio = audio
+   231→   231→
+   232→   232→    return new Promise<boolean>((resolve) => {
+   233→   233→      const safetyTimer = setTimeout(() => {
+   234→   234→        audio.pause()
+   235→   235→        currentAudio = null
+   236→   236→        URL.revokeObjectURL(audioUrl)
+   237→   237→        onEnd?.()
+   238→   238→        resolve(true)
+   239→   239→      }, 45000)
+   240→   240→
+   241→   241→      audio.onended = () => {
+   242→   242→        clearTimeout(safetyTimer)
+   243→   243→        currentAudio = null
+   244→   244→        URL.revokeObjectURL(audioUrl)
+   245→   245→        onEnd?.()
+   246→   246→        resolve(true)
+   247→   247→      }
+   248→   248→
+   249→   249→      audio.onerror = () => {
+   250→   250→        clearTimeout(safetyTimer)
+   251→   251→        currentAudio = null
+   252→   252→        URL.revokeObjectURL(audioUrl)
+   253→   253→        console.warn('Audio playback error, falling back to browser TTS')
+   254→   254→        resolve(false)
+   255→   255→      }
+   256→   256→
+   257→   257→      audio.play().catch(() => {
+   258→   258→        clearTimeout(safetyTimer)
+   259→   259→        currentAudio = null
+   260→   260→        URL.revokeObjectURL(audioUrl)
+   261→   261→        resolve(false)
+   262→   262→      })
+   263→   263→    })
+   264→   264→  } catch {
+   265→   265→    console.warn('Server TTS error, falling back to browser TTS')
+   266→   266→    return false
+   267→   267→  }
+   268→   268→}
+   269→   269→
+   270→   270→function stopServerAudio() {
+   271→   271→  if (currentAudio) {
+   272→   272→    currentAudio.pause()
+   273→   273→    currentAudio = null
+   274→   274→  }
+   275→   275→}
+   276→   276→
+   277→   277→async function speak(text: string, lang: DetectedLang, onEnd?: () => void): Promise<SpeechSynthesisUtterance | null> {
+   278→   278→  if (typeof window === 'undefined') return null
+   279→   279→
+   280→   280→  // Stop any existing audio
+   281→   281→  stopServerAudio()
+   282→   282→  if (window.speechSynthesis) window.speechSynthesis.cancel()
+   283→   283→  stopChromeKeepAlive()
+   284→   284→
+   285→   285→  // Try Server TTS first (ElevenLabs → OpenAI → Browser fallback)
+   286→   286→  const serverSuccess = await speakWithServerTTS(text, lang, onEnd)
+   287→   287→  if (serverSuccess) return null // Server TTS handled it
+   288→   288→
+   289→   289→  // Fallback to browser TTS
+   290→   290→  if (!window.speechSynthesis) { onEnd?.(); return null }
+   291→   291→
+   292→   292→  // Clean text for speech
+   293→   293→  const cleanText = text
+   294→   294→    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '')
+   295→   295→    .replace(/\*\*(.+?)\*\*/g, '$1')
+   296→   296→    .replace(/\[(.+?)\]\((.+?)\)/g, '$1')
+   297→   297→    .replace(/[•\-]\s/g, '')
+   298→   298→    .replace(/\d+[.)]\s/g, '')
+   299→   299→    .replace(/৳/g, 'টাকা')
+   300→   300→    .replace(/BDT/gi, 'টাকা')
+   301→   301→    .replace(/\bbKash\b/gi, 'বিকাশ')
+   302→   302→    .replace(/\bNagad\b/gi, 'নগদ')
+   303→   303→    .replace(/\bWhatsApp\b/gi, 'হোয়াটসঅ্যাপ')
+   304→   304→    .replace(/↵/g, ' ')
+   305→   305→    .replace(/\n/g, ' ')
+   306→   306→    .trim()
+   307→   307→
+   308→   308→  if (!cleanText) { onEnd?.(); return null }
+   309→   309→
+   310→   310→  const voices = await getVoicesAsync()
+   311→   311→  const utterance = new SpeechSynthesisUtterance(cleanText)
+   312→   312→
+   313→   313→  if (lang === 'bangla' || lang === 'banglish') {
+   314→   314→    const bnVoice = voices.find(v => v.lang === 'bn-BD') || voices.find(v => v.lang === 'bn-IN')
+   315→   315→    if (bnVoice) {
+   316→   316→      utterance.voice = bnVoice
+   317→   317→      utterance.lang = bnVoice.lang
+   318→   318→    } else {
+   319→   319→      const hiVoice = voices.find(v => v.lang === 'hi-IN')
+   320→   320→      if (hiVoice) { utterance.voice = hiVoice; utterance.lang = 'hi-IN' }
+   321→   321→      else { utterance.lang = 'bn-BD' }
+   322→   322→    }
+   323→   323→  } else {
+   324→   324→    utterance.lang = 'en-US'
+   325→   325→    const enVoice = voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('female'))
+   326→   326→      || voices.find(v => v.lang === 'en-US')
+   327→   327→    if (enVoice) utterance.voice = enVoice
+   328→   328→  }
+   329→   329→
+   330→   330→  utterance.rate = 0.9
+   331→   331→  utterance.pitch = 1.15
+   332→   332→  utterance.volume = 1.0
+   333→   333→
+   334→   334→  startChromeKeepAlive()
+   335→   335→
+   336→   336→  const safetyTimer = setTimeout(() => {
+   337→   337→    if (window.speechSynthesis?.speaking) window.speechSynthesis.cancel()
+   338→   338→    stopChromeKeepAlive()
+   339→   339→    onEnd?.()
+   340→   340→  }, 45000)
+   341→   341→
+   342→   342→  const wrappedOnEnd = () => {
+   343→   343→    clearTimeout(safetyTimer)
+   344→   344→    stopChromeKeepAlive()
+   345→   345→    onEnd?.()
+   346→   346→  }
+   347→   347→
+   348→   348→  utterance.onend = wrappedOnEnd
+   349→   349→  utterance.onerror = () => wrappedOnEnd()
+   350→   350→
+   351→   351→  await new Promise(resolve => setTimeout(resolve, 100))
+   352→   352→  window.speechSynthesis.speak(utterance)
+   353→   353→  return utterance
+   354→   354→}
+   355→   355→
+   356→   356→// ─── formatMessage: Markdown-like text → React elements ──────────────────────
+   357→   357→
+   358→   358→function formatMessage(text: string): ReactNode[] {
+   359→   359→  const lines = text.split('\n')
+   360→   360→  const elements: ReactNode[] = []
+   361→   361→
+   362→   362→  lines.forEach((line, lineIdx) => {
+   363→   363→    const processedLine = processInlineFormatting(line)
+   364→   364→
+   365→   365→    if (lineIdx < lines.length - 1) {
+   366→   366→      elements.push(
+   367→   367→        <span key={`line-${lineIdx}`}>
+   368→   368→          {processedLine}
+   369→   369→          <br />
+   370→   370→        </span>
+   371→   371→      )
+   372→   372→    } else {
+   373→   373→      elements.push(<span key={`line-${lineIdx}`}>{processedLine}</span>)
+   374→   374→    }
+   375→   375→  })
+   376→   376→
+   377→   377→  return elements
+   378→   378→}
+   379→   379→
+   380→   380→function processInlineFormatting(line: string): ReactNode[] {
+   381→   381→  const elements: ReactNode[] = []
+   382→   382→  let remaining = line
+   383→   383→
+   384→   384→  // Check if this is a bullet point line (• or -)
+   385→   385→  const bulletMatch = remaining.match(/^(\s*)([•\-])\s(.*)/)
+   386→   386→  if (bulletMatch) {
+   387→   387→    const [, indent, , content] = bulletMatch
+   388→   388→    elements.push(
+   389→   389→      <span key={`bullet-${indent.length}`} className="flex items-start gap-1.5 my-0.5">
+   390→   390→        <span className="mt-[7px] shrink-0 h-1.5 w-1.5 rounded-full bg-primary" />
+   391→   391→        <span>{processInlineFormatting(content)}</span>
+   392→   392→      </span>
+   393→   393→    )
+   394→   394→    return elements
+   395→   395→  }
+   396→   396→
+   397→   397→  // Check if this is a numbered list item (1. 2. etc.)
+   398→   398→  const numberedMatch = remaining.match(/^(\s*)(\d+)[.)]\s(.*)/)
+   399→   399→  if (numberedMatch) {
+   400→   400→    const [, , num, content] = numberedMatch
+   401→   401→    elements.push(
+   402→   402→      <span key={`num-${num}`} className="flex items-start gap-1.5 my-0.5">
+   403→   403→        <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-primary/15 text-primary flex items-center justify-center text-[10px] font-bold leading-none mt-px">
+   404→   404→          {num}
+   405→   405→        </span>
+   406→   406→        <span>{processInlineFormatting(content)}</span>
+   407→   407→      </span>
+   408→   408→    )
+   409→   409→    return elements
+   410→   410→  }
+   411→   411→
+   412→   412→  // Process inline: **bold** and links
+   413→   413→  let keyIdx = 0
+   414→   414→  while (remaining.length > 0) {
+   415→   415→    // Bold pattern: **text**
+   416→   416→    const boldMatch = remaining.match(/\*\*(.+?)\*\*/)
+   417→   417→    if (boldMatch && boldMatch.index !== undefined) {
+   418→   418→      if (boldMatch.index > 0) {
+   419→   419→        elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, boldMatch.index)}</span>)
+   420→   420→      }
+   421→   421→      elements.push(
+   422→   422→        <strong key={`b-${keyIdx++}`} className="font-semibold text-teal-700">
+   423→   423→          {boldMatch[1]}
+   424→   424→        </strong>
+   425→   425→      )
+   426→   426→      remaining = remaining.slice(boldMatch.index + boldMatch[0].length)
+   427→   427→      continue
+   428→   428→    }
+   429→   429→
+   430→   430→    // Link pattern: [text](url)
+   431→   431→    const linkMatch = remaining.match(/\[(.+?)\]\((.+?)\)/)
+   432→   432→    if (linkMatch && linkMatch.index !== undefined) {
+   433→   433→      if (linkMatch.index > 0) {
+   434→   434→        elements.push(<span key={`t-${keyIdx++}`}>{remaining.slice(0, linkMatch.index)}</span>)
+   435→   435→      }
+   436→   436→      elements.push(
+   437→   437→        <a
+   438→   438→          key={`a-${keyIdx++}`}
+   439→   439→          href={linkMatch[2]}
+   440→   440→          target="_blank"
+   441→   441→          rel="noopener noreferrer"
+   442→   442→          className="text-teal-600 underline underline-offset-2 hover:text-teal-800 transition-colors"
+   443→   443→        >
+   444→   444→          {linkMatch[1]}
+   445→   445→        </a>
+   446→   446→      )
+   447→   447→      remaining = remaining.slice(linkMatch.index + linkMatch[0].length)
+   448→   448→      continue
+   449→   449→    }
+   450→   450→
+   451→   451→    // No more matches, push the rest
+   452→   452→    elements.push(<span key={`t-${keyIdx++}`}>{remaining}</span>)
+   453→   453→    break
+   454→   454→  }
+   455→   455→
+   456→   456→  return elements
+   457→   457→}
+   458→   458→
+   459→   459→// ─── Product Card Component (NO Order Button — conversational only) ──────────
+   460→   460→
+   461→   461→function ProductCardItem({ product }: { product: ProductCard }) {
+   462→   462→  const cheapestPrice = getCheapestPrice(product)
+   463→   463→  const initial = product.name.charAt(0).toUpperCase()
+   464→   464→
+   465→   465→  return (
+   466→   466→    <div className="rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 bg-background border border-border/40 overflow-hidden">
+   467→   467→      <div className="flex items-center gap-3 p-3">
+   468→   468→        {/* Image or gradient placeholder */}
+   469→   469→        <div className="h-12 w-12 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-[#00A6A6] to-[#0B1F3A] flex items-center justify-center">
+   470→   470→          {product.image ? (
+   471→   471→            <img src={product.image} alt={product.name} className="h-full w-full object-cover" loading="lazy" />
+   472→   472→          ) : (
+   473→   473→            <span className="text-white font-bold text-lg">{initial}</span>
+   474→   474→          )}
+   475→   475→        </div>
+   476→   476→        <div className="flex-1 min-w-0">
+   477→   477→          <p className="text-sm font-semibold text-foreground truncate">{product.name}</p>
+   478→   478→          <p className="text-xs text-muted-foreground">{product.category.name}</p>
+   479→   479→        </div>
+   480→   480→        <div className="bg-gradient-to-r from-[#00A6A6] to-emerald-500 text-white px-2.5 py-1 rounded-lg text-sm font-bold shrink-0">
+   481→   481→          ৳{cheapestPrice}
+   482→   482→        </div>
+   483→   483→      </div>
+   484→   484→    </div>
+   485→   485→  )
+   486→   486→}
+   487→   487→
+   488→   488→// ─── AI Avatar Component ─────────────────────────────────────────────────────
+   489→   489→
+   490→   490→function AIAvatar({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
+   491→   491→  const sizeClasses = {
+   492→   492→    sm: 'h-6 w-6 sm:h-7 sm:w-7',
+   493→   493→    md: 'h-10 w-10 sm:h-11 sm:w-11',
+   494→   494→    lg: 'h-12 w-12',
+   495→   495→  }
+   496→   496→  const iconSizes = {
+   497→   497→    sm: 'h-3 w-3 sm:h-3.5 sm:w-3.5',
+   498→   498→    md: 'h-5 w-5 sm:h-6 sm:w-6',
+   499→   499→    lg: 'h-7 w-7',
+   500→   500→  }
+   501→   501→
+   502→   502→  return (
+   503→   503→    <div
+   504→   504→      className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-[#00A6A6] to-[#0B1F3A] flex items-center justify-center ring-1 ring-[#00A6A6]/30 overflow-hidden`}
+   505→   505→    >
+   506→   506→      {/* Try to load avatar image, fallback to Sparkles */}
+   507→   507→      <img
+   508→   508→        src="/assistant-avatar.jpg"
+   509→   509→        alt="কর্মচারী"
+   510→   510→        className="h-full w-full object-cover hidden"
+   511→   511→        loading="lazy"
+   512→   512→        onLoad={(e) => {
+   513→   513→          ;(e.target as HTMLImageElement).classList.remove('hidden')
+   514→   514→          ;(e.target as HTMLImageElement).nextElementSibling?.classList.add('hidden')
+   515→   515→        }}
+   516→   516→        onError={(e) => {
+   517→   517→          ;(e.target as HTMLImageElement).classList.add('hidden')
+   518→   518→          ;(e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden')
+   519→   519→        }}
+   520→   520→      />
+   521→   521→      <Sparkles className={`${iconSizes[size]} text-white`} />
+   522→   522→    </div>
+   523→   523→  )
+   524→   524→}
+   525→   525→
+   526→   526→// ─── Speaker Button Component ────────────────────────────────────────────────
+   527→   527→
+   528→   528→function SpeakerButton({ text, lang, isStreaming }: { text: string; lang: DetectedLang; isStreaming?: boolean }) {
+   529→   529→  const [isSpeaking, setIsSpeaking] = useState(false)
+   530→   530→
+   531→   531→  const handleSpeak = useCallback(() => {
+   532→   532→    if (isSpeaking) {
+   533→   533→      stopServerAudio()
+   534→   534→      if (typeof window !== 'undefined' && window.speechSynthesis) {
+   535→   535→        window.speechSynthesis.cancel()
+   536→   536→      }
+   537→   537→      setIsSpeaking(false)
+   538→   538→      return
+   539→   539→    }
+   540→   540→
+   541→   541→    if (isStreaming || !text) return
+   542→   542→
+   543→   543→    setIsSpeaking(true)
+   544→   544→    speak(text, lang, () => {
+   545→   545→      setIsSpeaking(false)
+   546→   546→    })
+   547→   547→
+   548→   548→    // Safety: auto-reset after max 30 seconds
+   549→   549→    setTimeout(() => setIsSpeaking(false), 30000)
+   550→   550→  }, [text, lang, isSpeaking, isStreaming])
+   551→   551→
+   552→   552→  // Clean up on unmount
+   553→   553→  useEffect(() => {
+   554→   554→    return () => {
+   555→   555→      if (typeof window !== 'undefined' && window.speechSynthesis) {
+   556→   556→        window.speechSynthesis.cancel()
+   557→   557→      }
+   558→   558→    }
+   559→   559→  }, [])
+   560→   560→
+   561→   561→  if (isStreaming) return null
+   562→   562→
+   563→   563→  return (
+   564→   564→    <button
+   565→   565→      onClick={handleSpeak}
+   566→   566→      className={`inline-flex items-center justify-center h-6 w-6 rounded-full transition-all active:scale-90 touch-manipulation ${
+   567→   567→        isSpeaking
+   568→   568→          ? 'bg-[#00A6A6] text-white shadow-md shadow-[#00A6A6]/30 animate-pulse'
+   569→   569→          : 'bg-muted/60 hover:bg-[#00A6A6]/15 text-muted-foreground hover:text-[#00A6A6]'
+   570→   570→      }`}
+   571→   571→      aria-label={isSpeaking ? 'বন্ধ করুন' : 'শুনুন'}
+   572→   572→      title={isSpeaking ? 'Stop' : 'Listen'}
+   573→   573→    >
+   574→   574→      {isSpeaking ? (
+   575→   575→        <VolumeX className="h-3 w-3" />
+   576→   576→      ) : (
+   577→   577→        <Volume2 className="h-3 w-3" />
+   578→   578→      )}
+   579→   579→    </button>
+   580→   580→  )
+   581→   581→}
+   582→   582→
+   583→   583→// ─── Main Component ──────────────────────────────────────────────────────────
+   584→   584→
+   585→   585→export function AIChatWidget() {
+   586→   586→  const [isOpen, setIsOpen] = useState(false)
+   587→   587→  const [messages, setMessages] = useState<ChatMessage[]>([
+   588→   588→    {
+   589→   589→      role: 'assistant',
+   590→   590→      content: KORMOCHARY_GREETING,
+   591→   591→      timestamp: Date.now(),
+   592→   592→      detectedLang: 'bangla',
+   593→   593→    },
+   594→   594→  ])
+   595→   595→  const [input, setInput] = useState('')
+   596→   596→  const [isLoading, setIsLoading] = useState(false)
+   597→   597→  const [cooldown, setCooldown] = useState(false)
+   598→   598→  const [currentMsgIndex, setCurrentMsgIndex] = useState(0)
+   599→   599→  const [displayedText, setDisplayedText] = useState('')
+   600→   600→  const [isTyping, setIsTyping] = useState(true)
+   601→   601→
+   602→   602→  // Voice input state
+   603→   603→  const [isListening, setIsListening] = useState(false)
+   604→   604→  // Voice conversation mode (listen → AI speak → listen loop)
+   605→   605→  const [isVoiceMode, setIsVoiceMode] = useState(false)
+   606→   606→  const [isAISpeaking, setIsAISpeaking] = useState(false)
+   607→   607→  const recognitionRef = useRef<SpeechRecognition | null>(null)
+   608→   608→  const sendMessageRef = useRef<(msg?: string) => Promise<void>>(undefined)
+   609→   609→  // Refs to avoid stale closures in async voice loop
+   610→   610→  const isVoiceModeRef = useRef(false)
+   611→   611→  const isAISpeakingRef = useRef(false)
+   612→   612→  const messagesRef = useRef(messages)
+   613→   613→  const isLoadingRef = useRef(false)
+   614→   614→
+   615→   615→  // Keep refs in sync with state
+   616→   616→  useEffect(() => { isVoiceModeRef.current = isVoiceMode }, [isVoiceMode])
+   617→   617→  useEffect(() => { isAISpeakingRef.current = isAISpeaking }, [isAISpeaking])
+   618→   618→  useEffect(() => { messagesRef.current = messages }, [messages])
+   619→   619→  useEffect(() => { isLoadingRef.current = isLoading }, [isLoading])
+   620→   620→
+   621→   621→  // Check speech support once at mount
+   622→   622→  const [speechSupported] = useState(() => {
+   623→   623→    if (typeof window === 'undefined') return false
+   624→   624→    return !!(
+   625→   625→      (window as unknown as Record<string, unknown>)['SpeechRecognition'] ||
+   626→   626→      (window as unknown as Record<string, unknown>)['webkitSpeechRecognition']
+   627→   627→    )
+   628→   628→  })
+   629→   629→
+   630→   630→  const scrollRef = useRef<HTMLDivElement>(null)
+   631→   631→  const inputRef = useRef<HTMLInputElement>(null)
+   632→   632→  const lastSentRef = useRef<number>(0)
+   633→   633→  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+   634→   634→
+   635→   635→  // ── Typewriter effect for the floating bubble ──
+   636→   636→  useEffect(() => {
+   637→   637→    if (isOpen) return
+   638→   638→
+   639→   639→    const currentMessage = typewriterMessages[currentMsgIndex]
+   640→   640→    let charIndex = 0
+   641→   641→
+   642→   642→    const initTimer = setTimeout(() => {
+   643→   643→      setDisplayedText('')
+   644→   644→      setIsTyping(true)
+   645→   645→    }, 0)
+   646→   646→
+   647→   647→    const typeChar = () => {
+   648→   648→      if (charIndex < currentMessage.length) {
+   649→   649→        setDisplayedText(currentMessage.slice(0, charIndex + 1))
+   650→   650→        charIndex++
+   651→   651→        typingTimerRef.current = setTimeout(typeChar, 45 + Math.random() * 35)
+   652→   652→      } else {
+   653→   653→        setIsTyping(false)
+   654→   654→        typingTimerRef.current = setTimeout(() => {
+   655→   655→          setCurrentMsgIndex(prev => (prev + 1) % typewriterMessages.length)
+   656→   656→        }, 2500)
+   657→   657→      }
+   658→   658→    }
+   659→   659→
+   660→   660→    typingTimerRef.current = setTimeout(typeChar, 200)
+   661→   661→
+   662→   662→    return () => {
+   663→   663→      if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
+   664→   664→      clearTimeout(initTimer)
+   665→   665→    }
+   666→   666→  }, [currentMsgIndex, isOpen])
+   667→   667→
+   668→   668→  // ── Auto-scroll to bottom ──
+   669→   669→  useEffect(() => {
+   670→   670→    if (scrollRef.current) {
+   671→   671→      requestAnimationFrame(() => {
+   672→   672→        if (scrollRef.current) {
+   673→   673→          scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+   674→   674→        }
+   675→   675→      })
+   676→   676→    }
+   677→   677→  }, [messages, isLoading])
+   678→   678→
+   679→   679→  // ── Focus input when opened ──
+   680→   680→  useEffect(() => {
+   681→   681→    if (isOpen && inputRef.current && !isVoiceMode) {
+   682→   682→      setTimeout(() => inputRef.current?.focus(), 350)
+   683→   683→    }
+   684→   684→  }, [isOpen, isVoiceMode])
+   685→   685→
+   686→   686→  // ── Send message handler (with SSE streaming) ──
+   687→   687→  const sendMessage = useCallback(async (overrideMessage?: string) => {
+   688→   688→    const trimmed = (overrideMessage || input).trim()
+   689→   689→    if (!trimmed || isLoadingRef.current || cooldown) return
+   690→   690→
+   691→   691→    // Rate limit: minimum 1.5s between messages
+   692→   692→    const now = Date.now()
+   693→   693→    const elapsed = now - lastSentRef.current
+   694→   694→    if (elapsed < 1500) {
+   695→   695→      setCooldown(true)
+   696→   696→      setTimeout(() => setCooldown(false), 1500 - elapsed)
+   697→   697→      return
+   698→   698→    }
+   699→   699→    lastSentRef.current = now
+   700→   700→
+   701→   701→    const userMessage: ChatMessage = {
+   702→   702→      role: 'user',
+   703→   703→      content: trimmed,
+   704→   704→      timestamp: Date.now(),
+   705→   705→    }
+   706→   706→    setMessages(prev => [...prev, userMessage])
+   707→   707→    if (!overrideMessage) setInput('')
+   708→   708→    setIsLoading(true)
+   709→   709→
+   710→   710→    // Detect language from user message for TTS matching later
+   711→   711→    const userDetectedLang = detectLanguageClient(trimmed)
+   712→   712→
+   713→   713→    // Add empty streaming assistant message
+   714→   714→    const assistantTimestamp = Date.now()
+   715→   715→    setMessages(prev => [
+   716→   716→      ...prev,
+   717→   717→      { role: 'assistant', content: '', timestamp: assistantTimestamp, isStreaming: true, detectedLang: userDetectedLang },
+   718→   718→    ])
+   719→   719→
+   720→   720→    try {
+   721→   721→      // Use messagesRef to avoid stale closure and unnecessary re-creates
+   722→   722→      const currentMessages = messagesRef.current
+   723→   723→      const history = currentMessages.slice(-10).map(m => ({
+   724→   724→        role: m.role,
+   725→   725→        content: m.content,
+   726→   726→      }))
+   727→   727→
+   728→   728→      const res = await fetch('/api/chat', {
+   729→   729→        method: 'POST',
+   730→   730→        headers: { 'Content-Type': 'application/json' },
+   731→   731→        body: JSON.stringify({
+   732→   732→          message: trimmed,
+   733→   733→          sessionId: 'web-session',
+   734→   734→          history,
+   735→   735→        }),
+   736→   736→      })
+   737→   737→
+   738→   738→      // Handle rate limiting
+   739→   739→      if (res.status === 429) {
+   740→   740→        setMessages(prev => {
+   741→   741→          const updated = [...prev]
+   742→   742→          const lastIdx = updated.length - 1
+   743→   743→          if (updated[lastIdx]?.role === 'assistant') {
+   744→   744→            updated[lastIdx] = {
+   745→   745→              ...updated[lastIdx],
+   746→   746→              content: '⏳ একটু ব্যস্ত আছি, কিছুক্ষণ পর আবার চেষ্টা করুন। অথবা সরাসরি WhatsApp এ যোগাযোগ করুন: +8801647236359 💬',
+   747→   747→              whatsappUrl: 'https://wa.me/8801647236359?text=' + encodeURIComponent('Hi, Streaming Hub এ সাহায্য দরকার'),
+   748→   748→              isStreaming: false,
+   749→   749→            }
+   750→   750→          }
+   751→   751→          return updated
+   752→   752→        })
+   753→   753→        setIsLoading(false)
+   754→   754→        return
+   755→   755→      }
+   756→   756→
+   757→   757→      if (!res.ok) throw new Error('Failed to get response')
+   758→   758→
+   759→   759→      const reader = res.body?.getReader()
+   760→   760→      if (!reader) throw new Error('No reader available')
+   761→   761→
+   762→   762→      const decoder = new TextDecoder()
+   763→   763→      let buffer = ''
+   764→   764→
+   765→   765→      while (true) {
+   766→   766→        const { done, value } = await reader.read()
+   767→   767→        if (done) break
+   768→   768→
+   769→   769→        buffer += decoder.decode(value, { stream: true })
+   770→   770→        const lines = buffer.split('\n')
+   771→   771→        buffer = lines.pop() || ''
+   772→   772→
+   773→   773→        for (const line of lines) {
+   774→   774→          if (!line.startsWith('data: ')) continue
+   775→   775→          try {
+   776→   776→            const data = JSON.parse(line.slice(6))
+   777→   777→
+   778→   778→            if (data.type === 'token' && data.content) {
+   779→   779→              setMessages(prev => {
+   780→   780→                const updated = [...prev]
+   781→   781→                const lastIdx = updated.length - 1
+   782→   782→                if (updated[lastIdx]?.role === 'assistant' && updated[lastIdx].isStreaming) {
+   783→   783→                  updated[lastIdx] = {
+   784→   784→                    ...updated[lastIdx],
+   785→   785→                    content: updated[lastIdx].content + data.content,
+   786→   786→                  }
+   787→   787→                }
+   788→   788→                return updated
+   789→   789→              })
+   790→   790→            } else if (data.type === 'products') {
+   791→   791→              setMessages(prev => {
+   792→   792→                const updated = [...prev]
+   793→   793→                const lastIdx = updated.length - 1
+   794→   794→                if (updated[lastIdx]?.role === 'assistant') {
+   795→   795→                  updated[lastIdx] = { ...updated[lastIdx], products: data.products }
+   796→   796→                }
+   797→   797→                return updated
+   798→   798→              })
+   799→   799→            } else if (data.type === 'suggestions') {
+   800→   800→              setMessages(prev => {
+   801→   801→                const updated = [...prev]
+   802→   802→                const lastIdx = updated.length - 1
+   803→   803→                if (updated[lastIdx]?.role === 'assistant') {
+   804→   804→                  updated[lastIdx] = { ...updated[lastIdx], suggestions: data.suggestions }
+   805→   805→                }
+   806→   806→                return updated
+   807→   807→              })
+   808→   808→            } else if (data.type === 'done') {
+   809→   809→              setMessages(prev => {
+   810→   810→                const updated = [...prev]
+   811→   811→                const lastIdx = updated.length - 1
+   812→   812→                if (updated[lastIdx]?.role === 'assistant') {
+   813→   813→                  const backendLang = data.detectedLang as DetectedLang | undefined
+   814→   814→                  const finalLang = backendLang || userDetectedLang
+   815→   815→                  updated[lastIdx] = {
+   816→   816→                    ...updated[lastIdx],
+   817→   817→                    isStreaming: false,
+   818→   818→                    whatsappUrl: data.whatsappUrl,
+   819→   819→                    detectedLang: finalLang,
+   820→   820→                  }
+   821→   821→                }
+   822→   822→                return updated
+   823→   823→              })
+   824→   824→            }
+   825→   825→          } catch {
+   826→   826→            // ignore parse errors for malformed SSE events
+   827→   827→          }
+   828→   828→        }
+   829→   829→      }
+   830→   830→
+   831→   831→      // If stream ended without 'done', mark as not streaming
+   832→   832→      setMessages(prev => {
+   833→   833→        const updated = [...prev]
+   834→   834→        const lastIdx = updated.length - 1
+   835→   835→        if (updated[lastIdx]?.role === 'assistant' && updated[lastIdx].isStreaming) {
+   836→   836→          updated[lastIdx] = { ...updated[lastIdx], isStreaming: false }
+   837→   837→        }
+   838→   838→        return updated
+   839→   839→      })
+   840→   840→
+   841→   841→      // NOTE: Voice mode TTS is now handled by the useEffect below,
+   842→   842→      // which watches for the last assistant message's isStreaming → false transition.
+   843→   843→      // This avoids the stale closure problem with the old setTimeout approach.
+   844→   844→    } catch {
+   845→   845→      setMessages(prev => {
+   846→   846→        const updated = [...prev]
+   847→   847→        const lastIdx = updated.length - 1
+   848→   848→        if (updated[lastIdx]?.role === 'assistant') {
+   849→   849→          updated[lastIdx] = {
+   850→   850→            ...updated[lastIdx],
+   851→   851→            content: '❌ সংযোগে সমস্যা হচ্ছে। আবার চেষ্টা করুন অথবা WhatsApp এ যোগাযোগ করুন: +8801647236359',
+   852→   852→            isStreaming: false,
+   853→   853→          }
+   854→   854→        }
+   855→   855→        return updated
+   856→   856→      })
+   857→   857→    } finally {
+   858→   858→      setIsLoading(false)
+   859→   859→    }
+   860→   860→  }, [input, cooldown])
+   861→   861→
+   862→   862→  // ── Keep sendMessage ref updated for voice input ──
+   863→   863→  useEffect(() => {
+   864→   864→    sendMessageRef.current = sendMessage
+   865→   865→  }, [sendMessage])
+   866→   866→
+   867→   867→  // ── Voice Loop: TTS after AI finishes, then auto-listen ──
+   868→   868→  // This useEffect watches for the last assistant message's isStreaming
+   869→   869→  // transitioning to false, and triggers TTS → auto-listen in voice mode.
+   870→   870→  // Using refs avoids stale closure issues.
+   871→   871→  const voiceLoopTriggeredRef = useRef<number>(0) // timestamp of last triggered TTS
+   872→   872→  useEffect(() => {
+   873→   873→    if (!isVoiceModeRef.current || !speechSupported) return
+   874→   874→
+   875→   875→    const lastMsg = messages[messages.length - 1]
+   876→   876→    if (!lastMsg || lastMsg.role !== 'assistant' || lastMsg.isStreaming || !lastMsg.content) return
+   877→   877→
+   878→   878→    // Avoid re-triggering for the same message
+   879→   879→    if (voiceLoopTriggeredRef.current === lastMsg.timestamp) return
+   880→   880→    voiceLoopTriggeredRef.current = lastMsg.timestamp
+   881→   881→
+   882→   882→    // Skip speaking the initial greeting when first entering voice mode
+   883→   883→    // (user hasn't asked anything yet)
+   884→   884→    const isInitialGreeting = messages.length <= 1 && lastMsg.content === KORMOCHARY_GREETING
+   885→   885→    if (isInitialGreeting) {
+   886→   886→      // Just start listening immediately
+   887→   887→      const rec = recognitionRef.current
+   888→   888→      if (rec && !isAISpeakingRef.current && !isLoadingRef.current) {
+   889→   889→        setTimeout(() => {
+   890→   890→          try {
+   891→   891→            rec.start()
+   892→   892→            setIsListening(true)
+   893→   893→          } catch {
+   894→   894→            // Recognition may already be started
+   895→   895→          }
+   896→   896→        }, 300)
+   897→   897→      }
+   898→   898→      return
+   899→   899→    }
+   900→   900→
+   901→   901→    // Small delay to ensure the state has settled after isStreaming → false
+   902→   902→    const timer = setTimeout(() => {
+   903→   903→      if (!isVoiceModeRef.current) return // Voice mode was disabled during delay
+   904→   904→
+   905→   905→      setIsAISpeaking(true)
+   906→   906→      const lang = lastMsg.detectedLang || 'bangla'
+   907→   907→
+   908→   908→      speak(lastMsg.content, lang, () => {
+   909→   909→        setIsAISpeaking(false)
+   910→   910→        // After AI finishes speaking, auto-start listening again if still in voice mode
+   911→   911→        if (!isVoiceModeRef.current) return
+   912→   912→        const rec = recognitionRef.current
+   913→   913→        if (rec) {
+   914→   914→          // Small delay before starting recognition again to avoid race condition
+   915→   915→          setTimeout(() => {
+   916→   916→            if (!isVoiceModeRef.current || isAISpeakingRef.current || isLoadingRef.current) return
+   917→   917→            try {
+   918→   918→              rec.start()
+   919→   919→              setIsListening(true)
+   920→   920→            } catch {
+   921→   921→              // Recognition may already be started or not available
+   922→   922→            }
+   923→   923→          }, 500)
+   924→   924→        }
+   925→   925→      })
+   926→   926→    }, 500)
+   927→   927→
+   928→   928→    return () => clearTimeout(timer)
+   929→   929→  }, [messages, speechSupported])
+   930→   930→
+   931→   931→  // ── Initialize Speech Recognition (Dynamic Language STT) ──
+   932→   932→  useEffect(() => {
+   933→   933→    if (!speechSupported) return
+   934→   934→    const SR = (window as unknown as Record<string, unknown>)['SpeechRecognition'] ||
+   935→   935→      (window as unknown as Record<string, unknown>)['webkitSpeechRecognition']
+   936→   936→    if (!SR) return
+   937→   937→
+   938→   938→    const recognition = new (SR as new () => SpeechRecognition)()
+   939→   939→    recognition.lang = 'bn-BD'
+   940→   940→    recognition.continuous = false
+   941→   941→    recognition.interimResults = true
+   942→   942→
+   943→   943→    recognition.onresult = (event: SpeechRecognitionEvent) => {
+   944→   944→      const transcript = event.results[0][0].transcript
+   945→   945→      setInput(transcript)
+   946→   946→
+   947→   947→      if (event.results[0].isFinal) {
+   948→   948→        setIsListening(false)
+   949→   949→
+   950→   950→        const spokenLang = detectLanguageClient(transcript)
+   951→   951→
+   952→   952→        // Update recognition language for next session
+   953→   953→        try {
+   954→   954→          if (spokenLang === 'english') {
+   955→   955→            recognition.lang = 'en-US'
+   956→   956→          } else {
+   957→   957→            recognition.lang = 'bn-BD'
+   958→   958→          }
+   959→   959→        } catch {
+   960→   960→          // Can't change lang while recognition might be active
+   961→   961→        }
+   962→   962→
+   963→   963→        // Auto-send after final result (in both voice mode and regular mic)
+   964→   964→        setTimeout(() => {
+   965→   965→          sendMessageRef.current?.(transcript)
+   966→   966→        }, 150)
+   967→   967→      }
+   968→   968→    }
+   969→   969→
+   970→   970→    recognition.onerror = (event) => {
+   971→   971→      setIsListening(false)
+   972→   972→      // In voice mode, if recognition errors (e.g., no-speech), try to restart
+   973→   973→      // Common errors: no-speech (user was quiet), aborted (manual stop), not-allowed (mic denied)
+   974→   974→      if (isVoiceModeRef.current && event.error !== 'aborted' && event.error !== 'not-allowed') {
+   975→   975→        setTimeout(() => {
+   976→   976→          if (isVoiceModeRef.current && !isAISpeakingRef.current && !isLoadingRef.current) {
+   977→   977→            try {
+   978→   978→              recognition.start()
+   979→   979→              setIsListening(true)
+   980→   980→            } catch {
+   981→   981→              // Recognition may already be started
+   982→   982→            }
+   983→   983→          }
+   984→   984→        }, 800) // Longer delay to avoid rapid restart loops
+   985→   985→      }
+   986→   986→      if (event.error === 'not-allowed') {
+   987→   987→        console.warn('Microphone access denied. Voice mode requires microphone permission.')
+   988→   988→        // Auto-exit voice mode if mic is denied
+   989→   989→        setIsVoiceMode(false)
+   990→   990→        isVoiceModeRef.current = false
+   991→   991→      }
+   992→   992→    }
+   993→   993→
+   994→   994→    recognition.onend = () => {
+   995→   995→      setIsListening(false)
+   996→   996→      // In voice mode, auto-restart listening after recognition ends naturally
+   997→   997→      // (but only if AI is not currently speaking/loading)
+   998→   998→      if (isVoiceModeRef.current && !isAISpeakingRef.current && !isLoadingRef.current) {
+   999→   999→        setTimeout(() => {
+  1000→  1000→          if (isVoiceModeRef.current && !isAISpeakingRef.current && !isLoadingRef.current) {
+  1001→  1001→            try {
+  1002→  1002→              recognition.start()
+  1003→  1003→              setIsListening(true)
+  1004→  1004→            } catch {
+  1005→  1005→              // Recognition may already be started
+  1006→  1006→            }
+  1007→  1007→          }
+  1008→  1008→        }, 300)
+  1009→  1009→      }
+  1010→  1010→    }
+  1011→  1011→
+  1012→  1012→    recognitionRef.current = recognition
+  1013→  1013→  }, [speechSupported])
+  1014→  1014→
+  1015→  1015→  const toggleListening = useCallback(() => {
+  1016→  1016→    const recognition = recognitionRef.current
+  1017→  1017→    if (!recognition) return
+  1018→  1018→    if (isListening) {
+  1019→  1019→      recognition.stop()
+  1020→  1020→      setIsListening(false)
+  1021→  1021→    } else {
+  1022→  1022→      try {
+  1023→  1023→        if (input.trim()) {
+  1024→  1024→          const inputLang = detectLanguageClient(input)
+  1025→  1025→          recognition.lang = inputLang === 'english' ? 'en-US' : 'bn-BD'
+  1026→  1026→        }
+  1027→  1027→        recognition.start()
+  1028→  1028→        setIsListening(true)
+  1029→  1029→      } catch {
+  1030→  1030→        setIsListening(false)
+  1031→  1031→      }
+  1032→  1032→    }
+  1033→  1033→  }, [isListening, input])
+  1034→  1034→
+  1035→  1035→  // ── Voice Mode Toggle ──
+  1036→  1036→  const toggleVoiceMode = useCallback(() => {
+  1037→  1037→    if (isVoiceMode) {
+  1038→  1038→      // Exit voice mode
+  1039→  1039→      setIsVoiceMode(false)
+  1040→  1040→      isVoiceModeRef.current = false
+  1041→  1041→      setIsAISpeaking(false)
+  1042→  1042→      isAISpeakingRef.current = false
+  1043→  1043→      stopServerAudio()
+  1044→  1044→      if (typeof window !== 'undefined' && window.speechSynthesis) {
+  1045→  1045→        window.speechSynthesis.cancel()
+  1046→  1046→      }
+  1047→  1047→      if (isListening && recognitionRef.current) {
+  1048→  1048→        recognitionRef.current.stop()
+  1049→  1049→        setIsListening(false)
+  1050→  1050→      }
+  1051→  1051→    } else {
+  1052→  1052→      // Enter voice mode
+  1053→  1053→      setIsVoiceMode(true)
+  1054→  1054→      isVoiceModeRef.current = true
+  1055→  1055→      // Start listening immediately
+  1056→  1056→      const recognition = recognitionRef.current
+  1057→  1057→      if (recognition) {
+  1058→  1058→        try {
+  1059→  1059→          recognition.start()
+  1060→  1060→          setIsListening(true)
+  1061→  1061→        } catch {
+  1062→  1062→          setIsListening(false)
+  1063→  1063→        }
+  1064→  1064→      }
+  1065→  1065→    }
+  1066→  1066→  }, [isVoiceMode, isListening])
+  1067→  1067→
+  1068→  1068→  const handleKeyDown = (e: React.KeyboardEvent) => {
+  1069→  1069→    if (e.key === 'Enter' && !e.shiftKey) {
+  1070→  1070→      e.preventDefault()
+  1071→  1071→      sendMessage()
+  1072→  1072→    }
+  1073→  1073→  }
+  1074→  1074→
+  1075→  1075→  const clearChat = useCallback(() => {
+  1076→  1076→    stopServerAudio()
+  1077→  1077→    if (typeof window !== 'undefined' && window.speechSynthesis) {
+  1078→  1078→      window.speechSynthesis.cancel()
+  1079→  1079→    }
+  1080→  1080→    setIsVoiceMode(false)
+  1081→  1081→    isVoiceModeRef.current = false
+  1082→  1082→    setIsAISpeaking(false)
+  1083→  1083→    isAISpeakingRef.current = false
+  1084→  1084→    setMessages([
+  1085→  1085→      {
+  1086→  1086→        role: 'assistant',
+  1087→  1087→        content: KORMOCHARY_GREETING,
+  1088→  1088→        timestamp: Date.now(),
+  1089→  1089→        detectedLang: 'bangla',
+  1090→  1090→      },
+  1091→  1091→    ])
+  1092→  1092→  }, [])
+  1093→  1093→
+  1094→  1094→  const handleSuggestionClick = (suggestion: string) => {
+  1095→  1095→    sendMessage(suggestion)
+  1096→  1096→  }
+  1097→  1097→
+  1098→  1098→  // ── Manage data-chat-open on body for CSS scroll lock ──
+  1099→  1099→  // Set synchronously via useLayoutEffect to avoid the timing gap where the
+  1100→  1100→  // chat overlay is visible but scroll isn't locked yet (or vice versa).
+  1101→  1101→  // useLayoutEffect runs synchronously after DOM mutations, before the browser
+  1102→  1102→  // paints, so there's no visual flicker.
+  1103→  1103→  useEffect(() => {
+  1104→  1104→    if (isOpen) {
+  1105→  1105→      document.body.setAttribute('data-chat-open', 'true')
+  1106→  1106→    } else {
+  1107→  1107→      document.body.removeAttribute('data-chat-open')
+  1108→  1108→      // Also force-remove any stale overflow that might have been set by the
+  1109→  1109→      // chat's scroll lock mechanism (belt-and-suspenders with CSS :has() rules)
+  1110→  1110→      requestAnimationFrame(() => {
+  1111→  1111→        const hasOpenSheet = document.querySelector('[data-state="open"][data-slot="sheet-content"]')
+  1112→  1112→        const hasOpenDialog = document.querySelector('[data-state="open"][data-slot="dialog-overlay"]')
+  1113→  1113→        if (!hasOpenSheet && !hasOpenDialog) {
+  1114→  1114→          document.body.style.removeProperty('overflow')
+  1115→  1115→          document.body.style.removeProperty('overflow-y')
+  1116→  1116→          document.documentElement.style.removeProperty('overflow')
+  1117→  1117→          document.documentElement.style.removeProperty('overflow-y')
+  1118→  1118→        }
+  1119→  1119→      })
+  1120→  1120→    }
+  1121→  1121→    return () => {
+  1122→  1122→      document.body.removeAttribute('data-chat-open')
+  1123→  1123→    }
+  1124→  1124→  }, [isOpen])
+  1125→  1125→
+  1126→  1126→  // ── Close chat helper: clean up voice mode ──
+  1127→  1127→  const closeChat = useCallback(() => {
+  1128→  1128→    setIsOpen(false)
+  1129→  1129→    setIsVoiceMode(false)
+  1130→  1130→    isVoiceModeRef.current = false
+  1131→  1131→    setIsAISpeaking(false)
+  1132→  1132→    isAISpeakingRef.current = false
+  1133→  1133→    stopServerAudio()
+  1134→  1134→    if (typeof window !== 'undefined' && window.speechSynthesis) {
+  1135→  1135→      window.speechSynthesis.cancel()
+  1136→  1136→    }
+  1137→  1137→    // data-chat-open is removed by the useEffect above when isOpen becomes false
+  1138→  1138→  }, [])
+  1139→  1139→
+  1140→  1140→  // ──────────────────────────────────────────────────────────────────────────────
+  1141→  1141→  // RENDER
+  1142→  1142→  // ──────────────────────────────────────────────────────────────────────────────
+  1143→  1143→
+  1144→  1144→  return (
+  1145→  1145→    <>
+  1146→  1146→      {/* ===== Floating Chat Button (Fixed Bottom-Right) ===== */}
+  1147→  1147→      <AnimatePresence>
+  1148→  1148→        {!isOpen && (
+  1149→  1149→          <motion.div
+  1150→  1150→            className="fixed z-[60] flex items-center gap-2 sm:gap-3
+  1151→  1151→              right-3 bottom-[72px]
+  1152→  1152→              sm:right-6 sm:bottom-6"
+  1153→  1153→            initial={{ opacity: 0, scale: 0.5, y: 20 }}
+  1154→  1154→            animate={{ opacity: 1, scale: 1, y: 0 }}
+  1155→  1155→            exit={{ opacity: 0, scale: 0.5, y: 20 }}
+  1156→  1156→            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+  1157→  1157→          >
+  1158→  1158→            {/* Typewriter Message Bubble — desktop only */}
+  1159→  1159→            <motion.div
+  1160→  1160→              initial={{ opacity: 0, x: 10, scale: 0.9 }}
+  1161→  1161→              animate={{ opacity: 1, x: 0, scale: 1 }}
+  1162→  1162→              transition={{ duration: 0.3, delay: 0.8 }}
+  1163→  1163→              className="hidden sm:flex items-center gap-2 bg-background border border-border/60 shadow-lg rounded-2xl px-4 py-2.5 max-w-[260px] cursor-pointer hover:shadow-xl hover:border-[#00A6A6]/50 transition-all group/bubble relative"
+  1164→  1164→              onClick={() => setIsOpen(true)}
+  1165→  1165→            >
+  1166→  1166→              <div className="flex-1 min-w-0">
+  1167→  1167→                <p className="text-sm font-medium text-foreground leading-snug">
+  1168→  1168→                  {displayedText}
+  1169→  1169→                  {isTyping && (
+  1170→  1170→                    <span className="inline-block w-[2px] h-4 bg-[#00A6A6] ml-0.5 align-middle animate-pulse" />
+  1171→  1171→                  )}
+  1172→  1172→                </p>
+  1173→  1173→              </div>
+  1174→  1174→              {isTyping && (
+  1175→  1175→                <div className="flex items-center gap-[3px] shrink-0">
+  1176→  1176→                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
+  1177→  1177→                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
+  1178→  1178→                  <span className="h-1 w-1 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
+  1179→  1179→                </div>
+  1180→  1180→              )}
+  1181→  1181→              {/* Speech bubble arrow */}
+  1182→  1182→              <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-0 h-0
+  1183→  1183→                border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent border-l-[9px] border-l-border/60" />
+  1184→  1184→              <div className="absolute -right-[5px] top-1/2 -translate-y-1/2 w-0 h-0
+  1185→  1185→                border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[7px] border-l-background" />
+  1186→  1186→            </motion.div>
+  1187→  1187→
+  1188→  1188→            {/* The Main Round AI Button */}
+  1189→  1189→            <motion.button
+  1190→  1190→              onClick={() => setIsOpen(true)}
+  1191→  1191→              className="relative flex items-center justify-center
+  1192→  1192→                w-14 h-14
+  1193→  1193→                sm:w-[60px] sm:h-[60px]
+  1194→  1194→                rounded-full
+  1195→  1195→                bg-gradient-to-br from-teal-600 via-teal-700 to-[#00A6A6]
+  1196→  1196→                dark:from-[#0B1F3A] dark:via-[#0f172a] dark:to-[#00A6A6]
+  1197→  1197→                hover:from-teal-700 hover:via-teal-800 hover:to-[#10b981]
+  1198→  1198→                dark:hover:from-[#0B1F3A] dark:hover:via-[#0f172a] dark:hover:to-[#10b981]
+  1199→  1199→                text-white shadow-lg hover:shadow-2xl
+  1200→  1200→                transition-all active:scale-90 group
+  1201→  1201→                ring-2 ring-[#00A6A6]/20
+  1202→  1202→                touch-manipulation"
+  1203→  1203→              aria-label="Chat with কর্মচারী — AI Assistant"
+  1204→  1204→              whileHover={{ scale: 1.06 }}
+  1205→  1205→              whileTap={{ scale: 0.9 }}
+  1206→  1206→            >
+  1207→  1207→              {/* Glow animation */}
+  1208→  1208→              <span className="absolute inset-[-4px] rounded-full bg-[#00A6A6]/20 animate-pulse [animation-duration:2s]" />
+  1209→  1209→              <span className="absolute inset-0 rounded-full bg-[#00A6A6]/25 animate-ping [animation-duration:2.5s]" />
+  1210→  1210→
+  1211→  1211→              {/* Avatar inside the button */}
+  1212→  1212→              <span className="relative z-10 flex items-center justify-center">
+  1213→  1213→                <img
+  1214→  1214→                  src="/assistant-avatar.jpg"
+  1215→  1215→                  alt="কর্মচারী"
+  1216→  1216→                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover hidden"
+  1217→  1217→                  loading="lazy"
+  1218→  1218→                  onLoad={(e) => {
+  1219→  1219→                    (e.target as HTMLImageElement).classList.remove('hidden')
+  1220→  1220→                    const fallback = (e.target as HTMLImageElement).nextElementSibling
+  1221→  1221→                    if (fallback) fallback.classList.add('hidden')
+  1222→  1222→                  }}
+  1223→  1223→                  onError={(e) => {
+  1224→  1224→                    (e.target as HTMLImageElement).classList.add('hidden')
+  1225→  1225→                    const fallback = (e.target as HTMLImageElement).nextElementSibling
+  1226→  1226→                    if (fallback) fallback.classList.remove('hidden')
+  1227→  1227→                  }}
+  1228→  1228→                />
+  1229→  1229→                <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-white drop-shadow-lg" />
+  1230→  1230→              </span>
+  1231→  1231→
+  1232→  1232→              {/* Notification badge */}
+  1233→  1233→              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-[#F5B301] border-[2.5px] border-background shadow-sm flex items-center justify-center">
+  1234→  1234→                <span className="h-1.5 w-1.5 rounded-full bg-[#0B1F3A] animate-pulse" />
+  1235→  1235→              </span>
+  1236→  1236→            </motion.button>
+  1237→  1237→          </motion.div>
+  1238→  1238→        )}
+  1239→  1239→      </AnimatePresence>
+  1240→  1240→
+  1241→  1241→      {/* ===== Chat Window ===== */}
+  1242→  1242→      <AnimatePresence>
+  1243→  1243→        {isOpen && (
+  1244→  1244→          <>
+  1245→  1245→            {/* Mobile overlay backdrop */}
+  1246→  1246→            <motion.div
+  1247→  1247→              className="fixed inset-0 z-[59] bg-black/50 backdrop-blur-sm sm:hidden"
+  1248→  1248→              initial={{ opacity: 0 }}
+  1249→  1249→              animate={{ opacity: 1 }}
+  1250→  1250→              exit={{ opacity: 0 }}
+  1251→  1251→              transition={{ duration: 0.2 }}
+  1252→  1252→              onClick={closeChat}
+  1253→  1253→            />
+  1254→  1254→
+  1255→  1255→            {/* Chat panel */}
+  1256→  1256→            <motion.div
+  1257→  1257→              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+  1258→  1258→              animate={{ opacity: 1, y: 0, scale: 1 }}
+  1259→  1259→              exit={{ opacity: 0, y: 40, scale: 0.95 }}
+  1260→  1260→              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+  1261→  1261→              className="fixed z-[60] flex flex-col bg-background border border-border/50 shadow-2xl overflow-hidden
+  1262→  1262→                inset-x-0 bottom-0 h-[100dvh] rounded-t-2xl
+  1263→  1263→                sm:inset-x-auto sm:bottom-[90px] sm:right-6 sm:w-[400px] sm:h-auto sm:max-h-[600px] sm:rounded-2xl"
+  1264→  1264→            >
+  1265→  1265→              {/* ===== HEADER ===== */}
+  1266→  1266→              <div className="relative bg-gradient-to-r from-teal-600 via-teal-700 to-[#00A6A6] dark:from-[#0B1F3A] dark:via-[#0f172a] dark:to-[#00A6A6] text-white p-3 sm:p-4 flex items-center justify-between shrink-0 overflow-hidden">
+  1267→  1267→                {/* Decorative circles */}
+  1268→  1268→                <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/5" />
+  1269→  1269→                <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
+  1270→  1270→
+  1271→  1271→                <div className="flex items-center gap-2.5 sm:gap-3 relative z-10">
+  1272→  1272→                  <div className="relative">
+  1273→  1273→                    <AIAvatar size="md" />
+  1274→  1274→                    {/* Green "Online" status indicator dot */}
+  1275→  1275→                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-teal-700 dark:ring-[#0B1F3A] shadow-[0_0_6px_rgba(16,185,129,0.6)]">
+  1276→  1276→                      <BadgeCheck className="h-2.5 w-2.5 text-white" />
+  1277→  1277→                    </div>
+  1278→  1278→                  </div>
+  1279→  1279→                  <div>
+  1280→  1280→                    <div className="flex items-center gap-1.5">
+  1281→  1281→                      <h3 className="font-bold text-sm sm:text-base tracking-tight">কর্মচারী</h3>
+  1282→  1282→                      <Badge
+  1283→  1283→                        variant="secondary"
+  1284→  1284→                        className="text-[9px] sm:text-[10px] font-semibold bg-[#F5B301]/20 text-[#F5B301] border-0 rounded-full px-1.5 sm:px-2 py-0 h-4 sm:h-5"
+  1285→  1285→                      >
+  1286→  1286→                        AI Assistant
+  1287→  1287→                      </Badge>
+  1288→  1288→                    </div>
+  1289→  1289→                    <div className="flex items-center gap-1.5 mt-0.5">
+  1290→  1290→                      {isVoiceMode ? (
+  1291→  1291→                        <>
+  1292→  1292→                          <span className="h-2 w-2 rounded-full bg-red-400 animate-pulse shadow-[0_0_6px_rgba(248,113,113,0.6)]" />
+  1293→  1293→                          <p className="text-[10px] sm:text-[11px] text-white/80 font-medium">
+  1294→  1294→                            {isAISpeaking ? 'বলছি...' : isListening ? 'শুনছি...' : 'ভয়েস মোড'}
+  1295→  1295→                          </p>
+  1296→  1296→                        </>
+  1297→  1297→                      ) : (
+  1298→  1298→                        <>
+  1299→  1299→                          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+  1300→  1300→                          <p className="text-[10px] sm:text-[11px] text-white/80 font-medium">অনলাইন — সাহায্য করতে প্রস্তুত</p>
+  1301→  1301→                        </>
+  1302→  1302→                      )}
+  1303→  1303→                    </div>
+  1304→  1304→                  </div>
+  1305→  1305→                </div>
+  1306→  1306→                <div className="flex items-center gap-1 relative z-10">
+  1307→  1307→                  {/* Voice Mode Toggle */}
+  1308→  1308→                  {speechSupported && (
+  1309→  1309→                    <Button
+  1310→  1310→                      variant="ghost"
+  1311→  1311→                      size="icon"
+  1312→  1312→                      className={`text-white hover:bg-white/15 h-7 w-7 sm:h-8 sm:w-8 rounded-lg transition-all ${
+  1313→  1313→                        isVoiceMode ? 'bg-red-500/30 hover:bg-red-500/40' : ''
+  1314→  1314→                      }`}
+  1315→  1315→                      onClick={toggleVoiceMode}
+  1316→  1316→                      aria-label={isVoiceMode ? 'ভয়েস মোড বন্ধ' : 'ভয়েস মোড চালু'}
+  1317→  1317→                      title={isVoiceMode ? 'ভয়েস মোড বন্ধ করুন' : 'ভয়েস চ্যাট মোড'}
+  1318→  1318→                    >
+  1319→  1319→                      {isVoiceMode ? <PhoneOff className="h-3.5 w-3.5" /> : <Phone className="h-3.5 w-3.5" />}
+  1320→  1320→                    </Button>
+  1321→  1321→                  )}
+  1322→  1322→                  <Button
+  1323→  1323→                    variant="ghost"
+  1324→  1324→                    size="sm"
+  1325→  1325→                    className="text-white hover:bg-white/15 h-7 sm:h-8 px-2 sm:px-2.5 text-xs font-medium rounded-lg"
+  1326→  1326→                    onClick={clearChat}
+  1327→  1327→                    aria-label="Reset chat"
+  1328→  1328→                  >
+  1329→  1329→                    <RotateCcw className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1" />
+  1330→  1330→                    <span className="hidden sm:inline">রিসেট</span>
+  1331→  1331→                  </Button>
+  1332→  1332→                  <Button
+  1333→  1333→                    variant="ghost"
+  1334→  1334→                    size="icon"
+  1335→  1335→                    className="text-white hover:bg-white/15 h-7 w-7 sm:h-8 sm:w-8 rounded-lg"
+  1336→  1336→                    onClick={closeChat}
+  1337→  1337→                    aria-label="Close chat"
+  1338→  1338→                  >
+  1339→  1339→                    <X className="h-4 w-4" />
+  1340→  1340→                  </Button>
+  1341→  1341→                </div>
+  1342→  1342→              </div>
+  1343→  1343→
+  1344→  1344→              {/* ===== TRUST INDICATORS BAR ===== */}
+  1345→  1345→              <div className="flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-muted/70 border-b border-border/30 shrink-0">
+  1346→  1346→                {trustIndicators.map((item, idx) => {
+  1347→  1347→                  const Icon = item.icon
+  1348→  1348→                  return (
+  1349→  1349→                    <div key={item.label} className="flex items-center gap-1">
+  1350→  1350→                      <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] text-teal-700 font-medium">
+  1351→  1351→                        <Icon className="h-2.5 w-2.5" />
+  1352→  1352→                        <span>{item.label}</span>
+  1353→  1353→                      </div>
+  1354→  1354→                      {idx < trustIndicators.length - 1 && (
+  1355→  1355→                        <div className="w-px h-3 bg-border ml-2 sm:ml-3" />
+  1356→  1356→                      )}
+  1357→  1357→                    </div>
+  1358→  1358→                  )
+  1359→  1359→                })}
+  1360→  1360→              </div>
+  1361→  1361→
+  1362→  1362→              {/* ===== MESSAGE AREA ===== */}
+  1363→  1363→              <div
+  1364→  1364→                ref={scrollRef}
+  1365→  1365→                className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 overscroll-contain scroll-smooth"
+  1366→  1366→                style={{
+  1367→  1367→                  scrollbarWidth: 'thin',
+  1368→  1368→                  scrollbarColor: 'rgb(0 166 166 / 0.3) transparent',
+  1369→  1369→                  /* NOTE: WebkitOverflowScrolling removed — deprecated since iOS 13.
+  1370→  1370→                     Modern Safari uses momentum scrolling by default. */
+  1371→  1371→                }}
+  1372→  1372→              >
+  1373→  1373→                {messages.map((msg, i) => (
+  1374→  1374→                  <motion.div
+  1375→  1375→                    key={`${msg.timestamp}-${i}`}
+  1376→  1376→                    initial={{ opacity: 0, y: 10 }}
+  1377→  1377→                    animate={{ opacity: 1, y: 0 }}
+  1378→  1378→                    transition={{ duration: 0.25, ease: 'easeOut' }}
+  1379→  1379→                    className={`flex gap-2 sm:gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+  1380→  1380→                  >
+  1381→  1381→                    {msg.role === 'assistant' && (
+  1382→  1382→                      <div className="relative shrink-0 mt-0.5">
+  1383→  1383→                        <AIAvatar size="sm" />
+  1384→  1384→                      </div>
+  1385→  1385→                    )}
+  1386→  1386→                    <div
+  1387→  1387→                      className={`max-w-[85%] sm:max-w-[82%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-[12px] sm:text-[13px] leading-relaxed ${
+  1388→  1388→                        msg.role === 'user'
+  1389→  1389→                          ? 'bg-teal-600 text-white rounded-br-md shadow-md shadow-teal-600/20'
+  1390→  1390→                          : 'bg-muted dark:bg-muted/50 rounded-bl-md border border-border/30 text-foreground'
+  1391→  1391→                      }`}
+  1392→  1392→                    >
+  1393→  1393→                      {msg.role === 'assistant' ? (
+  1394→  1394→                        <>
+  1395→  1395→                          {/* Text content + Speaker button row */}
+  1396→  1396→                          <div className="flex items-start gap-1.5">
+  1397→  1397→                            <div className="flex-1 whitespace-pre-wrap">
+  1398→  1398→                              {msg.isStreaming && !msg.content ? (
+  1399→  1399→                                // Show typing dots while streaming with no content yet
+  1400→  1400→                                <span className="inline-flex items-center gap-1">
+  1401→  1401→                                  <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
+  1402→  1402→                                  <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
+  1403→  1403→                                  <span className="h-1.5 w-1.5 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
+  1404→  1404→                                </span>
+  1405→  1405→                              ) : (
+  1406→  1406→                                formatMessage(msg.content)
+  1407→  1407→                              )}
+  1408→  1408→                              {msg.isStreaming && msg.content && (
+  1409→  1409→                                <span className="inline-block w-[2px] h-3.5 bg-[#00A6A6] ml-0.5 align-middle animate-pulse" />
+  1410→  1410→                              )}
+  1411→  1411→                            </div>
+  1412→  1412→                            {/* Speaker button for TTS */}
+  1413→  1413→                            <div className="shrink-0 mt-0.5">
+  1414→  1414→                              <SpeakerButton
+  1415→  1415→                                text={msg.content}
+  1416→  1416→                                lang={msg.detectedLang || 'bangla'}
+  1417→  1417→                                isStreaming={msg.isStreaming}
+  1418→  1418→                              />
+  1419→  1419→                            </div>
+  1420→  1420→                          </div>
+  1421→  1421→
+  1422→  1422→                          {/* Product cards — NO order button, just info display */}
+  1423→  1423→                          {msg.products && msg.products.length > 0 && !msg.isStreaming && (
+  1424→  1424→                            <div className="mt-3 space-y-2">
+  1425→  1425→                              {msg.products.slice(0, 4).map(product => (
+  1426→  1426→                                <ProductCardItem key={product.id} product={product} />
+  1427→  1427→                              ))}
+  1428→  1428→                              {msg.products.length > 4 && (
+  1429→  1429→                                <p className="text-[10px] text-muted-foreground text-center italic">
+  1430→  1430→                                  আরও {msg.products.length - 4}টি প্রোডাক্ট দেখুন...
+  1431→  1431→                                </p>
+  1432→  1432→                              )}
+  1433→  1433→                            </div>
+  1434→  1434→                          )}
+  1435→  1435→
+  1436→  1436→                          {/* Suggestions */}
+  1437→  1437→                          {msg.suggestions && msg.suggestions.length > 0 && !msg.isStreaming && (
+  1438→  1438→                            <div className="mt-3 flex flex-wrap gap-1.5">
+  1439→  1439→                              {msg.suggestions.slice(0, 3).map((suggestion, sIdx) => (
+  1440→  1440→                                <button
+  1441→  1441→                                  key={`sug-${sIdx}`}
+  1442→  1442→                                  onClick={() => handleSuggestionClick(suggestion)}
+  1443→  1443→                                  className="cursor-pointer text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full border border-teal-600/30 bg-teal-50 hover:bg-teal-100 text-teal-800 hover:border-teal-600/60 transition-all active:scale-95 font-medium"
+  1444→  1444→                                >
+  1445→  1445→                                  {suggestion}
+  1446→  1446→                                </button>
+  1447→  1447→                              ))}
+  1448→  1448→                            </div>
+  1449→  1449→                          )}
+  1450→  1450→
+  1451→  1451→                          {/* WhatsApp button */}
+  1452→  1452→                          {msg.whatsappUrl && !msg.isStreaming && (
+  1453→  1453→                            <a
+  1454→  1454→                              href={msg.whatsappUrl}
+  1455→  1455→                              target="_blank"
+  1456→  1456→                              rel="noopener noreferrer"
+  1457→  1457→                              className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-xs font-semibold transition-all shadow-sm hover:shadow-md active:scale-95"
+  1458→  1458→                            >
+  1459→  1459→                              <MessageCircle className="h-3.5 w-3.5" />
+  1460→  1460→                              WhatsApp এ যোগাযোগ
+  1461→  1461→                              <ExternalLink className="h-3 w-3" />
+  1462→  1462→                            </a>
+  1463→  1463→                          )}
+  1464→  1464→                        </>
+  1465→  1465→                      ) : (
+  1466→  1466→                        <p className="whitespace-pre-wrap">{msg.content}</p>
+  1467→  1467→                      )}
+  1468→  1468→                    </div>
+  1469→  1469→                    {msg.role === 'user' && (
+  1470→  1470→                      <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-teal-600 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-teal-600/20">
+  1471→  1471→                        <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
+  1472→  1472→                      </div>
+  1473→  1473→                    )}
+  1474→  1474→                  </motion.div>
+  1475→  1475→                ))}
+  1476→  1476→
+  1477→  1477→                {/* Typing indicator — only show when loading and last message isn't streaming */}
+  1478→  1478→                {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
+  1479→  1479→                  <motion.div
+  1480→  1480→                    initial={{ opacity: 0, y: 8 }}
+  1481→  1481→                    animate={{ opacity: 1, y: 0 }}
+  1482→  1482→                    transition={{ duration: 0.2 }}
+  1483→  1483→                    className="flex gap-2 sm:gap-2.5 justify-start"
+  1484→  1484→                  >
+  1485→  1485→                    <div className="relative shrink-0">
+  1486→  1486→                      <AIAvatar size="sm" />
+  1487→  1487→                    </div>
+  1488→  1488→                    <div className="bg-muted dark:bg-muted/50 rounded-2xl rounded-bl-md px-4 py-3 border border-border/30">
+  1489→  1489→                      <div className="flex items-center gap-1.5">
+  1490→  1490→                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:0ms]" />
+  1491→  1491→                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:150ms]" />
+  1492→  1492→                        <span className="h-2 w-2 rounded-full bg-[#00A6A6] animate-bounce [animation-delay:300ms]" />
+  1493→  1493→                      </div>
+  1494→  1494→                    </div>
+  1495→  1495→                  </motion.div>
+  1496→  1496→                )}
+  1497→  1497→              </div>
+  1498→  1498→
+  1499→  1499→              {/* ===== QUICK ACTIONS ===== */}
+  1500→  1500→              <div
+  1501→  1501→                className="px-2 sm:px-3 py-2 flex gap-1 sm:gap-1.5 overflow-x-auto shrink-0 border-t border-border/30"
+  1502→  1502→                style={{ scrollbarWidth: 'none' }}
+  1503→  1503→              >
+  1504→  1504→                {quickActions.map(q => (
+  1505→  1505→                  <button
+  1506→  1506→                    key={q.label}
+  1507→  1507→                    className="cursor-pointer whitespace-nowrap text-[10px] sm:text-[11px] shrink-0
+  1508→  1508→                      hover:bg-teal-600/5
+  1509→  1509→                      border border-border/60 hover:border-teal-600/50
+  1510→  1510→                      transition-all active:scale-95 py-1.5 sm:py-2 px-2.5 sm:px-3.5 rounded-full bg-background
+  1511→  1511→                      font-medium text-foreground/80 hover:text-foreground
+  1512→  1512→                      touch-manipulation"
+  1513→  1513→                    onClick={() => sendMessage(q.action)}
+  1514→  1514→                  >
+  1515→  1515→                    {q.label}
+  1516→  1516→                  </button>
+  1517→  1517→                ))}
+  1518→  1518→              </div>
+  1519→  1519→
+  1520→  1520→              {/* ===== INPUT AREA ===== */}
+  1521→  1521→              <div className="p-2 sm:p-3 border-t border-border/30 shrink-0 bg-background/80 backdrop-blur-sm">
+  1522→  1522→                <div className="flex gap-2 items-center">
+  1523→  1523→                  <Input
+  1524→  1524→                    ref={inputRef}
+  1525→  1525→                    value={input}
+  1526→  1526→                    onChange={e => setInput(e.target.value)}
+  1527→  1527→                    onKeyDown={handleKeyDown}
+  1528→  1528→                    placeholder="বাংলা, বাংলিশ বা English এ লিখুন..."
+  1529→  1529→                    className="h-10 sm:h-11 text-sm sm:text-base rounded-xl border-border/50 focus-visible:ring-[#00A6A6]/30 text-foreground"
+  1530→  1530→                    disabled={isLoading || cooldown || isVoiceMode}
+  1531→  1531→                    style={{ fontSize: '16px' }}
+  1532→  1532→                  />
+  1533→  1533→
+  1534→  1534→                  {/* Voice Input Button — Dynamic Language STT */}
+  1535→  1535→                  {speechSupported && !isVoiceMode && (
+  1536→  1536→                    <button
+  1537→  1537→                      onClick={toggleListening}
+  1538→  1538→                      className={`relative flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-xl transition-all active:scale-90 touch-manipulation shrink-0 ${
+  1539→  1539→                        isListening
+  1540→  1540→                          ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30'
+  1541→  1541→                          : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border/50'
+  1542→  1542→                      }`}
+  1543→  1543→                      aria-label={isListening ? 'ভয়েস ইনপুট বন্ধ করুন' : 'ভয়েস ইনপুট শুরু করুন'}
+  1544→  1544→                    >
+  1545→  1545→                      {isListening ? (
+  1546→  1546→                        <>
+  1547→  1547→                          <span className="absolute inset-[-3px] rounded-xl bg-red-500/30 animate-ping" />
+  1548→  1548→                          <span className="absolute inset-[-6px] rounded-xl border-2 border-red-400/40 animate-pulse" />
+  1549→  1549→                          <MicOff className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" />
+  1550→  1550→                        </>
+  1551→  1551→                      ) : (
+  1552→  1552→                        <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
+  1553→  1553→                      )}
+  1554→  1554→                    </button>
+  1555→  1555→                  )}
+  1556→  1556→
+  1557→  1557→                  {/* Voice Mode — conversation button */}
+  1558→  1558→                  {speechSupported && isVoiceMode && (
+  1559→  1559→                    <button
+  1560→  1560→                      onClick={toggleListening}
+  1561→  1561→                      disabled={isAISpeaking}
+  1562→  1562→                      className={`relative flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-xl transition-all active:scale-90 touch-manipulation shrink-0 ${
+  1563→  1563→                        isListening
+  1564→  1564→                          ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30'
+  1565→  1565→                          : isAISpeaking
+  1566→  1566→                          ? 'bg-[#00A6A6] text-white shadow-lg shadow-[#00A6A6]/30 animate-pulse'
+  1567→  1567→                          : 'bg-[#00A6A6] hover:bg-[#00A6A6]/80 text-white shadow-lg shadow-[#00A6A6]/30'
+  1568→  1568→                      }`}
+  1569→  1569→                      aria-label={isListening ? 'শুনছি...' : 'কথা বলুন'}
+  1570→  1570→                    >
+  1571→  1571→                      {isListening ? (
+  1572→  1572→                        <>
+  1573→  1573→                          <span className="absolute inset-[-3px] rounded-xl bg-red-500/30 animate-ping" />
+  1574→  1574→                          <MicOff className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" />
+  1575→  1575→                        </>
+  1576→  1576→                      ) : isAISpeaking ? (
+  1577→  1577→                        <>
+  1578→  1578→                          <span className="absolute inset-[-3px] rounded-xl bg-[#00A6A6]/30 animate-ping" />
+  1579→  1579→                          <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" />
+  1580→  1580→                        </>
+  1581→  1581→                      ) : (
+  1582→  1582→                        <>
+  1583→  1583→                          <span className="absolute inset-[-3px] rounded-xl bg-[#00A6A6]/20 animate-pulse" />
+  1584→  1584→                          <Mic className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" />
+  1585→  1585→                        </>
+  1586→  1586→                      )}
+  1587→  1587→                    </button>
+  1588→  1588→                  )}
+  1589→  1589→
+  1590→  1590→                  {/* Send button — hidden in voice mode */}
+  1591→  1591→                  {!isVoiceMode && (
+  1592→  1592→                    <Button
+  1593→  1593→                      onClick={() => sendMessage()}
+  1594→  1594→                      disabled={!input.trim() || isLoading || cooldown}
+  1595→  1595→                      className="bg-teal-600 hover:bg-teal-700 text-white h-10 w-10 sm:h-11 sm:w-11 rounded-xl shadow-md shadow-teal-600/20 shrink-0 touch-manipulation"
+  1596→  1596→                    >
+  1597→  1597→                      {isLoading ? (
+  1598→  1598→                        <Loader2 className="h-4 w-4 animate-spin" />
+  1599→  1599→                      ) : (
+  1600→  1600→                        <Send className="h-4 w-4" />
+  1601→  1601→                      )}
+  1602→  1602→                    </Button>
+  1603→  1603→                  )}
+  1604→  1604→                </div>
+  1605→  1605→
+  1606→  1606→                {/* Voice status indicator */}
+  1607→  1607→                {isListening && !isVoiceMode && (
+  1608→  1608→                  <motion.div
+  1609→  1609→                    initial={{ opacity: 0, y: 5 }}
+  1610→  1610→                    animate={{ opacity: 1, y: 0 }}
+  1611→  1611→                    exit={{ opacity: 0, y: 5 }}
+  1612→  1612→                    className="flex items-center justify-center gap-2 mt-2 text-xs text-red-500 font-medium"
+  1613→  1613→                  >
+  1614→  1614→                    <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+  1615→  1615→                    শুনছি... বাংলা বা English এ কথা বলুন
+  1616→  1616→                    <span className="flex items-center gap-[2px]">
+  1617→  1617→                      <span className="h-3 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:0ms]" />
+  1618→  1618→                      <span className="h-4 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:150ms]" />
+  1619→  1619→                      <span className="h-5 w-0.5 bg-red-500 rounded-full animate-pulse [animation-delay:300ms]" />
+  1620→  1620→                      <span className="h-4 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:450ms]" />
+  1621→  1621→                      <span className="h-3 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:600ms]" />
+  1622→  1622→                    </span>
+  1623→  1623→                  </motion.div>
+  1624→  1624→                )}
+  1625→  1625→
+  1626→  1626→                {/* Voice mode status indicator */}
+  1627→  1627→                {isVoiceMode && (
+  1628→  1628→                  <motion.div
+  1629→  1629→                    initial={{ opacity: 0, y: 5 }}
+  1630→  1630→                    animate={{ opacity: 1, y: 0 }}
+  1631→  1631→                    className="flex items-center justify-center gap-2 mt-2 text-xs font-medium"
+  1632→  1632→                  >
+  1633→  1633→                    {isAISpeaking ? (
+  1634→  1634→                      <span className="text-[#00A6A6] flex items-center gap-1.5">
+  1635→  1635→                        <Volume2 className="h-3.5 w-3.5" />
+  1636→  1636→                        বলছি...
+  1637→  1637→                      </span>
+  1638→  1638→                    ) : isListening ? (
+  1639→  1639→                      <span className="text-red-500 flex items-center gap-1.5">
+  1640→  1640→                        <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+  1641→  1641→                        শুনছি... কথা বলুন
+  1642→  1642→                        <span className="flex items-center gap-[2px]">
+  1643→  1643→                          <span className="h-3 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:0ms]" />
+  1644→  1644→                          <span className="h-4 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:150ms]" />
+  1645→  1645→                          <span className="h-5 w-0.5 bg-red-500 rounded-full animate-pulse [animation-delay:300ms]" />
+  1646→  1646→                          <span className="h-4 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:450ms]" />
+  1647→  1647→                          <span className="h-3 w-0.5 bg-red-400 rounded-full animate-pulse [animation-delay:600ms]" />
+  1648→  1648→                        </span>
+  1649→  1649→                      </span>
+  1650→  1650→                    ) : (
+  1651→  1651→                      <span className="text-muted-foreground flex items-center gap-1.5">
+  1652→  1652→                        <Phone className="h-3.5 w-3.5" />
+  1653→  1653→                        ভয়েস মোড — মাইক বাটনে চাপুন
+  1654→  1654→                      </span>
+  1655→  1655→                    )}
+  1656→  1656→                  </motion.div>
+  1657→  1657→                )}
+  1658→  1658→              </div>
+  1659→  1659→            </motion.div>
+  1660→  1660→          </>
+  1661→  1661→        )}
+  1662→  1662→      </AnimatePresence>
+  1663→  1663→    </>
+  1664→  1664→  )
+  1665→  1665→}
+  1666→  1666→
