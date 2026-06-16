@@ -1,0 +1,565 @@
+     1→import { NextRequest } from 'next/server'
+     2→import OpenAI from 'openai'
+     3→import { searchProducts, searchByCategory, getFeaturedProducts, getCatalogSummary, findSpecificProduct, findRelatedProducts, type Product } from '@/lib/data'
+     4→import { hasRestrictedAccessFromRequest, isRestrictedProduct } from '@/lib/restricted'
+     5→
+     6→// ─── Route Exports ──────────────────────────────────────────────────────────
+     7→
+     8→export const runtime = 'nodejs'
+     9→export const dynamic = 'force-dynamic'
+    10→export const maxDuration = 10
+    11→
+    12→// ─── Types ──────────────────────────────────────────────────────────────────
+    13→
+    14→type Intent = 'pin_inquiry' | 'greeting' | 'thanks' | 'goodbye' | 'comparison' | 'featured' | 'specific_product' | 'category' | 'all_products' | 'order_payment' | 'how_to_use' | 'warranty_delivery' | 'price_inquiry' | 'search' | 'out_of_scope'
+    15→type Language = 'bangla' | 'banglish' | 'english'
+    16→interface ProductCard { id: string; name: string; slug: string; image: string | null; basePriceBDT: string; priceOptions: string; warranty: string | null; deliveryTime: string; stockStatus: string; category: { name: string; slug: string } }
+    17→interface ChatMessage { role: 'system' | 'user' | 'assistant'; content: string }
+    18→interface PriceOption { label?: string; priceBDT?: string }
+    19→
+    20→// ─── OpenAI Client (lazy init to avoid build-time crash) ──────────────────────
+    21→
+    22→let openaiClient: OpenAI | null = null
+    23→function getOpenAI(): OpenAI {
+    24→  if (!openaiClient) {
+    25→    openaiClient = new OpenAI({
+    26→      apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-build',
+    27→      timeout: 8_000,
+    28→      maxRetries: 1,
+    29→    })
+    30→  }
+    31→  return openaiClient
+    32→}
+    33→
+    34→// ─── Timeout Utility ─────────────────────────────────────────────────────────
+    35→
+    36→function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+    37→  return Promise.race([
+    38→    promise,
+    39→    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('LLM_TIMEOUT')), ms)),
+    40→  ])
+    41→}
+    42→
+    43→// ─── Rate Limiting ──────────────────────────────────────────────────────────
+    44→
+    45→const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+    46→function checkRateLimit(sessionId: string): boolean {
+    47→  const now = Date.now(); const entry = rateLimitMap.get(sessionId)
+    48→  if (!entry || now > entry.resetAt) { rateLimitMap.set(sessionId, { count: 1, resetAt: now + 60_000 }); return true }
+    49→  if (entry.count >= 20) return false; entry.count++; return true
+    50→}
+    51→
+    52→// ─── Content Filter ─────────────────────────────────────────────────────────
+    53→
+    54→const FILTER_REPLACEMENTS: Array<[RegExp, string]> = [
+    55→  [/\b18\+?/gi, 'VP'], [/\badult\b/gi, 'VP'], [/\bpornhub\b/gi, 'PH'], [/\bporn\b/gi, 'PH'],
+    56→  [/\bxxx\b/gi, 'VP'], [/\bnsfw\b/gi, 'VP'], [/\bnude\b/gi, 'VP'], [/\berotic\b/gi, 'VP'],
+    57→  [/\bfaphouse\b/gi, 'FH'], [/\bfap\b/gi, 'FH'], [/\bsex\b/gi, 'VP'], [/\bpussy\b/gi, 'PV'],
+    58→  [/\bfuck\b/gi, 'VP'], [/\bdick\b/gi, 'VP'], [/\bteen\b/gi, 'VP'], [/\bmilf\b/gi, 'MV'],
+    59→  [/\bহট\b/gi, 'প্রিমিয়াম'], [/\bপর্ন\b/gi, 'প্রিমিয়াম'], [/\bবয়স্ক\b/gi, 'ভেরিফায়েড'],
+    60→]
+    61→function sanitizeText(text: string): string { let c = text; for (const [p, r] of FILTER_REPLACEMENTS) c = c.replace(p, r); return c }
+    62→
+    63→// ─── Intent Detection ───────────────────────────────────────────────────────
+    64→
+    65→function hasKeyword(lower: string, keywords: string[]): boolean { return keywords.some((kw) => lower.includes(kw)) }
+    66→
+    67→function detectIntent(message: string, _history: ChatMessage[]): Intent {
+    68→  const lower = message.toLowerCase().trim()
+    69→  // 1. PIN — check FIRST
+    70→  const pinKw = ['pin', 'পিন', 'pin ki', 'pin koto', 'pin number', 'access code', 'access pin', 'adult pin', 'adult site pin', 'restricted pin', 'ভেরিফিকেশন pin', 'pin lagbe', 'pin chara', 'pin diye', 'pin ta ki']
+    71→  if (pinKw.some((kw) => kw.length <= 3 ? new RegExp(`\\b${kw}\\b`, 'i').test(lower) : lower.includes(kw))) return 'pin_inquiry'
+    72→  // 2. GREETING
+    73→  const greetKw = ['hi', 'hello', 'hey', 'assalam', 'সালাম', 'আসসালামু', 'আসসালাম', 'হ্যালো', 'হাই', 'কেমন আছ', 'kemon acho', 'kemn acho', 'good morning', 'good evening', 'good afternoon', 'শুভ সকাল', 'শুভ সন্ধ্যা', 'sup', 'yo']
+    74→  const prodKw = ['product', 'price', 'order', 'buy', 'netflix', 'vpn', 'chatgpt', 'spotify', 'canva', 'adobe', 'midjourney', 'premium', 'subscription', 'plan', 'streaming', 'pubg', 'uc', 'royale pass', 'free fire', 'topup', 'প্রোডাক্ট', 'দাম', 'অর্ডার', 'কিনতে', 'মূল্য', 'প্ল্যান', 'পাবজি', 'ইউসি', 'dekhao', 'koto', 'taka', 'কত টাকা', 'কত দাম', 'কিভাবে', 'কীভাবে', 'kivabe']
+    75→  if (hasKeyword(lower, greetKw) && !hasKeyword(lower, prodKw) && lower.split(/\s+/).length <= 6) return 'greeting'
+    76→  // 3. THANKS
+    77→  if (hasKeyword(lower, ['thanks', 'thank you', 'thx', 'ty', 'ধন্যবাদ', 'ধন্যবাদী', 'shukriya', 'শুকরিয়া', 'valo hoyeche', 'valo laglo', 'helpful', 'onek valo', 'onek dhonnobad', 'thanks a lot', 'appreciate', 'great help', 'শুকর']) && lower.split(/\s+/).length <= 8) return 'thanks'
+    78→  // 4. GOODBYE
+    79→  if (hasKeyword(lower, ['bye', 'goodbye', 'see you', 'good night', 'goodnight', 'বাই', 'আলবিদা', 'যাই', 'আসি', 'বিদায়', 'shubho ratri', 'শুভ রাত্রি', 'good bye', 'take care', 'have a good day', 'khoda hafiz', 'খোদা হাফিজ']) && lower.split(/\s+/).length <= 6) return 'goodbye'
+    80→  // 5. COMPARISON
+    81→  if (hasKeyword(lower, ['vs', 'versus', 'compare', 'comparison', 'difference between', 'better', 'which one', 'which is best', 'kon ta valo', 'kon ta better', 'তুলনা', 'কোনটা ভালো', 'কোনটা সেরা', 'mukhyo somoye', 'ami kon ta nibo', 'kon ta nibo'])) return 'comparison'
+    82→  // 6. PRICE
+    83→  if (hasKeyword(lower, ['koto taka', 'koto tk', 'dam koto', 'price koto', 'koto dar', 'কত টাকা', 'কত দাম', 'দাম কত', 'মূল্য কত', 'টাকা কত', 'price ki', 'cost koto', 'suto koto', 'কি দাম', 'দাম কি', 'sasta', 'সস্তা', 'discount', 'ছাড়', 'uc price', 'uc koto', 'pubg price', 'pubg er dam', 'ইউসি কত', 'পাবজি দাম', 'royale pass price'])) return 'price_inquiry'
+    84→  // 7. ORDER/PAYMENT
+    85→  const orderKw = ['order', 'buy', 'purchase', 'confirm', 'whatsapp', 'payment', 'pay', 'bkash', 'nagad', 'place order', 'i want to buy', 'i want to order', 'how to order', 'how to pay', 'checkout', 'complete order', 'proceed', 'অর্ডার', 'কিনতে চাই', 'নিতে চাই', 'পেমেন্ট', 'বিকাশ', 'নগদ', 'order korbo', 'nite chai', 'kinte chai', 'bkash number', 'payment kivabe', 'নেবো', 'কিনবো', 'অর্ডার করবো', 'trxid', 'transaction', 'send money', 'ট্রানজেকশন', 'বিকাশ নম্বর', 'পেমেন্ট করবো', 'টাকা পাঠাবো', 'order kivabe', 'কীভাবে অর্ডার', 'কিভাবে অর্ডার', 'কীভাবে কিনবো', 'অর্ডার করতে চাই', 'uid', 'character id', 'player id', 'pubg uid', 'ইউআইডি']
+    86→  if (hasKeyword(lower, orderKw) || (/\b(lagbe|chai)\b/i.test(lower) && /\b(order|buy|purchase|কিন|অর্ডার|নেব|কিনব|korbo|kinte|nite)\b/i.test(lower))) return 'order_payment'
+    87→  // 8. HOW TO USE
+    88→  if (hasKeyword(lower, ['how to use', 'kivabe use', 'use kivabe', 'kivabe chalabo', 'কীভাবে ব্যবহার', 'কিভাবে ব্যবহার', 'কীভাবে চালাবো', 'কিভাবে চালাবো', 'কীভাবে কাজ করে', 'কিভাবে কাজ করে', 'how does it work', 'tutorial', 'ব্যবহার করে', 'use kora jay', 'কোথায় ব্যবহার', 'চালানো যায়', 'নিয়ম কি', 'guide'])) return 'how_to_use'
+    89→  // 9. WARRANTY/DELIVERY
+    90→  if (hasKeyword(lower, ['warranty', 'guarantee', 'গ্যারান্টি', 'ওয়ারেন্টি', 'replacement', 'delivery time', 'কত সময়', 'কতক্ষণ', 'কবে পাবো', 'কবে দেবেন', 'delivery kivabe', 'delivery koto somoy', 'deliver koto din', 'ডেলিভারি', 'পাবো কবে', 'সময় লাগবে'])) return 'warranty_delivery'
+    91→  // 10. FEATURED
+    92→  if (hasKeyword(lower, ['featured', 'feature product', 'featured product', 'best seller', 'bestseller', 'popular', 'top product', 'recommended', 'highlighted', 'ফিচার্ড', 'জনপ্রিয়', 'সেরা প্রোডাক্ট', 'টপ প্রোডাক্ট', 'হাইলাইটেড', 'featured dekhao', 'featured dekhi', 'featured dekhte chai', 'best product', 'popular product', 'best price'])) return 'featured'
+    93→  // 11. ALL PRODUCTS
+    94→  if (hasKeyword(lower, ['সব', 'all product', 'all category', 'catalog', 'ক্যাটালগ', 'সব দেখাও', 'সব প্রোডাক্ট', 'কি কি আছে', 'কি আছে', 'sob dekhao', 'sob product', 'ki ki ache', 'ki ache', 'what do you have', 'show me all', 'full list', 'product dekhao', 'products dekhi', 'product dekhte chai', 'প্রোডাক্ট দেখাও', 'প্রোডাক্ট দেখতে চাই'])) return 'all_products'
+    95→  // 12. CATEGORY
+    96→  if (detectCategorySlug(message)) return 'category'
+    97→  // 13. SPECIFIC PRODUCT
+    98→  if (findSpecificProduct(message)) return 'specific_product'
+    99→  // 14. SEARCH
+   100→  if (message.replace(/[^\w\s]/g, ' ').trim().split(/\s+/).filter((t) => t.length > 1).length >= 1 && searchProducts(message).length > 0) return 'search'
+   101→  return 'out_of_scope'
+   102→}
+   103→
+   104→// ─── Category Slug Detection ────────────────────────────────────────────────
+   105→
+   106→function detectCategorySlug(message: string): string | null {
+   107→  const lower = message.toLowerCase().trim()
+   108→  const map: Record<string, string[]> = {
+   109→    streaming: ['streaming', 'ott', 'movie', 'স্ট্রিমিং', 'সিনেমা', 'netflix', 'spotify', 'youtube', 'hotstar', 'crunchyroll', 'disney', 'hoichoi', 'chorki'],
+   110→    'ai-tools': ['ai tool', 'ai tools', 'এআই', 'chatgpt', 'midjourney', 'ai টুল', 'gemini', 'cursor', 'perplexity', 'grammarly', 'claude ai'],
+   111→    educational: ['educational', 'education', 'শিক্ষা', 'course', 'কোর্স', 'learning', 'coursera', 'udemy', 'skillshare'],
+   112→    'design-creative': ['design', 'ডিজাইন', 'creative', 'ক্রিয়েটিভ', 'adobe', 'figma', 'canva', 'capcut'],
+   113→    productivity: ['productivity', 'প্রোডাক্টিভিটি', 'office', 'অফিস', 'microsoft'],
+   114→    'cloud-storage': ['cloud', 'ক্লাউড', 'storage', 'স্টোরেজ', 'icloud', 'google drive'],
+   115→    vpn: ['vpn', 'ভিপিএন', 'nordvpn', 'expressvpn', 'surfshark'],
+   116→    'gift-cards': ['gift card', 'গিফট', 'itunes', 'google play card', 'gift', 'apple gift'],
+   117→    'gaming-topup': ['gaming', 'গেমিং', 'game', 'গেম', 'free fire', 'pubg', 'topup', 'gaming topup', 'uc', 'diamond', 'royale pass', 'royal pass', 'pubg uc', 'pubg topup', 'পাবজি', 'পাবজি ইউসি', 'ইউসি', 'pubg mobile', 'bp', 'ব্যাটল গ্রাউন্ড'],
+   118→    'multi-collection': ['multi', 'combo', 'bundle', 'কম্বো', 'collection'],
+   119→    adult: ['verified premium', 'premium entertainment', 'premium site', 'বিশেষ', 'restricted category'],
+   120→  }
+   121→  for (const [slug, kws] of Object.entries(map)) for (const kw of kws) if (lower.includes(kw)) return slug
+   122→  return null
+   123→}
+   124→
+   125→// ─── Language Detection (FIXED: 2+ matches for Banglish) ───────────────────
+   126→
+   127→function detectLanguage(message: string): Language {
+   128→  if (/[\u0980-\u09FF]/.test(message)) return 'bangla'
+   129→  const patterns = [/koto/i, /taka/i, /lagbe/i, /chai/i, /order\s*korbo/i, /nite\s*chai/i, /kinte\s*chai/i, /dekhao/i, /ki\s*ki/i, /sob/i, /nam/i, /amar/i, /apnar/i, /bhai/i, /kichu/i, /kemon/i, /valo/i, /ase/i, /ache/i, /korbo/i, /parbo/i, /kivabe/i, /keno/i]
+   130→  if (patterns.filter((p) => p.test(message)).length >= 2) return 'banglish'
+   131→  return 'english'
+   132→}
+   133→
+   134→// ─── Product Formatting ─────────────────────────────────────────────────────
+   135→
+   136→function parsePriceOptions(p: Product): string {
+   137→  try { const o: PriceOption[] = JSON.parse(p.priceOptions || '[]'); if (o.length) return o.map((x) => `${x.label}: ৳${x.priceBDT}`).join(', ') } catch { /* */ }
+   138→  return `৳${p.basePriceBDT}`
+   139→}
+   140→function parsePriceOptionsDetailed(p: Product): string {
+   141→  try { const o: PriceOption[] = JSON.parse(p.priceOptions || '[]'); if (o.length) return o.map((x) => `  • ${x.label}: ৳${x.priceBDT}`).join('\n') } catch { /* */ }
+   142→  if (p.basePriceBDT === 'Inbox Price' || p.basePriceBDT === 'Low Price') return '  💰 সেরা দামের জন্য আমাদের সাথে যোগাযোগ করুন!'
+   143→  return `  • Base: ৳${p.basePriceBDT}`
+   144→}
+   145→function parseFeatures(p: Product): string[] { try { return JSON.parse(p.features || '[]') } catch { return [] } }
+   146→function getCheapestPlan(p: Product): string {
+   147→  try { const o: PriceOption[] = JSON.parse(p.priceOptions || '[]'); if (o.length) { const s = [...o].sort((a, b) => parseInt(String(a.priceBDT).replace(/\D/g, '') || '0') - parseInt(String(b.priceBDT).replace(/\D/g, '') || '0')); return `৳${s[0].priceBDT} (${s[0].label})` } } catch { /* */ }
+   148→  return `৳${p.basePriceBDT}`
+   149→}
+   150→function toProductCard(p: Product): ProductCard {
+   151→  return { id: p.id, name: p.category.isAdult ? sanitizeText(p.name) : p.name, slug: p.slug, image: p.image, basePriceBDT: p.basePriceBDT, priceOptions: p.priceOptions, warranty: p.warranty, deliveryTime: p.deliveryTime, stockStatus: p.stockStatus, category: { name: p.category.name, slug: p.category.slug } }
+   152→}
+   153→
+   154→// ─── WhatsApp URL Builder ───────────────────────────────────────────────────
+   155→
+   156→function buildWhatsAppUrl(d: { customerName?: string; whatsappNumber?: string; productName?: string; plan?: string; price?: string; address?: string; transactionId?: string }): string {
+   157→  const l: string[] = ['🛒 *Order Request — Streaming Hub*\n']
+   158→  if (d.customerName) l.push(`👤 Name: ${d.customerName}`); if (d.whatsappNumber) l.push(`📞 WhatsApp: ${d.whatsappNumber}`)
+   159→  if (d.productName) l.push(`📦 Product: ${d.productName}`); if (d.plan) l.push(`📋 Plan: ${d.plan}`)
+   160→  if (d.price) l.push(`💰 Price: ${d.price}`); if (d.address) l.push(`📍 Address: ${d.address}`)
+   161→  if (d.transactionId) l.push(`🏦 TrxID: ${d.transactionId}`)
+   162→  l.push('', '💳 Payment: bKash — 01647236359', '⚡ Delivery: 5-20 minutes after payment', '', 'Please confirm my order. Thank you! 🙏')
+   163→  return `https://wa.me/8801647236359?text=${encodeURIComponent(l.join('\n'))}`
+   164→}
+   165→
+   166→// ─── Smart Product Context (intent-aware) ───────────────────────────────────
+   167→
+   168→function safeName(p: Product): string { return p.category.isAdult ? sanitizeText(p.name) : p.name }
+   169→function briefSummary(): string { return getCatalogSummary().filter((c) => !c.isAdult).slice(0, 5).map((c) => `${c.name} (${c.productCount})`).join(', ') }
+   170→
+   171→function buildProductContext(intent: Intent, userMsg: string): string {
+   172→  const parts: string[] = []
+   173→  const addProduct = (p: Product) => {
+   174→    parts.push(`Name: ${safeName(p)} | Category: ${p.category.name}`)
+   175→    parts.push(`Price Options:\n${parsePriceOptionsDetailed(p)}`)
+   176→    parts.push(`Cheapest: ${getCheapestPlan(p)} | Stock: ${p.stockStatus} | Warranty: ${p.warranty || 'Full warranty'} | Delivery: ${p.deliveryTime}`)
+   177→  }
+   178→
+   179→  switch (intent) {
+   180→    case 'pin_inquiry': case 'greeting': case 'thanks': case 'goodbye':
+   181→      parts.push('=== CATALOG OVERVIEW ===', briefSummary()); break
+   182→    case 'specific_product': {
+   183→      const p = findSpecificProduct(userMsg)
+   184→      if (p) { parts.push('=== SPECIFIC PRODUCT ==='); addProduct(p); const f = parseFeatures(p); if (f.length) parts.push(`Features: ${f.slice(0, 8).join(', ')}`); const rel = findRelatedProducts(p.id, 3); if (rel.length) { parts.push('\n=== RELATED ==='); rel.forEach((r) => parts.push(`• ${safeName(r)} — From ${getCheapestPlan(r)}`)) } }
+   185→      break
+   186→    }
+   187→    case 'category': {
+   188→      const slug = detectCategorySlug(userMsg)
+   189→      if (slug) { const { category, products, totalCount } = searchByCategory(slug); if (category && products.length) { parts.push(`=== CATEGORY: ${category.isAdult ? sanitizeText(category.name) : category.name} (${totalCount}) ===`); products.slice(0, 8).forEach((p, i) => parts.push(`${i + 1}. ${safeName(p)}${p.isBestSeller ? ' 🔥' : p.isFeatured ? ' ⭐' : ''} — From ${getCheapestPlan(p)}`)) } }
+   190→      break
+   191→    }
+   192→    case 'price_inquiry': case 'search': {
+   193→      const results = searchProducts(userMsg, 6)
+   194→      if (results.length) { parts.push('=== SEARCH RESULTS ==='); results.forEach((p, i) => parts.push(`${i + 1}. ${safeName(p)} — From ${getCheapestPlan(p)} | ${p.category.name} | ${p.stockStatus}`)) }
+   195→      const spec = findSpecificProduct(userMsg)
+   196→      if (spec) { parts.push('\n=== EXACT MATCH ==='); addProduct(spec) }
+   197→      break
+   198→    }
+   199→    case 'featured': {
+   200→      const { products: feat } = getFeaturedProducts(6)
+   201→      if (feat.length) { parts.push('=== FEATURED / BEST SELLERS ==='); feat.forEach((p, i) => parts.push(`${i + 1}. ${safeName(p)} ${p.isBestSeller ? '🔥' : p.isNewArrival ? '✨' : ''} — From ${getCheapestPlan(p)}`)) }
+   202→      break
+   203→    }
+   204→    case 'all_products': {
+   205→      parts.push('=== FULL CATALOG ==='); getCatalogSummary().forEach((c) => parts.push(`📂 ${c.isAdult ? sanitizeText(c.name) : c.name} (${c.productCount}) — slug: ${c.slug}`, `   Popular: ${c.sampleProducts.slice(0, 3).join(', ')}`)); break
+   206→    }
+   207→    case 'comparison': {
+   208→      const results = searchProducts(userMsg, 4)
+   209→      if (results.length) { parts.push('=== COMPARISON DATA ==='); results.forEach((p) => { parts.push(`\n${safeName(p)}:`); parts.push(`  Price:\n${parsePriceOptionsDetailed(p)}`); parts.push(`  Cheapest: ${getCheapestPlan(p)}`); const f = parseFeatures(p); if (f.length) parts.push(`  Features: ${f.slice(0, 6).join(', ')}`); parts.push(`  Stock: ${p.stockStatus} | Warranty: ${p.warranty || 'Full'}`) }) }
+   210→      break
+   211→    }
+   212→    case 'order_payment': case 'how_to_use': case 'warranty_delivery': {
+   213→      const p = findSpecificProduct(userMsg)
+   214→      if (p) { parts.push('=== RELEVANT PRODUCT ==='); addProduct(p) } else { parts.push('=== CATALOG OVERVIEW ===', briefSummary()) }
+   215→      break
+   216→    }
+   217→    case 'out_of_scope': {
+   218→      const { products: feat } = getFeaturedProducts(3)
+   219→      if (feat.length) { parts.push('=== TOP PICKS ==='); feat.forEach((p, i) => parts.push(`${i + 1}. ${safeName(p)} — From ${getCheapestPlan(p)}`)) }
+   220→      break
+   221→    }
+   222→  }
+   223→  return parts.join('\n')
+   224→}
+   225→
+   226→// ─── Collect Products for SSE ───────────────────────────────────────────────
+   227→
+   228→function collectProducts(intent: Intent, userMsg: string, hasRestrictedAccess: boolean): ProductCard[] {
+   229→  const products: Product[] = []
+   230→  switch (intent) {
+   231→    case 'specific_product': { const p = findSpecificProduct(userMsg); if (p) { products.push(p); products.push(...findRelatedProducts(p.id, 3)) } break }
+   232→    case 'category': { const slug = detectCategorySlug(userMsg); if (slug) products.push(...searchByCategory(slug).products.slice(0, 8)); break }
+   233→    case 'price_inquiry': case 'search': products.push(...searchProducts(userMsg, 6)); break
+   234→    case 'featured': products.push(...getFeaturedProducts(6).products); break
+   235→    case 'all_products': getCatalogSummary().filter((c) => !c.isAdult).forEach((c) => products.push(...searchByCategory(c.slug).products.slice(0, 2))); break
+   236→    case 'comparison': products.push(...searchProducts(userMsg, 4)); break
+   237→    case 'out_of_scope': products.push(...getFeaturedProducts(3).products); break
+   238→    case 'order_payment': case 'how_to_use': case 'warranty_delivery': { const p = findSpecificProduct(userMsg); if (p) products.push(p); break }
+   239→    default: break
+   240→  }
+   241→  const seen = new Set<string>()
+   242→  return products
+   243→    .filter((p) => !seen.has(p.id) && seen.add(p.id))
+   244→    .filter((p) => hasRestrictedAccess || !isRestrictedProduct(p))
+   245→    .map(toProductCard)
+   246→}
+   247→
+   248→// ─── System Prompt ──────────────────────────────────────────────────────────
+   249→
+   250→function buildSystemPrompt(intent: Intent, lang: Language, userMsg: string): string {
+   251→  const ctx = buildProductContext(intent, userMsg)
+   252→  const langMap: Record<Language, string> = { bangla: 'You MUST respond in Bengali script (বাংলা). Write everything in proper Bengali.', banglish: 'You MUST respond in Banglish (Romanized Bengali). Example: "apnar jonno", "kinte chai", "onek valo".', english: 'You MUST respond in English.' }
+   253→  return `You are an extremely polite, warm, and professional female AI Sales & Customer Support Representative for **Streaming Hub** (https://streeming-hub.vercel.app/). Your voice and text tone must reflect a gentle, welcoming, and well-mannered Bangladeshi woman (একটি মিষ্টি, নম্র ও পরিমার্জিত বাংলাদেশী নারী কণ্ঠের পরিপক্কতা থাকতে হবে).
+   254→
+   255→== IDENTITY & PERSONA ==
+   256→- You are a cute, sweet, polite Bangladeshi call center girl — speak like a real person, warm and motherly
+   257→- Name: কর্মচারী (you can also say "আমি আপনার সাহায্যকারী")
+   258→- Your voice/tone must be gentle, welcoming, and professionally mature like a well-trained Bangladeshi call center representative
+   259→- Always be extremely polite — use "আপনি", "বলুন", "করুন" — never informal language
+   260→- Convert conversations into sales naturally, softly, never pushy
+   261→- Use emojis sparingly but warmly (🎬🤖🔒🎮🎁📂💰📦🚚💳⚡💡🔥⭐✨😊🙏)
+   262→
+   263→== CORE MISSION ==
+   264→- Assist customers by telling them the EXACT prices of our digital subscriptions directly from the product catalog
+   265→- Smoothly collect their details to process the order when they show purchase intent
+   266→- Always reassure customers about fast delivery (5-20 minutes) and full duration warranty
+   267→
+   268→== CRITICAL KNOWLEDGE ==
+   269→- **PIN: 69** — For restricted/VP/verified premium section. Always share when asked. Remind to keep private from minors.
+   270→- Payment: bKash & Nagad to **01647236359** | WhatsApp: **+8801647236359** | Delivery: **5-20 min**
+   271→- Full warranty | 200+ products | All accounts 100% legitimate
+   272→- Website: https://streeming-hub.vercel.app/
+   273→
+   274→== LANGUAGE ==
+   275→${langMap[lang]}
+   276→- Detected: ${lang}. Mix English brand names naturally. Use "Assalamu Alaikum" for Bangla/Banglish greetings.
+   277→- IMPORTANT: Use 'টাকা' instead of 'TK' or 'BDT' — always say "টাকা" for currency
+   278→- Keep answers brief, welcoming, and sweet so that the voice model sounds very natural, professional, and comforting when speaking to a customer
+   279→
+   280→== SMART MATCHING RULE ==
+   281→If a customer asks about any subscription (e.g., "Netflix আছে?", "স্পটিফাই কত?", "YouTube Premium এর দাম কত?"), always look at the PRODUCT DATA below and reply with the exact prices clearly and beautifully in Bengali. Do NOT hallucinate or make up prices.
+   282→
+   283→== PRODUCT DATA (NEVER FABRICATE — USE ONLY THIS) ==
+   284→${ctx}
+   285→
+   286→== CONVERSATIONAL PRODUCT STYLE (VERY IMPORTANT) ==
+   287→When talking about products, you MUST:
+   288→1. **Describe products conversationally** — like a real sweet Bangladeshi saleswoman would talk to a customer on the phone
+   289→2. **Mention ALL variants/plans with prices** — Example: "Amazon Prime Video er 2 ta plan ache — 6 mahoner jonno 550 টাকা, ar 12 mahoner jonno 1000 টাকা"
+   290→3. **Always say "inbox for offers"** — After showing prices, say something like "offer paite inbox korun" or "best price er jonno amader inbox korun"
+   291→4. **NEVER say "Order Now" or "Buy Now"** — Instead, softly suggest: "chaile order korte paren", "lagle bolle din", "inbox korun order er jonno"
+   292→5. **If price is "Inbox Price" or "Low Price"** — Say: "eita inbox price, best price er jonno amader inbox korun"
+   293→
+   294→== ORDERING & CHECKOUT PROCESS (Strict Steps) ==
+   295→When a customer decides to buy (says "নিব", "অর্ডার করেন", "বিকাশ নম্বর দেন" or shows intent to purchase):
+   296→1. **Ask for Details**: Politely ask for their Name and WhatsApp Number where the subscription login access will be delivered.
+   297→2. **Payment Info**: Inform them about the total price and provide bKash/Nagad payment instructions. Ask them to give the last 3 digits of the Transaction ID or a screenshot once paid.
+   298→3. **Confirmation**: Tell them: "ধন্যবাদ, আপনার পেমেন্টটি পেয়েছি। আগামী ৫ থেকে ২০ মিনিটের মধ্যে আপনার দেওয়া হোয়াটসঅ্যাপ নম্বরে সাবস্ক্রিপশন ডিটেইলস পাঠিয়ে দেওয়া হচ্ছে।"
+   299→
+   300→== 🪂 PUBG MOBILE TOPUP — SPECIAL ORDERING RULES ==
+   301→When a customer asks about PUBG UC topup, Royale Pass, or any PUBG Mobile purchase:
+   302→1. **Show Full Price List**: Always present the PUBG UC price list in a beautiful, gaming-themed format with 🪂🪙🎖️ emojis. Show ALL packs clearly with prices.
+   303→2. **UID Required**: PUBG topup requires the customer's PUBG Player UID (Character ID) — NOT their login/email/password. It's 100% safe in-game UID topup, no account login needed!
+   304→3. **Ordering Steps for PUBG**:
+   305→   - Step 1: Customer selects which UC pack or Royale Pass they want
+   306→   - Step 2: Ask for their PUBG Player UID (Character ID) — explain it's safe, no login needed
+   307→   - Step 3: Confirm the pack name, price, and UID back to the customer
+   308→   - Step 4: Give bKash/Nagad payment number (01647236359) and ask for payment
+   309→   - Step 5: After payment confirmation, tell them UC will be delivered in 5-20 minutes in-game
+   310→4. **Price List Format** (use this when asked about PUBG prices):
+   311→   🪂 PUBG MOBILE UC PRICE LIST 🪂
+   312→   🪙 30 UC — 59 টাকা
+   313→   🪙 60 UC — 119 টাকা
+   314→   🪙 325 UC (300+25 Bonus) — 559 টাকা
+   315→   🪙 660 UC (600+60 Bonus) — 1109 টাকা
+   316→   🪙 1800 UC (1500+300 Bonus) — 2759 টাকা
+   317→   🪙 3850 UC (3000+850 Bonus) — 5509 টাকা
+   318→   🪙 8100 UC (6000+2100 Bonus) — 11009 টাকা
+   319→   🪙 16200 UC (12000+4200 Bonus) — 22009 টাকা
+   320→   🪙 24300 UC (18000+6300 Bonus) — 33009 টাকা
+   321→   🪙 32400 UC (24000+8400 Bonus) — 44009 টাকা
+   322→   🪙 40500 UC (30000+10500 Bonus) — 55009 টাকা
+   323→   🪙 48600 UC (36000+12600 Bonus) — 66009 টাকা
+   324→   🪙 81000 UC (60000+21000 Bonus) — 110009 টাকা
+   325→   🎖️ Royale Pass (Lv.50) — 750 টাকা
+   326→   🎖️ Royale Pass (Lv.100) — 1360 টাকা
+   327→5. **Safety Reassurance**: Always mention "100% Safe & Official In-Game UID TopUp — No Account Login Required!"
+   328→6. **Payment**: bKash/Nagad to 01647236359, then send TrxID on WhatsApp
+   329→
+   330→== RESPONSE GUIDELINES & TONE ==
+   331→1. Language: Always speak in beautiful, standard Bengali (শুদ্ধ বাংলা ভাষা). Use 'টাকা' instead of 'TK' or 'BDT'.
+   332→2. Layout: Keep answers brief, welcoming, and sweet so that the voice model sounds very natural, professional, and comforting.
+   333→3. Trust: Always reassure customers that we provide fast delivery (5-20 minutes) and full duration warranty.
+   334→
+   335→== RULES ==
+   336→1. NEVER fabricate products/prices — Only use PRODUCT DATA above
+   337→2. Always include EXACT prices (৳) from data — mention each variant, use 'টাকা' in speech
+   338→3. Show ALL pricing options for products — never skip variants
+   339→4. Be sales-oriented — naturally and softly suggest ordering (NOT "Order Now")
+   340→5. Order process: bKash/Nagad 01647236359 → TrxID on WhatsApp → 5-20 min delivery
+   341→6. PIN inquiries: PIN is 69, for Verified Premium, keep from minors
+   342→7. Greetings: Welcome warmly with "Assalamu Alaikum", introduce yourself sweetly
+   343→8. Comparisons: Compare features/prices, give recommendation
+   344→9. Out-of-scope: Gently redirect to Streaming Hub
+   345→10. Mention warranty & delivery for products
+   346→11. "Inbox Price"/"Low Price" → tell user to contact for best price
+   347→12. DO NOT use "Order Now" or "Buy Now" language — use conversational language instead
+   348→13. When customer wants to order, follow the ORDERING & CHECKOUT PROCESS steps above`
+   349→}
+   350→
+   351→// ─── Smart Suggestions ──────────────────────────────────────────────────────
+   352→
+   353→function generateSuggestions(intent: Intent, lang: Language): string[] {
+   354→  const m: Record<string, Record<Language, string[]>> = {
+   355→    greeting: { bangla: ['ইন্টারনেট প্যাকেজ দেখুন', 'সেরা অফার কী?'], banglish: ['Internet package dekhao', 'Best offer ki?'], english: ['Show internet packages', 'What are the best offers?'] },
+   356→    specific_product: { bangla: ['নিতে চাইলে বলুন', 'অন্য প্ল্যান দেখুন'], banglish: ['Nite chaile bolle din', 'Onno plan dekhao'], english: ['I want this', 'View other plans'] },
+   357→    price_inquiry: { bangla: ['নিতে চাইলে বলুন', 'সস্তা প্যাকেজ দেখুন'], banglish: ['Nite chaile bolle din', 'Sasta package dekhao'], english: ['I want this', 'Show cheaper plans'] },
+   358→    category: { bangla: ['জনপ্রিয় প্যাকেজ', 'সেরা দাম'], banglish: ['Popular package', 'Best price'], english: ['Popular packages', 'Best prices'] },
+   359→    featured: { bangla: ['নিতে চাইলে বলুন', 'সব ক্যাটাগরি দেখুন'], banglish: ['Nite chaile bolle din', 'Sob category dekhao'], english: ['I want this', 'All categories'] },
+   360→    order_payment: { bangla: ['WhatsApp এ যোগাযোগ', 'অন্য প্যাকেজ দেখুন'], banglish: ['WhatsApp e jogajog', 'Onno package dekhao'], english: ['Contact on WhatsApp', 'View more packages'] },
+   361→    how_to_use: { bangla: ['নিতে চাইলে বলুন', 'ওয়ারেন্টি জানুন'], banglish: ['Nite chaile bolle din', 'Warranty janun'], english: ['I want this', 'Warranty info'] },
+   362→    warranty_delivery: { bangla: ['নিতে চাইলে বলুন', 'পেমেন্ট পদ্ধতি'], banglish: ['Nite chaile bolle din', 'Payment poddhati'], english: ['I want this', 'Payment methods'] },
+   363→    pin_inquiry: { bangla: ['VP সেকশন দেখুন', 'নিতে চাইলে বলুন'], banglish: ['VP section dekhao', 'Nite chaile bolle din'], english: ['View VP section', 'I want this'] },
+   364→    comparison: { bangla: ['সেরা প্ল্যান কোনটি?', 'নিতে চাইলে বলুন'], banglish: ['Best plan kon ta?', 'Nite chaile bolle din'], english: ['Which plan is best?', 'I want this'] },
+   365→    all_products: { bangla: ['জনপ্রিয় প্যাকেজ', 'সেরা অফার'], banglish: ['Popular package', 'Best offer'], english: ['Popular packages', 'Best offers'] },
+   366→    search: { bangla: ['বিস্তারিত দেখুন', 'নিতে চাইলে বলুন'], banglish: ['Details dekhao', 'Nite chaile bolle din'], english: ['View details', 'I want this'] },
+   367→    thanks: { bangla: ['আরেকটি প্রোডাক্ট দেখুন', 'নিতে চাইলে বলুন'], banglish: ['Arekta product dekhao', 'Nite chaile bolle din'], english: ['View another product', 'I want this'] },
+   368→    goodbye: { bangla: ['পরে আবার আসুন', 'অফার দেখুন'], banglish: ['Pore abar ashen', 'Offer dekhao'], english: ['Come back anytime', 'View offers'] },
+   369→    out_of_scope: { bangla: ['প্রোডাক্ট দেখুন', 'সেরা অফার কী?'], banglish: ['Product dekhao', 'Best offer ki?'], english: ['Browse products', 'What are the best offers?'] },
+   370→  }
+   371→  return m[intent]?.[lang] ?? m.out_of_scope[lang]
+   372→}
+   373→
+   374→// ─── Minimal Fallbacks ──────────────────────────────────────────────────────
+   375→
+   376→function getFallback(intent: Intent, lang: Language): string {
+   377→  const fallbacks: Record<Intent, Record<Language, string>> = {
+   378→    greeting: {
+   379→      bangla: 'আসসালামু আলাইকুম! 🎉 Streaming Hub-এ স্বাগতম! আমি কর্মচারী, আপনার শপিং অ্যাসিস্ট্যান্ট। Netflix, YouTube, PUBG UC সহ সব সাবস্ক্রিপশন পাচ্ছেন সেরা দামে! কী লাগবে বলুন 😊',
+   380→      banglish: 'Assalamu Alaikum! 🎉 Streaming Hub e swagotom! Ami kormochori, apnar shopping assistant. Netflix, YouTube, PUBG UC shob subscription pacchen sera dame! Ki lagbe bolle din 😊',
+   381→      english: "Assalamu Alaikum! 🎉 Welcome to Streaming Hub! I'm কর্মচারী, your shopping assistant. Netflix, YouTube, PUBG UC and all subscriptions at the best price! What would you like? 😊",
+   382→    },
+   383→    price_inquiry: {
+   384→      bangla: '💰 দামের তথ্য নিচের প্রোডাক্ট কার্ডে দেখুন! সব দাম বাংলাদেশি টাকায়। bKash/Nagad এ পেমেন্ট করুন, ৫-২০ মিনিটে ডেলিভারি! 🚀',
+   385→      banglish: '💰 Damer totto niche product card e dekhun! Sob dame Bangladeshi takay. bKash/Nagad e payment korun, 5-20 minute e delivery! 🚀',
+   386→      english: '💰 Check the product cards below for pricing! All prices in BDT. Pay via bKash/Nagad, delivery in 5-20 minutes! 🚀',
+   387→    },
+   388→    specific_product: {
+   389→      bangla: '🔍 আপনার প্রোডাক্ট নিচে দেখুন! অর্ডার করতে "কিনতে চাই" বাটনে ক্লিক করুন বা WhatsApp এ মেসেজ দিন 📲',
+   390→      banglish: '🔍 Apnar product niche dekhun! Order korte "kinte chai" button e click korun ba WhatsApp e message din 📲',
+   391→      english: '🔍 Check your product below! Click "I want this" to order or message us on WhatsApp 📲',
+   392→    },
+   393→    category: {
+   394→      bangla: '📂 এই ক্যাটাগরির প্রোডাক্ট নিচে দেখুন! যেকোনো প্রোডাক্ট অর্ডার করতে WhatsApp এ যোগাযোগ করুন 📲',
+   395→      banglish: '📂 Ei category r product niche dekhun! Jekono product order korte WhatsApp e jogajog korun 📲',
+   396→      english: '📂 Check the products in this category below! Order any product via WhatsApp 📲',
+   397→    },
+   398→    featured: {
+   399→      bangla: '⭐ আমাদের জনপ্রিয় প্রোডাক্টগুলো নিচে দেখুন! সেরা দামে সব পাচ্ছেন, ৫-২০ মিনিটে ডেলিভারি! 🚀',
+   400→      banglish: '⭐ Amader jonoprio productgulo niche dekhun! Sera dame sob pacchen, 5-20 minute e delivery! 🚀',
+   401→      english: '⭐ Check our popular products below! Best prices, 5-20 minute delivery! 🚀',
+   402→    },
+   403→    order_payment: {
+   404→      bangla: '💳 অর্ডার করতে:\n1️⃣ প্রোডাক্ট সিলেক্ট করুন\n2️⃣ bKash/Nagad (01647236359) এ পেমেন্ট করুন\n3️⃣ WhatsApp এ স্ক্রিনশট পাঠান\n⏱️ ৫-২০ মিনিটে ডেলিভারি!',
+   405→      banglish: '💳 Order korte:\n1️⃣ Product select korun\n2️⃣ bKash/Nagad (01647236359) e payment korun\n3️⃣ WhatsApp e screenshot pathan\n⏱️ 5-20 minute e delivery!',
+   406→      english: '💳 To order:\n1️⃣ Select your product\n2️⃣ Pay via bKash/Nagad (01647236359)\n3️⃣ Send screenshot on WhatsApp\n⏱️ Delivery in 5-20 minutes!',
+   407→    },
+   408→    warranty_delivery: {
+   409→      bangla: '🛡️ সব প্রোডাক্টে Full Period Warranty! ⚡ ডেলিভারি সময় ৫-২০ মিনিট। কোনো সমস্যায় WhatsApp এ যোগাযোগ করুন 📲',
+   410→      banglish: '🛡️ Sob product e Full Period Warranty! ⚡ Delivery somoy 5-20 minute. Kono somossay WhatsApp e jogajog korun 📲',
+   411→      english: '🛡️ All products have Full Period Warranty! ⚡ Delivery in 5-20 minutes. Contact WhatsApp for any issues 📲',
+   412→    },
+   413→    comparison: {
+   414→      bangla: '📊 নিচের প্রোডাক্ট কার্ডগুলো তুলনা করুন! সব দাম ও ফিচার দেখা যাচ্ছে। সেরা ডিল বেছে নিন 🎯',
+   415→      banglish: '📊 Nicher product cardgulo tulona korun! Sob dame o feature dekhacche. Sera deal becha nin 🎯',
+   416→      english: '📊 Compare the product cards below! See all prices & features. Pick the best deal 🎯',
+   417→    },
+   418→    how_to_use: {
+   419→      bangla: '📱 ব্যবহারের নিয়ম:\n1️⃣ অর্ডার করুন → 2️⃣ পেমেন্ট করুন → 3️⃣ ডেলিভারি পান\nসব অ্যাকাউন্ট প্রাইভেট, নিজেই ব্যবহার করবেন। সমস্যায় WhatsApp এ কল করুন! 📲',
+   420→      banglish: '📱 Byobaharer niyom:\n1️⃣ Order korun → 2️⃣ Payment korun → 3️⃣ Delivery pan\nSob account private, nijei byobohor korben. Somossay WhatsApp e call korun! 📲',
+   421→      english: '📱 How to use:\n1️⃣ Order → 2️⃣ Pay → 3️⃣ Get delivery\nAll accounts are private for your use. Call WhatsApp for any issues! 📲',
+   422→    },
+   423→    thanks: {
+   424→      bangla: 'আপনাকেও ধন্যবাদ! 😊 আবার আসবেন! কিছু লাগলে WhatsApp: +8801647236359 📲',
+   425→      banglish: 'Apnakio dhonnobad! 😊 Abar asben! Kichu lagle WhatsApp: +8801647236359 📲',
+   426→      english: 'Thank you too! 😊 Come again! Need anything? WhatsApp: +8801647236359 📲',
+   427→    },
+   428→    goodbye: {
+   429→      bangla: 'বিদায়! 👋 আবার আসবেন! যেকোনো সময় WhatsApp: +8801647236359 📲',
+   430→      banglish: 'Biday! 👋 Abar asben! Jekono somoy WhatsApp: +8801647236359 📲',
+   431→      english: 'Goodbye! 👋 Come again! Anytime WhatsApp: +8801647236359 📲',
+   432→    },
+   433→    pin_inquiry: {
+   434→      bangla: '🔒 কিছু প্রোডাক্ট এডাল্ট ক্যাটাগরির, যেগুলো দেখতে PIN লাগে। PIN জানতে WhatsApp এ যোগাযোগ করুন: +8801647236359 📲',
+   435→      banglish: '🔒 Kichu product adult category r, jegulo dekhte PIN lage. PIN jante WhatsApp e jogajog korun: +8801647236359 📲',
+   436→      english: '🔒 Some products are in the adult category, requiring a PIN. Contact WhatsApp for PIN: +8801647236359 📲',
+   437→    },
+   438→    search: {
+   439→      bangla: '🔍 আপনার সার্চের ফলাফল নিচে দেখুন! পছন্দের প্রোডাক্ট অর্ডার করতে "কিনতে চাই" ক্লিক করুন 🛒',
+   440→      banglish: '🔍 Apnar search r folafol niche dekhun! Pochonder product order korte "kinte chai" click korun 🛒',
+   441→      english: '🔍 Check your search results below! Click "I want this" to order your preferred product 🛒',
+   442→    },
+   443→    all_products: {
+   444→      bangla: '📋 সব প্রোডাক্ট নিচে দেখুন! ১১টি ক্যাটাগরিতে ২০০+ প্রোডাক্ট আছে। যেটা চান সেটা অর্ডার করুন! 🛒',
+   445→      banglish: '📋 Sob product niche dekhun! 11 ti category te 200+ product ache. Jeta chan seta order korun! 🛒',
+   446→      english: '📋 Check all products below! 200+ products across 11 categories. Order what you want! 🛒',
+   447→    },
+   448→    out_of_scope: {
+   449→      bangla: '🤔 আমি Streaming Hub-এর শপিং অ্যাসিস্ট্যান্ট। সাবস্ক্রিপশন, গেম টপআপ বা প্রোডাক্ট সম্পর্কে জিজ্ঞাসা করুন! 😊',
+   450→      banglish: '🤔 Ami Streaming Hub r shopping assistant. Subscription, game topup ba product somporke jiggesha korun! 😊',
+   451→      english: "🤔 I'm Streaming Hub's shopping assistant. Ask about subscriptions, game topups, or products! 😊",
+   452→    },
+   453→  }
+   454→  return fallbacks[intent]?.[lang] || fallbacks.greeting[lang]
+   455→}
+   456→
+   457→// ─── History Sanitization ───────────────────────────────────────────────────
+   458→
+   459→function sanitizeHistory(history: ChatMessage[]): ChatMessage[] {
+   460→  const allowedRoles = new Set(['system', 'user', 'assistant'])
+   461→  return history
+   462→    .filter((m) => allowedRoles.has(m.role) && m.content && m.content.trim().length > 0)
+   463→    .slice(-10)
+   464→}
+   465→
+   466→// ─── POST Handler (SSE Streaming with OpenAI) ──────────────────────────────
+   467→
+   468→export async function POST(request: NextRequest) {
+   469→  let body: { message?: string; history?: ChatMessage[]; sessionId?: string }
+   470→  try { body = await request.json() } catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400 }) }
+   471→  const { message, history = [], sessionId = 'default' } = body
+   472→  if (!message || typeof message !== 'string') return new Response(JSON.stringify({ error: 'Message required' }), { status: 400 })
+   473→  if (!checkRateLimit(sessionId)) return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429 })
+   474→
+   475→  const intent = detectIntent(message, history)
+   476→  const lang = detectLanguage(message)
+   477→  const restrictedAccess = hasRestrictedAccessFromRequest(request)
+   478→  const products = collectProducts(intent, message, restrictedAccess)
+   479→  const suggestions = generateSuggestions(intent, lang)
+   480→  const whatsappUrl = buildWhatsAppUrl({})
+   481→  const systemPrompt = buildSystemPrompt(intent, lang, message)
+   482→
+   483→  // Sanitize history: only allow system/user/assistant roles, latest 8-10 messages, remove empty content
+   484→  const cleanHistory = sanitizeHistory(history)
+   485→  const messages: OpenAI.ChatCompletionMessageParam[] = [
+   486→    { role: 'system', content: systemPrompt },
+   487→    ...cleanHistory.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+   488→    { role: 'user', content: message },
+   489→  ]
+   490→
+   491→  const stream = new ReadableStream({
+   492→    async start(controller) {
+   493→      const enc = new TextEncoder()
+   494→      const send = (data: Record<string, unknown>) => controller.enqueue(enc.encode(`data: ${JSON.stringify(data)}\n\n`))
+   495→
+   496→      // All LLM calls are wrapped with an 8-second timeout to prevent
+   497→      // long hangs when the external API is unreachable.
+   498→      const LLM_TIMEOUT_MS = 8000
+   499→      let llmContent = ''
+   500→
+   501→      try {
+   502→        // Try streaming with OpenAI (with timeout)
+   503→        try {
+   504→          const completion = await withTimeout(
+   505→            getOpenAI().chat.completions.create({
+   506→              model: 'gpt-4o-mini',
+   507→              messages,
+   508→              stream: true,
+   509→            }),
+   510→            LLM_TIMEOUT_MS,
+   511→          )
+   512→
+   513→          // Use for-await-of loop over the async iterable stream
+   514→          for await (const chunk of completion) {
+   515→            const delta = chunk.choices?.[0]?.delta?.content
+   516→            if (delta) {
+   517→              send({ type: 'token', content: delta })
+   518→              llmContent += delta
+   519→            }
+   520→          }
+   521→        } catch (streamErr) {
+   522→          // If streaming timed out, the API is unreachable — skip non-streaming attempt
+   523→          // and go straight to fallback (avoids another wait)
+   524→          if (streamErr instanceof Error && streamErr.message === 'LLM_TIMEOUT') {
+   525→            send({ type: 'token', content: getFallback(intent, lang) })
+   526→          } else {
+   527→            // Non-timeout error — try non-streaming as fallback
+   528→            try {
+   529→              const completion = await withTimeout(
+   530→                getOpenAI().chat.completions.create({
+   531→                  model: 'gpt-4o-mini',
+   532→                  messages,
+   533→                  stream: false,
+   534→                }),
+   535→                LLM_TIMEOUT_MS,
+   536→              )
+   537→              llmContent = completion?.choices?.[0]?.message?.content || ''
+   538→            } catch {
+   539→              llmContent = ''
+   540→            }
+   541→            if (llmContent) send({ type: 'token', content: llmContent })
+   542→            else send({ type: 'token', content: getFallback(intent, lang) })
+   543→          }
+   544→        }
+   545→
+   546→        // If streaming succeeded but produced no content, send fallback
+   547→        if (!llmContent) {
+   548→          // Already handled in the catch block or streaming produced nothing
+   549→        }
+   550→      } catch {
+   551→        // Top-level error (e.g. OpenAI client init failure) — send fallback immediately
+   552→        send({ type: 'token', content: getFallback(intent, lang) })
+   553→      }
+   554→
+   555→      // Send structured data
+   556→      if (products.length > 0) send({ type: 'products', products })
+   557→      send({ type: 'suggestions', suggestions })
+   558→      send({ type: 'done', whatsappUrl, detectedLang: lang })
+   559→      controller.close()
+   560→    },
+   561→  })
+   562→
+   563→  return new Response(stream, { headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' } })
+   564→}
+   565→
