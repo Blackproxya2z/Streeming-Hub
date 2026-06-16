@@ -647,13 +647,9 @@ export async function POST(request: NextRequest) {
 
       const LLM_TIMEOUT_MS = 12000
       let llmContent = ''
-      let llmProvider = 'none'
-      let debugInfo: Record<string, unknown> = {}
 
       // ── Priority 1: ZAI SDK (works in sandbox, no API key needed) ──
       const zai = await getZAI()
-      debugInfo.zaiInstance = !!zai
-      debugInfo.zaiConfigSet = !!process.env.ZAI_CONFIG
       if (zai) {
         try {
           const completion = await withTimeout(
@@ -665,18 +661,10 @@ export async function POST(request: NextRequest) {
             LLM_TIMEOUT_MS,
           )
           llmContent = completion?.choices?.[0]?.message?.content || ''
-          debugInfo.zaiResponseLength = llmContent.length
           if (llmContent) {
-            llmProvider = 'zai'
             send({ type: 'token', content: llmContent })
           }
         } catch (zaiErr) {
-          debugInfo.zaiError = zaiErr instanceof Error ? zaiErr.message : String(zaiErr)
-          // Extract fetch error cause for debugging
-          if (zaiErr instanceof Error && 'cause' in zaiErr) {
-            const cause = (zaiErr as Error & { cause?: unknown }).cause
-            debugInfo.zaiErrorCause = cause instanceof Error ? cause.message : String(cause)
-          }
           console.warn('[chat] ZAI failed:', zaiErr instanceof Error ? zaiErr.message : zaiErr)
         }
       }
@@ -684,7 +672,6 @@ export async function POST(request: NextRequest) {
       // ── Priority 2: OpenAI (fallback for Vercel production) ──
       if (!llmContent) {
         const openai = getOpenAI()
-        debugInfo.openaiAvailable = !!openai
         if (openai) {
           try {
             const completion = await withTimeout(
@@ -702,9 +689,7 @@ export async function POST(request: NextRequest) {
                 llmContent += delta
               }
             }
-            if (llmContent) llmProvider = 'openai'
           } catch (oaiErr) {
-            debugInfo.openaiError = oaiErr instanceof Error ? oaiErr.message : String(oaiErr)
             console.warn('[chat] OpenAI failed:', oaiErr instanceof Error ? oaiErr.message : oaiErr)
           }
         }
@@ -712,7 +697,6 @@ export async function POST(request: NextRequest) {
 
       // ── Priority 3: Dynamic response generator (uses real product data) ──
       if (!llmContent) {
-        llmProvider = 'dynamic'
         const dynamicResponse = generateDynamicResponse(intent, lang, message)
         send({ type: 'token', content: dynamicResponse })
       }
@@ -720,7 +704,7 @@ export async function POST(request: NextRequest) {
       // Send structured data
       if (products.length > 0) send({ type: 'products', products })
       send({ type: 'suggestions', suggestions })
-      send({ type: 'done', whatsappUrl, detectedLang: lang, provider: llmProvider, debug: debugInfo })
+      send({ type: 'done', whatsappUrl, detectedLang: lang })
       controller.close()
     },
   })
