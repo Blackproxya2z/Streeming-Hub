@@ -374,12 +374,84 @@ function generateSuggestions(intent: Intent, lang: Language): string[] {
 // ─── Minimal Fallbacks ──────────────────────────────────────────────────────
 
 function getFallback(intent: Intent, lang: Language): string {
-  if (intent === 'greeting') {
-    const g: Record<Language, string> = { bangla: 'আসসালামু আলাইকুম! Streaming Hub-এ স্বাগতম! 🎉 আমি কর্মচারী, আপনার শপিং অ্যাসিস্ট্যান্ট। কী লাগবে বলুন! 😊', banglish: 'Assalamu Alaikum! Streaming Hub e swagotom! 🎉 Ami kormochori, apnar assistant. Ki lagbe bolle din! 😊', english: "Assalamu Alaikum! Welcome to Streaming Hub! 🎉 I'm কর্মচারী, your assistant. What can I help you with? 😊" }
-    return g[lang]
+  const fallbacks: Record<Intent, Record<Language, string>> = {
+    greeting: {
+      bangla: 'আসসালামু আলাইকুম! 🎉 Streaming Hub-এ স্বাগতম! আমি কর্মচারী, আপনার শপিং অ্যাসিস্ট্যান্ট। Netflix, YouTube, PUBG UC সহ সব সাবস্ক্রিপশন পাচ্ছেন সেরা দামে! কী লাগবে বলুন 😊',
+      banglish: 'Assalamu Alaikum! 🎉 Streaming Hub e swagotom! Ami kormochori, apnar shopping assistant. Netflix, YouTube, PUBG UC shob subscription pacchen sera dame! Ki lagbe bolle din 😊',
+      english: "Assalamu Alaikum! 🎉 Welcome to Streaming Hub! I'm কর্মচারী, your shopping assistant. Netflix, YouTube, PUBG UC and all subscriptions at the best price! What would you like? 😊",
+    },
+    price_inquiry: {
+      bangla: '💰 দামের তথ্য নিচের প্রোডাক্ট কার্ডে দেখুন! সব দাম বাংলাদেশি টাকায়। bKash/Nagad এ পেমেন্ট করুন, ৫-২০ মিনিটে ডেলিভারি! 🚀',
+      banglish: '💰 Damer totto niche product card e dekhun! Sob dame Bangladeshi takay. bKash/Nagad e payment korun, 5-20 minute e delivery! 🚀',
+      english: '💰 Check the product cards below for pricing! All prices in BDT. Pay via bKash/Nagad, delivery in 5-20 minutes! 🚀',
+    },
+    specific_product: {
+      bangla: '🔍 আপনার প্রোডাক্ট নিচে দেখুন! অর্ডার করতে "কিনতে চাই" বাটনে ক্লিক করুন বা WhatsApp এ মেসেজ দিন 📲',
+      banglish: '🔍 Apnar product niche dekhun! Order korte "kinte chai" button e click korun ba WhatsApp e message din 📲',
+      english: '🔍 Check your product below! Click "I want this" to order or message us on WhatsApp 📲',
+    },
+    category: {
+      bangla: '📂 এই ক্যাটাগরির প্রোডাক্ট নিচে দেখুন! যেকোনো প্রোডাক্ট অর্ডার করতে WhatsApp এ যোগাযোগ করুন 📲',
+      banglish: '📂 Ei category r product niche dekhun! Jekono product order korte WhatsApp e jogajog korun 📲',
+      english: '📂 Check the products in this category below! Order any product via WhatsApp 📲',
+    },
+    featured: {
+      bangla: '⭐ আমাদের জনপ্রিয় প্রোডাক্টগুলো নিচে দেখুন! সেরা দামে সব পাচ্ছেন, ৫-২০ মিনিটে ডেলিভারি! 🚀',
+      banglish: '⭐ Amader jonoprio productgulo niche dekhun! Sera dame sob pacchen, 5-20 minute e delivery! 🚀',
+      english: '⭐ Check our popular products below! Best prices, 5-20 minute delivery! 🚀',
+    },
+    order_payment: {
+      bangla: '💳 অর্ডার করতে:\n1️⃣ প্রোডাক্ট সিলেক্ট করুন\n2️⃣ bKash/Nagad (01647236359) এ পেমেন্ট করুন\n3️⃣ WhatsApp এ স্ক্রিনশট পাঠান\n⏱️ ৫-২০ মিনিটে ডেলিভারি!',
+      banglish: '💳 Order korte:\n1️⃣ Product select korun\n2️⃣ bKash/Nagad (01647236359) e payment korun\n3️⃣ WhatsApp e screenshot pathan\n⏱️ 5-20 minute e delivery!',
+      english: '💳 To order:\n1️⃣ Select your product\n2️⃣ Pay via bKash/Nagad (01647236359)\n3️⃣ Send screenshot on WhatsApp\n⏱️ Delivery in 5-20 minutes!',
+    },
+    warranty_delivery: {
+      bangla: '🛡️ সব প্রোডাক্টে Full Period Warranty! ⚡ ডেলিভারি সময় ৫-২০ মিনিট। কোনো সমস্যায় WhatsApp এ যোগাযোগ করুন 📲',
+      banglish: '🛡️ Sob product e Full Period Warranty! ⚡ Delivery somoy 5-20 minute. Kono somossay WhatsApp e jogajog korun 📲',
+      english: '🛡️ All products have Full Period Warranty! ⚡ Delivery in 5-20 minutes. Contact WhatsApp for any issues 📲',
+    },
+    comparison: {
+      bangla: '📊 নিচের প্রোডাক্ট কার্ডগুলো তুলনা করুন! সব দাম ও ফিচার দেখা যাচ্ছে। সেরা ডিল বেছে নিন 🎯',
+      banglish: '📊 Nicher product cardgulo tulona korun! Sob dame o feature dekhacche. Sera deal becha nin 🎯',
+      english: '📊 Compare the product cards below! See all prices & features. Pick the best deal 🎯',
+    },
+    how_to_use: {
+      bangla: '📱 ব্যবহারের নিয়ম:\n1️⃣ অর্ডার করুন → 2️⃣ পেমেন্ট করুন → 3️⃣ ডেলিভারি পান\nসব অ্যাকাউন্ট প্রাইভেট, নিজেই ব্যবহার করবেন। সমস্যায় WhatsApp এ কল করুন! 📲',
+      banglish: '📱 Byobaharer niyom:\n1️⃣ Order korun → 2️⃣ Payment korun → 3️⃣ Delivery pan\nSob account private, nijei byobohor korben. Somossay WhatsApp e call korun! 📲',
+      english: '📱 How to use:\n1️⃣ Order → 2️⃣ Pay → 3️⃣ Get delivery\nAll accounts are private for your use. Call WhatsApp for any issues! 📲',
+    },
+    thanks: {
+      bangla: 'আপনাকেও ধন্যবাদ! 😊 আবার আসবেন! কিছু লাগলে WhatsApp: +8801647236359 📲',
+      banglish: 'Apnakio dhonnobad! 😊 Abar asben! Kichu lagle WhatsApp: +8801647236359 📲',
+      english: 'Thank you too! 😊 Come again! Need anything? WhatsApp: +8801647236359 📲',
+    },
+    goodbye: {
+      bangla: 'বিদায়! 👋 আবার আসবেন! যেকোনো সময় WhatsApp: +8801647236359 📲',
+      banglish: 'Biday! 👋 Abar asben! Jekono somoy WhatsApp: +8801647236359 📲',
+      english: 'Goodbye! 👋 Come again! Anytime WhatsApp: +8801647236359 📲',
+    },
+    pin_inquiry: {
+      bangla: '🔒 কিছু প্রোডাক্ট এডাল্ট ক্যাটাগরির, যেগুলো দেখতে PIN লাগে। PIN জানতে WhatsApp এ যোগাযোগ করুন: +8801647236359 📲',
+      banglish: '🔒 Kichu product adult category r, jegulo dekhte PIN lage. PIN jante WhatsApp e jogajog korun: +8801647236359 📲',
+      english: '🔒 Some products are in the adult category, requiring a PIN. Contact WhatsApp for PIN: +8801647236359 📲',
+    },
+    search: {
+      bangla: '🔍 আপনার সার্চের ফলাফল নিচে দেখুন! পছন্দের প্রোডাক্ট অর্ডার করতে "কিনতে চাই" ক্লিক করুন 🛒',
+      banglish: '🔍 Apnar search r folafol niche dekhun! Pochonder product order korte "kinte chai" click korun 🛒',
+      english: '🔍 Check your search results below! Click "I want this" to order your preferred product 🛒',
+    },
+    all_products: {
+      bangla: '📋 সব প্রোডাক্ট নিচে দেখুন! ১১টি ক্যাটাগরিতে ২০০+ প্রোডাক্ট আছে। যেটা চান সেটা অর্ডার করুন! 🛒',
+      banglish: '📋 Sob product niche dekhun! 11 ti category te 200+ product ache. Jeta chan seta order korun! 🛒',
+      english: '📋 Check all products below! 200+ products across 11 categories. Order what you want! 🛒',
+    },
+    out_of_scope: {
+      bangla: '🤔 আমি Streaming Hub-এর শপিং অ্যাসিস্ট্যান্ট। সাবস্ক্রিপশন, গেম টপআপ বা প্রোডাক্ট সম্পর্কে জিজ্ঞাসা করুন! 😊',
+      banglish: '🤔 Ami Streaming Hub r shopping assistant. Subscription, game topup ba product somporke jiggesha korun! 😊',
+      english: "🤔 I'm Streaming Hub's shopping assistant. Ask about subscriptions, game topups, or products! 😊",
+    },
   }
-  const e: Record<Language, string> = { bangla: 'দুঃখিত, সমস্যা হয়েছে। আবার চেষ্টা করুন বা WhatsApp: +8801647236359 🙏', banglish: 'Dukkho, somossa hoyeche. Abar chesta korun ba WhatsApp: +8801647236359 🙏', english: "Sorry, something went wrong. Try again or WhatsApp: +8801647236359 🙏" }
-  return e[lang]
+  return fallbacks[intent]?.[lang] || fallbacks.greeting[lang]
 }
 
 // ─── History Sanitization ───────────────────────────────────────────────────
