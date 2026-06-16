@@ -57,7 +57,14 @@ async function getZAI() {
         return null
       }
       // Bypass ZAI.create() (which reads filesystem) and instantiate directly
-      zaiInstance = new ZAI(config)
+      // Constructor is marked private in .d.ts, so we cast
+      zaiInstance = new (ZAI as unknown as new (config: {
+        baseUrl: string
+        apiKey: string
+        chatId?: string
+        userId?: string
+        token?: string
+      }) => Awaited<ReturnType<typeof ZAI.create>>)(config)
     }
     return zaiInstance
   } catch {

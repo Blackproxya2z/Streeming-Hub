@@ -71,7 +71,14 @@ async function getZAI(): Promise<Awaited<ReturnType<typeof ZAI.create>> | null> 
       }
       // Bypass ZAI.create() (which reads filesystem) and instantiate directly
       // This works on Vercel where the filesystem is read-only
-      zaiInstance = new ZAI(config)
+      // Constructor is marked private in .d.ts, so we cast to any
+      zaiInstance = new (ZAI as unknown as new (config: {
+        baseUrl: string
+        apiKey: string
+        chatId?: string
+        userId?: string
+        token?: string
+      }) => Awaited<ReturnType<typeof ZAI.create>>)(config)
     }
     return zaiInstance
   } catch {
