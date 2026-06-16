@@ -422,87 +422,181 @@ function generateSuggestions(intent: Intent, lang: Language): string[] {
   return m[intent]?.[lang] ?? m.out_of_scope[lang]
 }
 
-// ─── Fallback Responses (when LLM is unavailable) ───────────────────────────
+// ─── Dynamic Response Generator (works without external AI) ──────────────────
+// Generates rich, contextual responses using the actual product database.
+// When ZAI/OpenAI are available, those are used instead. This is the fallback
+// that still provides a great user experience with real product data.
 
-function getFallback(intent: Intent, lang: Language): string {
-  const fallbacks: Record<Intent, Record<Language, string>> = {
-    greeting: {
-      bangla: 'আসসালামু আলাইকুম! 🎉 Streaming Hub-এ স্বাগতম! আমি কর্মচারী, আপনার শপিং অ্যাসিস্ট্যান্ট। Netflix, YouTube, PUBG UC সহ সব সাবস্ক্রিপশন পাচ্ছেন সেরা দামে! কী লাগবে বলুন 😊',
-      banglish: 'Assalamu Alaikum! 🎉 Streaming Hub e swagotom! Ami kormochori, apnar shopping assistant. Netflix, YouTube, PUBG UC shob subscription pacchen sera dame! Ki lagbe bolle din 😊',
-      english: "Assalamu Alaikum! 🎉 Welcome to Streaming Hub! I'm কর্মচারী, your shopping assistant. Netflix, YouTube, PUBG UC and all subscriptions at the best price! What would you like? 😊",
-    },
-    price_inquiry: {
-      bangla: '💰 দামের তথ্য নিচের প্রোডাক্ট কার্ডে দেখুন! সব দাম বাংলাদেশি টাকায়। bKash/Nagad এ পেমেন্ট করুন, ৫-২০ মিনিটে ডেলিভারি! 🚀',
-      banglish: '💰 Damer totto niche product card e dekhun! Sob dame Bangladeshi takay. bKash/Nagad e payment korun, 5-20 minute e delivery! 🚀',
-      english: '💰 Check the product cards below for pricing! All prices in BDT. Pay via bKash/Nagad, delivery in 5-20 minutes! 🚀',
-    },
-    specific_product: {
-      bangla: '🔍 আপনার প্রোডাক্ট নিচে দেখুন! অর্ডার করতে "কিনতে চাই" বাটনে ক্লিক করুন বা WhatsApp এ মেসেজ দিন 📲',
-      banglish: '🔍 Apnar product niche dekhun! Order korte "kinte chai" button e click korun ba WhatsApp e message din 📲',
-      english: '🔍 Check your product below! Click "I want this" to order or message us on WhatsApp 📲',
-    },
-    category: {
-      bangla: '📂 এই ক্যাটাগরির প্রোডাক্ট নিচে দেখুন! যেকোনো প্রোডাক্ট অর্ডার করতে WhatsApp এ যোগাযোগ করুন 📲',
-      banglish: '📂 Ei category r product niche dekhun! Jekono product order korte WhatsApp e jogajog korun 📲',
-      english: '📂 Check the products in this category below! Order any product via WhatsApp 📲',
-    },
-    featured: {
-      bangla: '⭐ আমাদের জনপ্রিয় প্রোডাক্টগুলো নিচে দেখুন! সেরা দামে সব পাচ্ছেন, ৫-২০ মিনিটে ডেলিভারি! 🚀',
-      banglish: '⭐ Amader jonoprio productgulo niche dekhun! Sera dame sob pacchen, 5-20 minute e delivery! 🚀',
-      english: '⭐ Check our popular products below! Best prices, 5-20 minute delivery! 🚀',
-    },
-    order_payment: {
-      bangla: '💳 অর্ডার করতে:\n1️⃣ প্রোডাক্ট সিলেক্ট করুন\n2️⃣ bKash/Nagad (01647236359) এ পেমেন্ট করুন\n3️⃣ WhatsApp এ স্ক্রিনশট পাঠান\n⏱️ ৫-২০ মিনিটে ডেলিভারি!',
-      banglish: '💳 Order korte:\n1️⃣ Product select korun\n2️⃣ bKash/Nagad (01647236359) e payment korun\n3️⃣ WhatsApp e screenshot pathan\n⏱️ 5-20 minute e delivery!',
-      english: '💳 To order:\n1️⃣ Select your product\n2️⃣ Pay via bKash/Nagad (01647236359)\n3️⃣ Send screenshot on WhatsApp\n⏱️ Delivery in 5-20 minutes!',
-    },
-    warranty_delivery: {
-      bangla: '🛡️ সব প্রোডাক্টে Full Period Warranty! ⚡ ডেলিভারি সময় ৫-২০ মিনিট। কোনো সমস্যায় WhatsApp এ যোগাযোগ করুন 📲',
-      banglish: '🛡️ Sob product e Full Period Warranty! ⚡ Delivery somoy 5-20 minute. Kono somossay WhatsApp e jogajog korun 📲',
-      english: '🛡️ All products have Full Period Warranty! ⚡ Delivery in 5-20 minutes. Contact WhatsApp for any issues 📲',
-    },
-    comparison: {
-      bangla: '📊 নিচের প্রোডাক্ট কার্ডগুলো তুলনা করুন! সব দাম ও ফিচার দেখা যাচ্ছে। সেরা ডিল বেছে নিন 🎯',
-      banglish: '📊 Nicher product cardgulo tulona korun! Sob dame o feature dekhacche. Sera deal becha nin 🎯',
-      english: '📊 Compare the product cards below! See all prices & features. Pick the best deal 🎯',
-    },
-    how_to_use: {
-      bangla: '📱 ব্যবহারের নিয়ম:\n1️⃣ অর্ডার করুন → 2️⃣ পেমেন্ট করুন → 3️⃣ ডেলিভারি পান\nসব অ্যাকাউন্ট প্রাইভেট, নিজেই ব্যবহার করবেন। সমস্যায় WhatsApp এ কল করুন! 📲',
-      banglish: '📱 Byobaharer niyom:\n1️⃣ Order korun → 2️⃣ Payment korun → 3️⃣ Delivery pan\nSob account private, nijei byobohor korben. Somossay WhatsApp e call korun! 📲',
-      english: '📱 How to use:\n1️⃣ Order → 2️⃣ Pay → 3️⃣ Get delivery\nAll accounts are private for your use. Call WhatsApp for any issues! 📲',
-    },
-    thanks: {
-      bangla: 'আপনাকেও ধন্যবাদ! 😊 আবার আসবেন! কিছু লাগলে WhatsApp: +8801647236359 📲',
-      banglish: 'Apnakio dhonnobad! 😊 Abar asben! Kichu lagle WhatsApp: +8801647236359 📲',
-      english: 'Thank you too! 😊 Come again! Need anything? WhatsApp: +8801647236359 📲',
-    },
-    goodbye: {
-      bangla: 'বিদায়! 👋 আবার আসবেন! যেকোনো সময় WhatsApp: +8801647236359 📲',
-      banglish: 'Biday! 👋 Abar asben! Jekono somoy WhatsApp: +8801647236359 📲',
-      english: 'Goodbye! 👋 Come again! Anytime WhatsApp: +8801647236359 📲',
-    },
-    pin_inquiry: {
-      bangla: '🔒 PIN: 69 — এটা Verified Premium সেকশনের জন্য। অনুগ্রহ করে শিশুদের থেকে গোপন রাখবেন। 📲',
-      banglish: '🔒 PIN: 69 — Eita Verified Premium section er jonno. Onugrah kore shishuder theke gopon rakhen. 📲',
-      english: '🔒 PIN: 69 — For the Verified Premium section. Please keep it private from minors. 📲',
-    },
-    search: {
-      bangla: '🔍 আপনার সার্চের ফলাফল নিচে দেখুন! পছন্দের প্রোডাক্ট অর্ডার করতে "কিনতে চাই" ক্লিক করুন 🛒',
-      banglish: '🔍 Apnar search r folafol niche dekhun! Pochonder product order korte "kinte chai" click korun 🛒',
-      english: '🔍 Check your search results below! Click "I want this" to order your preferred product 🛒',
-    },
-    all_products: {
-      bangla: '📋 সব প্রোডাক্ট নিচে দেখুন! ১১টি ক্যাটাগরিতে ২০০+ প্রোডাক্ট আছে। যেটা চান সেটা অর্ডার করুন! 🛒',
-      banglish: '📋 Sob product niche dekhun! 11 ti category te 200+ product ache. Jeta chan seta order korun! 🛒',
-      english: '📋 Check all products below! 200+ products across 11 categories. Order what you want! 🛒',
-    },
-    out_of_scope: {
-      bangla: '🤔 আমি Streaming Hub-এর শপিং অ্যাসিস্ট্যান্ট। সাবস্ক্রিপশন, গেম টপআপ বা প্রোডাক্ট সম্পর্কে জিজ্ঞাসা করুন! 😊',
-      banglish: '🤔 Ami Streaming Hub r shopping assistant. Subscription, game topup ba product somporke jiggesha korun! 😊',
-      english: "🤔 I'm Streaming Hub's shopping assistant. Ask about subscriptions, game topups, or products! 😊",
-    },
+function generateDynamicResponse(intent: Intent, lang: Language, userMsg: string): string {
+  const isBn = lang === 'bangla'
+  const isBnLatn = lang === 'banglish'
+
+  // Helper: format product with prices
+  const formatProductPrices = (p: Product): string => {
+    try {
+      const opts: PriceOption[] = JSON.parse(p.priceOptions || '[]')
+      if (opts.length > 0) {
+        return opts.map((o) => `   • ${o.label}: ৳${o.priceBDT}`).join('\n')
+      }
+    } catch { /* */ }
+    return `   • ৳${p.basePriceBDT}`
   }
-  return fallbacks[intent]?.[lang] || fallbacks.greeting[lang]
+
+  // Helper: get product name safely
+  const pname = (p: Product): string => p.category.isAdult ? sanitizeText(p.name) : p.name
+
+  // ── GREETING ──
+  if (intent === 'greeting') {
+    const overview = briefSummary()
+    if (isBn) return `আসসালামু আলাইকুম! 🎉 Streaming Hub-এ স্বাগতম! আমি আপনার শপিং অ্যাসিস্ট্যান্ট। 😊\n\n📦 আমাদের কালেকশন: ${overview}\n\n💰 সেরা দাম, ⚡ ৫-২০ মিনিটে ডেলিভারি, 🛡️ ফুল ওয়ারেন্টি!\n\nকী সাবস্ক্রিপশন বা টপআপ লাগবে বলুন? 🛒`
+    if (isBnLatn) return `Assalamu Alaikum! 🎉 Streaming Hub e swagotom! Ami apnar shopping assistant. 😊\n\n📦 Amader collection: ${overview}\n\n💰 Sera dam, ⚡ 5-20 minute e delivery, 🛡️ Full warranty!\n\nKi subscription ba topup lagbe bolle din? 🛒`
+    return `Assalamu Alaikum! 🎉 Welcome to Streaming Hub! I'm your shopping assistant. 😊\n\n📦 Our collection: ${overview}\n\n💰 Best prices, ⚡ 5-20 min delivery, 🛡️ Full warranty!\n\nWhat subscription or topup would you like? 🛒`
+  }
+
+  // ── PUBG / GAMING TOPUP ──
+  const lower = userMsg.toLowerCase()
+  if (intent === 'price_inquiry' || intent === 'specific_product' || intent === 'category') {
+    const isPUBG = lower.includes('pubg') || lower.includes('uc') || lower.includes('পাবজি') || lower.includes('ইউসি') || lower.includes('royale pass') || lower.includes('royal pass')
+    if (isPUBG) {
+      const pubgProduct = findSpecificProduct('pubg')
+      const royaleProduct = findSpecificProduct('royale pass')
+      if (pubgProduct) {
+        if (isBn) return `🪂 PUBG Mobile UC টপআপের দাম নিচে দিলাম! ১০০% সেফ ইন-গেম টপআপ, শুধু UID লাগবে! 🎮\n\n${formatProductPrices(pubgProduct)}\n${royaleProduct ? '\n' + formatProductPrices(royaleProduct) : ''}\n\n💳 পেমেন্ট: bKash/Nagad → 01647236359\n⚡ ডেলিভারি: ৫-২০ মিনিট\n📞 অর্ডার করতে WhatsApp: +8801647236359\n\nকোন প্যাকেজ চান? আপনার PUBG UID দিলে এখনই টপআপ করে দিব! 🪙`
+        if (isBnLatn) return `🪂 PUBG Mobile UC topup er dam niche dilam! 100% safe in-game topup, shudhu UID lagbe! 🎮\n\n${formatProductPrices(pubgProduct)}\n${royaleProduct ? '\n' + formatProductPrices(royaleProduct) : ''}\n\n💳 Payment: bKash/Nagad → 01647236359\n⚡ Delivery: 5-20 minute\n📞 Order korte WhatsApp: +8801647236359\n\nKon package chan? Apnar PUBG UID dile ekn e topup kore dib! 🪙`
+        return `🪂 PUBG Mobile UC TopUp prices below! 100% safe in-game topup, only UID needed! 🎮\n\n${formatProductPrices(pubgProduct)}\n${royaleProduct ? '\n' + formatProductPrices(royaleProduct) : ''}\n\n💳 Payment: bKash/Nagad → 01647236359\n⚡ Delivery: 5-20 minutes\n📞 Order via WhatsApp: +8801647236359\n\nWhich pack would you like? Give your PUBG UID and we'll topup instantly! 🪙`
+      }
+    }
+  }
+
+  // ── SPECIFIC PRODUCT ──
+  if (intent === 'specific_product') {
+    const p = findSpecificProduct(userMsg)
+    if (p) {
+      const rel = findRelatedProducts(p.id, 2)
+      if (isBn) return `📦 ${pname(p)} এর বিস্তারিত নিচে দেখুন! 😊\n\n💰 দাম:\n${formatProductPrices(p)}\n\n🛡️ ওয়ারেন্টি: ${p.warranty || 'Full Period Warranty'}\n⚡ ডেলিভারি: ${p.deliveryTime}\n📦 স্টক: ${p.stockStatus}\n\nচাইলে অর্ডার করতে পারেন — bKash/Nagad (01647236359) এ পেমেন্ট করে WhatsApp এ জানান! 📲${rel.length ? `\n\n💡 আরও দেখুন: ${rel.map((r) => pname(r)).join(', ')}` : ''}`
+      if (isBnLatn) return `📦 ${pname(p)} er details niche dekhun! 😊\n\n💰 Dam:\n${formatProductPrices(p)}\n\n🛡️ Warranty: ${p.warranty || 'Full Period Warranty'}\n⚡ Delivery: ${p.deliveryTime}\n📦 Stock: ${p.stockStatus}\n\nChaile order korte paren — bKash/Nagad (01647236359) e payment kore WhatsApp e jan! 📲${rel.length ? `\n\n💡 Aro dekhun: ${rel.map((r) => pname(r)).join(', ')}` : ''}`
+      return `📦 Here are the details for ${pname(p)}! 😊\n\n💰 Price:\n${formatProductPrices(p)}\n\n🛡️ Warranty: ${p.warranty || 'Full Period Warranty'}\n⚡ Delivery: ${p.deliveryTime}\n📦 Stock: ${p.stockStatus}\n\nTo order, pay via bKash/Nagad (01647236359) and let us know on WhatsApp! 📲${rel.length ? `\n\n💡 Also check: ${rel.map((r) => pname(r)).join(', ')}` : ''}`
+    }
+  }
+
+  // ── PRICE INQUIRY ──
+  if (intent === 'price_inquiry' || intent === 'search') {
+    const results = searchProducts(userMsg, 5)
+    if (results.length > 0) {
+      const list = results.map((p, i) => `${i + 1}. ${pname(p)} — ${getCheapestPlan(p)}`).join('\n')
+      if (isBn) return `💰 আপনার সার্চের দাম নিচে দিলাম! 😊\n\n${list}\n\nবিস্তারিত দেখতে নিচের প্রোডাক্ট কার্ডে ক্লিক করুন। চাইলে অর্ডার করতে পারেন! 🛒\n\n💳 bKash/Nagad: 01647236359 | ⚡ ৫-২০ মিনিটে ডেলিভারি`
+      if (isBnLatn) return `💰 Apnar search er dam niche dilam! 😊\n\n${list}\n\nDetails dekhte nicher product card e click korun. Chaile order korte paren! 🛒\n\n💳 bKash/Nagad: 01647236359 | ⚡ 5-20 minute e delivery`
+      return `💰 Here are the prices for your search! 😊\n\n${list}\n\nClick the product cards below for details. Order anytime! 🛒\n\n💳 bKash/Nagad: 01647236359 | ⚡ 5-20 min delivery`
+    }
+  }
+
+  // ── CATEGORY ──
+  if (intent === 'category') {
+    const slug = detectCategorySlug(userMsg)
+    if (slug) {
+      const { category, products, totalCount } = searchByCategory(slug)
+      if (category && products.length) {
+        const list = products.slice(0, 5).map((p, i) => `${i + 1}. ${pname(p)} — ${getCheapestPlan(p)}`).join('\n')
+        const catName = category.isAdult ? sanitizeText(category.name) : category.name
+        if (isBn) return `📂 ${catName} ক্যাটাগরিতে ${totalCount}টি প্রোডাক্ট আছে! কিছু জনপ্রিয়: 😊\n\n${list}\n\nনিচে সব প্রোডাক্ট দেখুন। যেটা চান সেটা অর্ডার করুন! 🛒`
+        if (isBnLatn) return `📂 ${catName} category te ${totalCount} ti product ache! Kichu jonoprio: 😊\n\n${list}\n\nNiche sob product dekhun. Jeta chan seta order korun! 🛒`
+        return `📂 ${catName} category has ${totalCount} products! Here are some popular ones: 😊\n\n${list}\n\nBrowse all products below. Order what you like! 🛒`
+      }
+    }
+  }
+
+  // ── FEATURED ──
+  if (intent === 'featured') {
+    const { products: feat } = getFeaturedProducts(5)
+    if (feat.length) {
+      const list = feat.map((p, i) => `${i + 1}. ${pname(p)} — ${getCheapestPlan(p)}${p.isBestSeller ? ' 🔥' : ''}`).join('\n')
+      if (isBn) return `⭐ আমাদের সেরা জনপ্রিয় প্রোডাক্টগুলো! 😊\n\n${list}\n\n💰 সেরা দাম গ্যারান্টিড! ⚡ ৫-২০ মিনিটে ডেলিভারি। চাইলে অর্ডার করুন! 🛒`
+      if (isBnLatn) return `⭐ Amader sera jonoprio productgulo! 😊\n\n${list}\n\n💰 Sera dam guaranteed! ⚡ 5-20 minute e delivery. Chaile order korun! 🛒`
+      return `⭐ Our most popular products! 😊\n\n${list}\n\n💰 Best price guaranteed! ⚡ 5-20 min delivery. Order now! 🛒`
+    }
+  }
+
+  // ── ORDER/PAYMENT ──
+  if (intent === 'order_payment') {
+    const p = findSpecificProduct(userMsg)
+    const productName = p ? pname(p) : 'আপনার প্রোডাক্ট'
+    if (isBn) return `💳 অর্ডার করার নিয়ম খুব সহজ! 😊\n\n1️⃣ ${productName} সিলেক্ট করুন\n2️⃣ bKash/Nagad → 01647236359 এ পেমেন্ট করুন\n3️⃣ WhatsApp (+8801647236359) এ স্ক্রিনশট পাঠান\n4️⃣ ৫-২০ মিনিটে ডেলিভারি! ⚡\n\n🛡️ ফুল ওয়ারেন্টি সব প্রোডাক্টে! নিশ্চিন্তে অর্ডার করুন! 🙏`
+    if (isBnLatn) return `💳 Order korar niyom khub sohoj! 😊\n\n1️⃣ ${productName} select korun\n2️⃣ bKash/Nagad → 01647236359 e payment korun\n3️⃣ WhatsApp (+8801647236359) e screenshot pathan\n4️⃣ 5-20 minute e delivery! ⚡\n\n🛡️ Full warranty sob product e! Nischinte order korun! 🙏`
+    return `💳 Ordering is super easy! 😊\n\n1️⃣ Select ${productName}\n2️⃣ Pay via bKash/Nagad → 01647236359\n3️⃣ Send screenshot on WhatsApp (+8801647236359)\n4️⃣ Delivery in 5-20 minutes! ⚡\n\n🛡️ Full warranty on all products! Order with confidence! 🙏`
+  }
+
+  // ── WARRANTY/DELIVERY ──
+  if (intent === 'warranty_delivery') {
+    if (isBn) return `🛡️ ওয়ারেন্টি ও ডেলিভারির তথ্য: 😊\n\n📦 সব প্রোডাক্টে Full Period Warranty!\n⚡ ডেলিভারি সময়: ৫-২০ মিনিট\n🔄 কোনো সমস্যায় ফ্রি রিপ্লেসমেন্ট\n📞 ২৪/৭ WhatsApp সাপোর্ট: +8801647236359\n\nনিশ্চিন্তে অর্ডার করুন, আমরা সব সাপোর্ট দিব! 🙏`
+    if (isBnLatn) return `🛡️ Warranty o delivery r totto: 😊\n\n📦 Sob product e Full Period Warranty!\n⚡ Delivery somoy: 5-20 minute\n🔄 Kono somossay free replacement\n📞 24/7 WhatsApp support: +8801647236359\n\nNischinte order korun, amra sob support dib! 🙏`
+    return `🛡️ Warranty & Delivery info: 😊\n\n📦 Full Period Warranty on all products!\n⚡ Delivery time: 5-20 minutes\n🔄 Free replacement for any issues\n📞 24/7 WhatsApp support: +8801647236359\n\nOrder with confidence, we've got you covered! 🙏`
+  }
+
+  // ── HOW TO USE ──
+  if (intent === 'how_to_use') {
+    const p = findSpecificProduct(userMsg)
+    const productName = p ? pname(p) : 'সাবস্ক্রিপশন'
+    if (isBn) return `📱 ${productName} ব্যবহারের নিয়ম: 😊\n\n1️⃣ অর্ডার করুন → 2️⃣ পেমেন্ট করুন → 3️⃣ ডেলিভারি পান (৫-২০ মিনিট)\n\n🔒 সব অ্যাকাউন্ট ১০০% প্রাইভেট — নিজেই ব্যবহার করবেন\n📋 লগইন ডিটেইলস WhatsApp এ দেওয়া হবে\n🛡️ ফুল ওয়ারেন্টি! সমস্যায় কল করুন: +8801647236359`
+    if (isBnLatn) return `📱 ${productName} byobaharer niyom: 😊\n\n1️⃣ Order korun → 2️⃣ Payment korun → 3️⃣ Delivery pan (5-20 minute)\n\n🔒 Sob account 100% private — nijei byobohor korben\n📋 Login details WhatsApp e deoa hobe\n🛡️ Full warranty! Somossay call korun: +8801647236359`
+    return `📱 How to use ${productName}: 😊\n\n1️⃣ Order → 2️⃣ Pay → 3️⃣ Get delivery (5-20 min)\n\n🔒 All accounts 100% private — for your personal use\n📋 Login details sent via WhatsApp\n🛡️ Full warranty! Call for help: +8801647236359`
+  }
+
+  // ── COMPARISON ──
+  if (intent === 'comparison') {
+    const results = searchProducts(userMsg, 4)
+    if (results.length) {
+      const list = results.map((p) => {
+        const cheapest = getCheapestPlan(p)
+        return `📊 ${pname(p)}\n   শুরু: ${cheapest} | ওয়ারেন্টি: ${p.warranty || 'Full'} | স্টক: ${p.stockStatus}`
+      }).join('\n\n')
+      if (isBn) return `📊 তুলনামূলক তথ্য নিচে! সেরা ডিল বেছে নিন: 😊\n\n${list}\n\nনিচের প্রোডাক্ট কার্ড থেকে বিস্তারিত দেখুন। চাইলে অর্ডার করুন! 🛒`
+      if (isBnLatn) return `📊 Tulonamulok totto niche! Sera deal becha nin: 😊\n\n${list}\n\nNicher product card theke details dekhun. Chaile order korun! 🛒`
+      return `📊 Comparison details below! Pick the best deal: 😊\n\n${list}\n\nCheck product cards below for full details. Order anytime! 🛒`
+    }
+  }
+
+  // ── ALL PRODUCTS ──
+  if (intent === 'all_products') {
+    const cats = getCatalogSummary().filter((c) => !c.isAdult)
+    if (isBn) return `📋 আমাদের সম্পূর্ণ কালেকশন! ${cats.length}টি ক্যাটাগরিতে ২০০+ প্রোডাক্ট আছে: 😊\n\n${cats.map((c) => `📂 ${c.name} (${c.productCount})`).join('\n')}\n\nনিচে সব প্রোডাক্ট দেখুন। যেটা চান সেটা অর্ডার করুন! 🛒\n\n💳 bKash/Nagad: 01647236359 | ⚡ ৫-২০ মিনিটে ডেলিভারি`
+    if (isBnLatn) return `📋 Amader sopurno collection! ${cats.length} ti category te 200+ product ache: 😊\n\n${cats.map((c) => `📂 ${c.name} (${c.productCount})`).join('\n')}\n\nNiche sob product dekhun. Jeta chan seta order korun! 🛒\n\n💳 bKash/Nagad: 01647236359 | ⚡ 5-20 minute e delivery`
+    return `📋 Our complete collection! 200+ products in ${cats.length} categories: 😊\n\n${cats.map((c) => `📂 ${c.name} (${c.productCount})`).join('\n')}\n\nBrowse all products below. Order what you want! 🛒\n\n💳 bKash/Nagad: 01647236359 | ⚡ 5-20 min delivery`
+  }
+
+  // ── PIN INQUIRY ──
+  if (intent === 'pin_inquiry') {
+    if (isBn) return `🔒 PIN: 69\n\nএটা Verified Premium সেকশনের জন্য। অনুগ্রহ করে শিশুদের থেকে গোপন রাখবেন। 🔐\n\nএই সেকশনে এক্সেস করতে উপরে PIN দিন। কোনো সমস্যায় WhatsApp: +8801647236359 📲`
+    if (isBnLatn) return `🔒 PIN: 69\n\nEita Verified Premium section er jonno. Onugrah kore shishuder theke gopon rakhen. 🔐\n\nEi section e access korte upore PIN din. Kono somossay WhatsApp: +8801647236359 📲`
+    return `🔒 PIN: 69\n\nThis is for the Verified Premium section. Please keep it private from minors. 🔐\n\nEnter the PIN above to access this section. For help, WhatsApp: +8801647236359 📲`
+  }
+
+  // ── THANKS ──
+  if (intent === 'thanks') {
+    if (isBn) return 'আপনাকেও ধন্যবাদ! 😊 🙏 আবার আসবেন! কিছু লাগলে WhatsApp: +8801647236359 📲'
+    if (isBnLatn) return 'Apnakio dhonnobad! 😊 🙏 Abar asben! Kichu lagle WhatsApp: +8801647236359 📲'
+    return 'Thank you too! 😊 🙏 Come again! Need anything? WhatsApp: +8801647236359 📲'
+  }
+
+  // ── GOODBYE ──
+  if (intent === 'goodbye') {
+    if (isBn) return 'বিদায়! 👋 আবার আসবেন! যেকোনো সময় WhatsApp: +8801647236359 📲'
+    if (isBnLatn) return 'Biday! 👋 Abar asben! Jekono somoy WhatsApp: +8801647236359 📲'
+    return 'Goodbye! 👋 Come again! Anytime on WhatsApp: +8801647236359 📲'
+  }
+
+  // ── OUT OF SCOPE / DEFAULT ──
+  const { products: feat } = getFeaturedProducts(3)
+  if (feat.length) {
+    const list = feat.map((p, i) => `${i + 1}. ${pname(p)} — ${getCheapestPlan(p)}`).join('\n')
+    if (isBn) return `🤔 আমি Streaming Hub-এর শপিং অ্যাসিস্ট্যান্ট। সাবস্ক্রিপশন, গেম টপআপ বা প্রোডাক্ট সম্পর্কে জিজ্ঞাসা করুন! 😊\n\n💡 জনপ্রিয় প্রোডাক্ট:\n${list}\n\n💬 উদাহরণ: "Netflix দাম কত?", "PUBG UC চাই", "কীভাবে অর্ডার করবো?"`
+    if (isBnLatn) return `🤔 Ami Streaming Hub r shopping assistant. Subscription, game topup ba product somporke jiggesha korun! 😊\n\n💡 Jonoprio product:\n${list}\n\n💬 Example: "Netflix dam koto?", "PUBG UC chai", "Kivabe order korbo?"`
+    return `🤔 I'm Streaming Hub's shopping assistant. Ask about subscriptions, game topups, or products! 😊\n\n💡 Popular products:\n${list}\n\n💬 Example: "Netflix price?", "I want PUBG UC", "How to order?"`
+  }
+
+  // Ultimate fallback
+  if (isBn) return 'আমি আপনাকে সাহায্য করতে প্রস্তুত! 😊 কী সাবস্ক্রিপশন বা টপআপ লাগবে বলুন! WhatsApp: +8801647236359 📲'
+  if (isBnLatn) return 'Ami apnake sahajjo korte prostut! 😊 Ki subscription ba topup lagbe bolle din! WhatsApp: +8801647236359 📲'
+  return "I'm ready to help! 😊 What subscription or topup would you like? WhatsApp: +8801647236359 📲"
 }
 
 // ─── History Sanitization ───────────────────────────────────────────────────
@@ -616,10 +710,11 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // ── Priority 3: Fallback responses ──
+      // ── Priority 3: Dynamic response generator (uses real product data) ──
       if (!llmContent) {
-        llmProvider = 'fallback'
-        send({ type: 'token', content: getFallback(intent, lang) })
+        llmProvider = 'dynamic'
+        const dynamicResponse = generateDynamicResponse(intent, lang, message)
+        send({ type: 'token', content: dynamicResponse })
       }
 
       // Send structured data
