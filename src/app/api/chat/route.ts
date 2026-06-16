@@ -553,9 +553,13 @@ export async function POST(request: NextRequest) {
 
       const LLM_TIMEOUT_MS = 12000
       let llmContent = ''
+      let llmProvider = 'none'
+      let debugInfo: Record<string, unknown> = {}
 
       // ── Priority 1: ZAI SDK (works in sandbox, no API key needed) ──
       const zai = await getZAI()
+      debugInfo.zaiInstance = !!zai
+      debugInfo.zaiConfigSet = !!process.env.ZAI_CONFIG
       if (zai) {
         try {
           const completion = await withTimeout(
@@ -567,10 +571,13 @@ export async function POST(request: NextRequest) {
             LLM_TIMEOUT_MS,
           )
           llmContent = completion?.choices?.[0]?.message?.content || ''
+          debugInfo.zaiResponseLength = llmContent.length
           if (llmContent) {
+            llmProvider = 'zai'
             send({ type: 'token', content: llmContent })
           }
         } catch (zaiErr) {
+          debugInfo.zaiError = zaiErr instanceof Error ? zaiErr.message : String(zaiErr)
           console.warn('[chat] ZAI failed:', zaiErr instanceof Error ? zaiErr.message : zaiErr)
         }
       }
@@ -578,6 +585,7 @@ export async function POST(request: NextRequest) {
       // ── Priority 2: OpenAI (fallback for Vercel production) ──
       if (!llmContent) {
         const openai = getOpenAI()
+        debugInfo.openaiAvailable = !!openai
         if (openai) {
           try {
             const completion = await withTimeout(
@@ -595,7 +603,9 @@ export async function POST(request: NextRequest) {
                 llmContent += delta
               }
             }
+            if (llmContent) llmProvider = 'openai'
           } catch (oaiErr) {
+            debugInfo.openaiError = oaiErr instanceof Error ? oaiErr.message : String(oaiErr)
             console.warn('[chat] OpenAI failed:', oaiErr instanceof Error ? oaiErr.message : oaiErr)
           }
         }
@@ -603,13 +613,14 @@ export async function POST(request: NextRequest) {
 
       // ── Priority 3: Fallback responses ──
       if (!llmContent) {
+        llmProvider = 'fallback'
         send({ type: 'token', content: getFallback(intent, lang) })
       }
 
       // Send structured data
       if (products.length > 0) send({ type: 'products', products })
       send({ type: 'suggestions', suggestions })
-      send({ type: 'done', whatsappUrl, detectedLang: lang })
+      send({ type: 'done', whatsappUrl, detectedLang: lang, provider: llmProvider, debug: debugInfo })
       controller.close()
     },
   })
