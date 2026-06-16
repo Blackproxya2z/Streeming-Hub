@@ -109,20 +109,18 @@ async function synthesizeWithZAI(
   try {
     const zai = await getZAI()
     const response = await zai.audio.tts.create({
-      text,
-      voice: 'alloy',
+      input: text,
+      voice: 'tongtong',
+      speed: 0.9,
+      response_format: 'mp3',
+      stream: false,
     })
 
-    if (!response?.audio) return null
+    // ZAI TTS returns a standard Response object — use arrayBuffer()
+    const arrayBuffer = await response.arrayBuffer()
+    if (!arrayBuffer || arrayBuffer.byteLength === 0) return null
 
-    // ZAI TTS returns audio as base64 or buffer
-    if (typeof response.audio === 'string') {
-      return Buffer.from(response.audio, 'base64')
-    }
-    if (response.audio instanceof Uint8Array || response.audio instanceof ArrayBuffer) {
-      return Buffer.from(response.audio)
-    }
-    return null
+    return Buffer.from(new Uint8Array(arrayBuffer))
   } catch (err) {
     console.error('[tts] ZAI TTS error:', err instanceof Error ? err.message : err)
     return null
