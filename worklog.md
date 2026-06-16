@@ -252,3 +252,35 @@ Stage Summary:
 - AI chat will now show full PUBG price list with 🪂🪙🎖️ emojis when asked
 - Special UID-based ordering flow: Select pack → Provide PUBG UID → Pay via bKash/Nagad → 5-20 min delivery
 - Both product images generated and saved to public/images/products/
+---
+Task ID: 5
+Agent: Main Agent
+Task: Deploy to Vercel production and verify
+
+Work Log:
+- Pushed 3 local commits to GitHub (2078421..9a4ca63)
+- Updated OPENAI_API_KEY env var on Vercel via API (added preview target)
+- Triggered Vercel production deployment via API
+- Deployment dpl_6RfvRmTzAJd4e8AvzFKhTJ28wFVu: READY/PROMOTED for commit 9a4ca63
+- Verified production site: all sections render, categories, products, chat widget working
+- Found issue: OpenAI API key is region-blocked (unsupported_country_region_territory)
+- Improved getFallback() function in chat/route.ts with 14 intent-specific fallback responses in Bangla/Banglish/English
+- Committed and pushed improved fallback responses (commit ecd8866)
+- GitHub auto-deploy triggered and completed: dpl_HZiutViy9FHCq6Q1ENDQehx9U6np READY/PROMOTED
+- Verified production with Agent Browser: ALL 6 CHECKS PASSED
+  - Homepage loads correctly with all sections
+  - Gaming TopUp category present (7 products)
+  - AI chat widget opens and responds helpfully (no more "Sorry something went wrong")
+  - "PUBG UC price" returns product cards with PUBG Mobile UC TopUp + Royale Pass
+  - "অর্ডার করতে চাই" returns Bengali order instructions with bKash/Nagad info
+  - Footer sticks to bottom correctly
+  - No console errors, no page errors
+
+Stage Summary:
+- ✅ Production deployed at https://streeming-hub-6fm4.vercel.app
+- ✅ All sections working: hero, categories, featured products, why choose us, how to order, FAQ, footer
+- ✅ Gaming TopUp category with PUBG Mobile UC TopUp (13 price options) and Royale Pass (2 price options)
+- ✅ AI chat gives helpful fallback responses in Bangla/Banglish/English based on intent
+- ⚠️ OpenAI API key is region-blocked — AI-generated responses unavailable, using improved fallbacks instead
+- ⚠️ ElevenLabs API key not provided — TTS falls back to browser speechSynthesis
+- User needs valid, globally-accessible OpenAI API key for AI chat and ElevenLabs key for TTS
