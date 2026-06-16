@@ -578,6 +578,11 @@ export async function POST(request: NextRequest) {
           }
         } catch (zaiErr) {
           debugInfo.zaiError = zaiErr instanceof Error ? zaiErr.message : String(zaiErr)
+          // Extract fetch error cause for debugging
+          if (zaiErr instanceof Error && 'cause' in zaiErr) {
+            const cause = (zaiErr as Error & { cause?: unknown }).cause
+            debugInfo.zaiErrorCause = cause instanceof Error ? cause.message : String(cause)
+          }
           console.warn('[chat] ZAI failed:', zaiErr instanceof Error ? zaiErr.message : zaiErr)
         }
       }

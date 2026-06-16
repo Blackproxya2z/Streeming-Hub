@@ -22,7 +22,9 @@ interface Diagnostics {
   zaiChatSuccess?: boolean
   zaiResponse?: string
   zaiError?: string
+  zaiErrorCause?: string
   zaiErrorStack?: string
+  directFetchTest?: Record<string, unknown>
 }
 
 export async function GET() {
@@ -103,7 +105,52 @@ export async function GET() {
     diagnostics.zaiInstanceCreated = false
     diagnostics.zaiChatSuccess = false
     diagnostics.zaiError = e instanceof Error ? e.message : String(e)
+    if (e instanceof Error && 'cause' in e) {
+      const cause = (e as Error & { cause?: unknown }).cause
+      diagnostics.zaiErrorCause = cause instanceof Error ? cause.message : String(cause)
+    }
     diagnostics.zaiErrorStack = e instanceof Error ? e.stack?.substring(0, 500) : undefined
+  }
+
+  // 5. Direct fetch test to ZAI API (bypass SDK)
+  try {
+    const config = envConfig ? JSON.parse(envConfig) : null
+    if (config && config.baseUrl) {
+      const startTime = Date.now()
+      const res = await fetch(`${config.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${config.apiKey}`,
+          'X-Z-AI-From': 'Z',
+          ...(config.chatId ? { 'X-Chat-Id': config.chatId } : {}),
+          ...(config.userId ? { 'X-User-Id': config.userId } : {}),
+          ...(config.token ? { 'X-Token': config.token } : {}),
+        },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'disabled' },
+        }),
+        signal: AbortSignal.timeout(10000),
+      })
+      diagnostics.directFetchTest = {
+        status: res.status,
+        statusText: res.statusText,
+        timeMs: Date.now() - startTime,
+        ok: res.ok,
+      }
+      if (!res.ok) {
+        const text = await res.text()
+        diagnostics.directFetchTest!.errorBody = text.substring(0, 500)
+      }
+    }
+  } catch (e) {
+    diagnostics.directFetchTest = {
+      error: e instanceof Error ? e.message : String(e),
+      cause: e instanceof Error && 'cause' in e
+        ? String((e as Error & { cause?: unknown }).cause)
+        : undefined,
+    }
   }
 
   return NextResponse.json(diagnostics, { headers: { 'Cache-Control': 'no-cache' } })
