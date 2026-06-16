@@ -7,8 +7,33 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 15
 
+interface Diagnostics {
+  envConfigSet: boolean
+  envConfigLength: number
+  envConfigValid?: boolean
+  envConfigKeys?: string[]
+  envConfigBaseUrl?: string
+  envConfigApiKey?: string
+  envConfigError?: string
+  cwd: string
+  homeDir: string
+  configPaths: Record<string, { exists: boolean; length?: number; valid?: boolean; error?: string }>
+  zaiInstanceCreated: boolean
+  zaiChatSuccess?: boolean
+  zaiResponse?: string
+  zaiError?: string
+  zaiErrorStack?: string
+}
+
 export async function GET() {
-  const diagnostics: Record<string, unknown> = {}
+  const diagnostics: Diagnostics = {
+    envConfigSet: false,
+    envConfigLength: 0,
+    cwd: '',
+    homeDir: '',
+    configPaths: {},
+    zaiInstanceCreated: false,
+  }
 
   // 1. Check env var
   const envConfig = process.env.ZAI_CONFIG?.trim()
@@ -36,7 +61,6 @@ export async function GET() {
   ]
   diagnostics.cwd = process.cwd()
   diagnostics.homeDir = homeDir
-  diagnostics.configPaths = {}
   for (const p of configPaths) {
     try {
       const content = await readFile(p, 'utf-8')
