@@ -18,8 +18,14 @@ async function ensureZAIConfig(): Promise<boolean> {
   const zaiConfig = process.env.ZAI_CONFIG
   if (!zaiConfig) return false
   try {
-    const configPath = join(process.cwd(), '.z-ai-config')
-    await writeFile(configPath, zaiConfig, 'utf-8')
+    const configStr = zaiConfig.trim()
+    const tmpPath = join('/tmp', '.z-ai-config')
+    const cwdPath = join(process.cwd(), '.z-ai-config')
+    await writeFile(tmpPath, configStr, 'utf-8').catch(() => {})
+    await writeFile(cwdPath, configStr, 'utf-8').catch(() => {})
+    const homeDir = process.env.HOME || process.env.USERPROFILE || '/tmp'
+    const homePath = join(homeDir, '.z-ai-config')
+    await writeFile(homePath, configStr, 'utf-8').catch(() => {})
     zaiConfigWritten = true
     return true
   } catch {
