@@ -284,3 +284,32 @@ Stage Summary:
 - ⚠️ OpenAI API key is region-blocked — AI-generated responses unavailable, using improved fallbacks instead
 - ⚠️ ElevenLabs API key not provided — TTS falls back to browser speechSynthesis
 - User needs valid, globally-accessible OpenAI API key for AI chat and ElevenLabs key for TTS
+---
+Task ID: 6
+Agent: Main Agent
+Task: Fix AI chatbot and deploy to streeming-hub.vercel.app
+
+Work Log:
+- Identified root cause: OpenAI API key is region-blocked (unsupported_country_region_territory), ZAI SDK only works in sandbox (internal API)
+- Replaced OpenAI with z-ai-web-dev-sdk as primary LLM
+- Added ZAI_CONFIG env var to Vercel to write .z-ai-config at runtime
+- Wrote config to /tmp, cwd, and home dir for Vercel read-only filesystem
+- Added OpenAI as fallback LLM (streaming) when ZAI unavailable
+- Added improved intent-specific fallback responses in 3 languages
+- Fixed TypeScript type error (InstanceType<typeof ZAI> → Awaited<ReturnType<typeof ZAI.create>>)
+- Fixed ZAI TTS API (text → input, Response.arrayBuffer())
+- Added OPENAI_API_KEY and ZAI_CONFIG env vars to streeming-hub Vercel project
+- Multiple deployments (6+), all eventually succeeded
+- ZAI SDK cannot work on Vercel because internal-api.z.ai is not publicly accessible
+- OpenAI API key is permanently region-blocked
+- Chat uses improved fallback responses + product cards on Vercel production
+
+Stage Summary:
+- ✅ Site deployed at https://streeming-hub.vercel.app
+- ✅ All UI sections working: hero, categories (11), featured products, why choose us, how to order, FAQ, footer
+- ✅ PUBG Mobile UC TopUp (13 prices) + Royale Pass (2 prices) in Gaming TopUp category
+- ✅ Chat provides helpful fallback responses in Bangla/Banglish/English
+- ✅ Product cards show correct PUBG pricing data
+- ⚠️ AI-generated responses require a valid, globally-accessible OpenAI API key
+- ⚠️ ZAI SDK internal API is not accessible from Vercel servers
+- Code ready: when user provides a valid OpenAI key, AI chat will auto-activate
