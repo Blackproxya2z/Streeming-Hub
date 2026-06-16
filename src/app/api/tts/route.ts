@@ -1,26 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
+import ZAI from 'z-ai-web-dev-sdk'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 15
 
-// ─── OpenAI Client (lazy init to avoid build-time crash) ──────────────────────
+// ─── ZAI Singleton ──────────────────────────────────────────────────────────
 
-let openaiClient: OpenAI | null = null
-function getOpenAI(): OpenAI {
-  if (!openaiClient) {
-    openaiClient = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-build',
-      timeout: 12_000,
-      maxRetries: 1,
-    })
-  }
-  return openaiClient
+let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null
+async function getZAI() {
+  if (!zaiInstance) zaiInstance = await ZAI.create()
+  return zaiInstance
 }
 
 // ─── TTS Text Cleanup ────────────────────────────────────────────────────────
-// Cleans markdown, emojis, and replaces terms for natural Bengali speech
 
 function cleanTextForTTS(text: string, lang?: string): string {
   let clean = text
@@ -48,10 +41,6 @@ function cleanTextForTTS(text: string, lang?: string): string {
     .replace(/\s+/g, ' ')
     .trim()
 
-  // For Banglish mode, if the text contains Bangla script and Banglish is requested,
-  // we could transliterate, but for now we keep as-is since ElevenLabs handles it well.
-  // The chat API already generates Banglish text for Banglish mode.
-
   // Summarize long text for TTS: keep first 2-4 sentences (max ~300 chars)
   if (clean.length > 350) {
     const sentences = clean.match(/[^।\.\!\?]+[।\.\!\?]+/g)
@@ -75,7 +64,6 @@ async function synthesizeWithElevenLabs(
   const voiceId = process.env.ELEVENLABS_VOICE_ID
 
   if (!apiKey || !voiceId) {
-    console.warn('ElevenLabs API key or Voice ID not configured, skipping')
     return null
   }
 
@@ -98,62 +86,45 @@ async function synthesizeWithElevenLabs(
             style: 0.3,
             use_speaker_boost: true,
           },
-          // Language hint for better pronunciation
           language_code: lang === 'english' ? 'en' : 'bn',
         }),
       },
     )
 
-    if (!response.ok) {
-      const errBody = await response.text().catch(() => '')
-      console.error(`ElevenLabs TTS error (${response.status}): ${errBody}`)
-      return null
-    }
+    if (!response.ok) return null
 
     const arrayBuffer = await response.arrayBuffer()
     return Buffer.from(arrayBuffer)
-  } catch (err) {
-    console.error('ElevenLabs TTS exception:', err)
+  } catch {
     return null
   }
 }
 
-// ─── OpenAI TTS (BACKUP) ─────────────────────────────────────────────────────
+// ─── ZAI TTS (BACKUP — uses z-ai-web-dev-sdk) ──────────────────────────────
 
-async function synthesizeWithOpenAI(
+async function synthesizeWithZAI(
   text: string,
-  lang?: string,
+  _lang?: string,
 ): Promise<Buffer | null> {
-  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'dummy-key-for-build') {
-    console.warn('OpenAI API key not configured, skipping OpenAI TTS')
-    return null
-  }
-
   try {
-    const openai = getOpenAI()
-
-    // Build instructions for voice style based on language
-    const instructionsByLang: Record<string, string> = {
-      bangla: 'Speak in a warm, friendly, polite Bangladeshi female sales representative voice. Pronounce Bengali clearly and naturally. Use a moderate pace — not too fast, not too slow. Add natural pauses between sentences. Sound professional yet approachable, like a customer support agent who genuinely wants to help.',
-      banglish: 'Speak in Romanized Bengali (Banglish) with a warm, friendly, polite Bangladeshi female tone. Pronounce each word clearly. Use a moderate pace so every word is understandable. Sound professional yet approachable, like a helpful sales representative.',
-      english: 'Speak in a warm, friendly, polite female voice with a slight South Asian accent. Pronounce everything clearly. Use a moderate pace. Sound professional yet approachable, like a helpful sales representative.',
-    }
-
-    const instructions = instructionsByLang[lang || 'bangla'] || instructionsByLang.bangla
-
-    const response = await openai.audio.speech.create({
-      model: 'gpt-4o-mini-tts',
-      voice: 'shimmer', // Female voice, clear and warm
-      input: text,
-      instructions,
-      response_format: 'mp3',
-      speed: 0.9, // Slightly slower for clarity
+    const zai = await getZAI()
+    const response = await zai.audio.tts.create({
+      text,
+      voice: 'alloy',
     })
 
-    const arrayBuffer = await response.arrayBuffer()
-    return Buffer.from(arrayBuffer)
+    if (!response?.audio) return null
+
+    // ZAI TTS returns audio as base64 or buffer
+    if (typeof response.audio === 'string') {
+      return Buffer.from(response.audio, 'base64')
+    }
+    if (response.audio instanceof Uint8Array || response.audio instanceof ArrayBuffer) {
+      return Buffer.from(response.audio)
+    }
+    return null
   } catch (err) {
-    console.error('OpenAI TTS exception:', err)
+    console.error('[tts] ZAI TTS error:', err instanceof Error ? err.message : err)
     return null
   }
 }
@@ -187,22 +158,21 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // ── Priority 2: OpenAI TTS ──
-    const openaiAudio = await synthesizeWithOpenAI(cleanText, lang)
-    if (openaiAudio) {
-      return new NextResponse(new Uint8Array(openaiAudio), {
+    // ── Priority 2: ZAI TTS ──
+    const zaiAudio = await synthesizeWithZAI(cleanText, lang)
+    if (zaiAudio) {
+      return new NextResponse(new Uint8Array(zaiAudio), {
         status: 200,
         headers: {
           'Content-Type': 'audio/mpeg',
-          'Content-Length': String(openaiAudio.length),
+          'Content-Length': String(zaiAudio.length),
           'Cache-Control': 'public, max-age=300',
-          'X-TTS-Provider': 'openai',
+          'X-TTS-Provider': 'zai',
         },
       })
     }
 
     // ── Priority 3: Browser TTS fallback hint ──
-    // Both server-side TTS failed — tell client to use browser speechSynthesis
     return NextResponse.json(
       { error: 'Server TTS unavailable', fallback: true },
       { status: 503 },

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import OpenAI from 'openai'
+import ZAI from 'z-ai-web-dev-sdk'
 import { searchProducts, searchByCategory, getFeaturedProducts, getCatalogSummary, findSpecificProduct, findRelatedProducts, type Product } from '@/lib/data'
 import { hasRestrictedAccessFromRequest, isRestrictedProduct } from '@/lib/restricted'
 
@@ -7,7 +7,7 @@ import { hasRestrictedAccessFromRequest, isRestrictedProduct } from '@/lib/restr
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 10
+export const maxDuration = 15
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -17,18 +17,12 @@ interface ProductCard { id: string; name: string; slug: string; image: string | 
 interface ChatMessage { role: 'system' | 'user' | 'assistant'; content: string }
 interface PriceOption { label?: string; priceBDT?: string }
 
-// ─── OpenAI Client (lazy init to avoid build-time crash) ──────────────────────
+// ─── ZAI Singleton (z-ai-web-dev-sdk — no API key needed!) ──────────────────
 
-let openaiClient: OpenAI | null = null
-function getOpenAI(): OpenAI {
-  if (!openaiClient) {
-    openaiClient = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-build',
-      timeout: 8_000,
-      maxRetries: 1,
-    })
-  }
-  return openaiClient
+let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null
+async function getZAI() {
+  if (!zaiInstance) zaiInstance = await ZAI.create()
+  return zaiInstance
 }
 
 // ─── Timeout Utility ─────────────────────────────────────────────────────────
@@ -250,12 +244,11 @@ function collectProducts(intent: Intent, userMsg: string, hasRestrictedAccess: b
 function buildSystemPrompt(intent: Intent, lang: Language, userMsg: string): string {
   const ctx = buildProductContext(intent, userMsg)
   const langMap: Record<Language, string> = { bangla: 'You MUST respond in Bengali script (বাংলা). Write everything in proper Bengali.', banglish: 'You MUST respond in Banglish (Romanized Bengali). Example: "apnar jonno", "kinte chai", "onek valo".', english: 'You MUST respond in English.' }
-  return `You are an extremely polite, warm, and professional female AI Sales & Customer Support Representative for **Streaming Hub** (https://streeming-hub.vercel.app/). Your voice and text tone must reflect a gentle, welcoming, and well-mannered Bangladeshi woman (একটি মিষ্টি, নম্র ও পরিমার্জিত বাংলাদেশী নারী কণ্ঠের পরিপক্কতা থাকতে হবে).
+  return `You are an extremely polite, warm, and professional female AI Sales & Customer Support Representative for **Streaming Hub** (https://streeming-hub.vercel.app/). Your voice and text tone must reflect a gentle, welcoming, and well-mannered Bangladeshi woman.
 
 == IDENTITY & PERSONA ==
 - You are a cute, sweet, polite Bangladeshi call center girl — speak like a real person, warm and motherly
 - Name: কর্মচারী (you can also say "আমি আপনার সাহায্যকারী")
-- Your voice/tone must be gentle, welcoming, and professionally mature like a well-trained Bangladeshi call center representative
 - Always be extremely polite — use "আপনি", "বলুন", "করুন" — never informal language
 - Convert conversations into sales naturally, softly, never pushy
 - Use emojis sparingly but warmly (🎬🤖🔒🎮🎁📂💰📦🚚💳⚡💡🔥⭐✨😊🙏)
@@ -275,39 +268,33 @@ function buildSystemPrompt(intent: Intent, lang: Language, userMsg: string): str
 ${langMap[lang]}
 - Detected: ${lang}. Mix English brand names naturally. Use "Assalamu Alaikum" for Bangla/Banglish greetings.
 - IMPORTANT: Use 'টাকা' instead of 'TK' or 'BDT' — always say "টাকা" for currency
-- Keep answers brief, welcoming, and sweet so that the voice model sounds very natural, professional, and comforting when speaking to a customer
+- Keep answers brief, welcoming, and sweet
 
 == SMART MATCHING RULE ==
-If a customer asks about any subscription (e.g., "Netflix আছে?", "স্পটিফাই কত?", "YouTube Premium এর দাম কত?"), always look at the PRODUCT DATA below and reply with the exact prices clearly and beautifully in Bengali. Do NOT hallucinate or make up prices.
+If a customer asks about any subscription, always look at the PRODUCT DATA below and reply with the exact prices clearly. Do NOT hallucinate or make up prices.
 
 == PRODUCT DATA (NEVER FABRICATE — USE ONLY THIS) ==
 ${ctx}
 
-== CONVERSATIONAL PRODUCT STYLE (VERY IMPORTANT) ==
-When talking about products, you MUST:
-1. **Describe products conversationally** — like a real sweet Bangladeshi saleswoman would talk to a customer on the phone
-2. **Mention ALL variants/plans with prices** — Example: "Amazon Prime Video er 2 ta plan ache — 6 mahoner jonno 550 টাকা, ar 12 mahoner jonno 1000 টাকা"
-3. **Always say "inbox for offers"** — After showing prices, say something like "offer paite inbox korun" or "best price er jonno amader inbox korun"
-4. **NEVER say "Order Now" or "Buy Now"** — Instead, softly suggest: "chaile order korte paren", "lagle bolle din", "inbox korun order er jonno"
-5. **If price is "Inbox Price" or "Low Price"** — Say: "eita inbox price, best price er jonno amader inbox korun"
+== CONVERSATIONAL PRODUCT STYLE ==
+1. Describe products conversationally — like a real sweet Bangladeshi saleswoman
+2. Mention ALL variants/plans with prices
+3. Always say "inbox for offers" after showing prices
+4. NEVER say "Order Now" or "Buy Now" — softly suggest: "chaile order korte paren"
+5. If price is "Inbox Price" — Say: "best price er jonno amader inbox korun"
 
-== ORDERING & CHECKOUT PROCESS (Strict Steps) ==
-When a customer decides to buy (says "নিব", "অর্ডার করেন", "বিকাশ নম্বর দেন" or shows intent to purchase):
-1. **Ask for Details**: Politely ask for their Name and WhatsApp Number where the subscription login access will be delivered.
-2. **Payment Info**: Inform them about the total price and provide bKash/Nagad payment instructions. Ask them to give the last 3 digits of the Transaction ID or a screenshot once paid.
-3. **Confirmation**: Tell them: "ধন্যবাদ, আপনার পেমেন্টটি পেয়েছি। আগামী ৫ থেকে ২০ মিনিটের মধ্যে আপনার দেওয়া হোয়াটসঅ্যাপ নম্বরে সাবস্ক্রিপশন ডিটেইলস পাঠিয়ে দেওয়া হচ্ছে।"
+== ORDERING & CHECKOUT PROCESS ==
+When customer decides to buy:
+1. Ask for Details: Name and WhatsApp Number
+2. Payment Info: bKash/Nagad payment instructions (01647236359). Ask for TrxID or screenshot.
+3. Confirmation: "ধন্যবাদ, আপনার পেমেন্টটি পেয়েছি। ৫-২০ মিনিটে ডেলিভারি হবে।"
 
-== 🪂 PUBG MOBILE TOPUP — SPECIAL ORDERING RULES ==
-When a customer asks about PUBG UC topup, Royale Pass, or any PUBG Mobile purchase:
-1. **Show Full Price List**: Always present the PUBG UC price list in a beautiful, gaming-themed format with 🪂🪙🎖️ emojis. Show ALL packs clearly with prices.
-2. **UID Required**: PUBG topup requires the customer's PUBG Player UID (Character ID) — NOT their login/email/password. It's 100% safe in-game UID topup, no account login needed!
-3. **Ordering Steps for PUBG**:
-   - Step 1: Customer selects which UC pack or Royale Pass they want
-   - Step 2: Ask for their PUBG Player UID (Character ID) — explain it's safe, no login needed
-   - Step 3: Confirm the pack name, price, and UID back to the customer
-   - Step 4: Give bKash/Nagad payment number (01647236359) and ask for payment
-   - Step 5: After payment confirmation, tell them UC will be delivered in 5-20 minutes in-game
-4. **Price List Format** (use this when asked about PUBG prices):
+== 🪂 PUBG MOBILE TOPUP — SPECIAL RULES ==
+When asked about PUBG:
+1. Show Full Price List with 🪂🪙🎖️ emojis
+2. UID Required — NOT login/email. 100% safe in-game topup!
+3. Order Steps: Select pack → Provide PUBG UID → Pay bKash/Nagad → 5-20 min delivery
+4. Price List:
    🪂 PUBG MOBILE UC PRICE LIST 🪂
    🪙 30 UC — 59 টাকা
    🪙 60 UC — 119 টাকা
@@ -324,35 +311,25 @@ When a customer asks about PUBG UC topup, Royale Pass, or any PUBG Mobile purcha
    🪙 81000 UC (60000+21000 Bonus) — 110009 টাকা
    🎖️ Royale Pass (Lv.50) — 750 টাকা
    🎖️ Royale Pass (Lv.100) — 1360 টাকা
-5. **Safety Reassurance**: Always mention "100% Safe & Official In-Game UID TopUp — No Account Login Required!"
-6. **Payment**: bKash/Nagad to 01647236359, then send TrxID on WhatsApp
+5. Safety: "100% Safe & Official In-Game UID TopUp — No Account Login Required!"
+6. Payment: bKash/Nagad to 01647236359
 
-== RESPONSE GUIDELINES & TONE ==
-1. Language: Always speak in beautiful, standard Bengali (শুদ্ধ বাংলা ভাষা). Use 'টাকা' instead of 'TK' or 'BDT'.
-2. Layout: Keep answers brief, welcoming, and sweet so that the voice model sounds very natural, professional, and comforting.
-3. Trust: Always reassure customers that we provide fast delivery (5-20 minutes) and full duration warranty.
-
-== RULES ==
-1. NEVER fabricate products/prices — Only use PRODUCT DATA above
-2. Always include EXACT prices (৳) from data — mention each variant, use 'টাকা' in speech
-3. Show ALL pricing options for products — never skip variants
-4. Be sales-oriented — naturally and softly suggest ordering (NOT "Order Now")
-5. Order process: bKash/Nagad 01647236359 → TrxID on WhatsApp → 5-20 min delivery
-6. PIN inquiries: PIN is 69, for Verified Premium, keep from minors
-7. Greetings: Welcome warmly with "Assalamu Alaikum", introduce yourself sweetly
-8. Comparisons: Compare features/prices, give recommendation
-9. Out-of-scope: Gently redirect to Streaming Hub
-10. Mention warranty & delivery for products
-11. "Inbox Price"/"Low Price" → tell user to contact for best price
-12. DO NOT use "Order Now" or "Buy Now" language — use conversational language instead
-13. When customer wants to order, follow the ORDERING & CHECKOUT PROCESS steps above`
+== RESPONSE GUIDELINES ==
+1. Use 'টাকা' instead of 'TK' or 'BDT'
+2. Keep answers brief and sweet
+3. Reassure about fast delivery and warranty
+4. NEVER fabricate products/prices — Only use PRODUCT DATA above
+5. Be sales-oriented — naturally suggest ordering
+6. Greetings: "Assalamu Alaikum", introduce yourself sweetly
+7. "Inbox Price" → tell user to contact for best price
+8. DO NOT use "Order Now" language — use conversational language`
 }
 
 // ─── Smart Suggestions ──────────────────────────────────────────────────────
 
 function generateSuggestions(intent: Intent, lang: Language): string[] {
   const m: Record<string, Record<Language, string[]>> = {
-    greeting: { bangla: ['ইন্টারনেট প্যাকেজ দেখুন', 'সেরা অফার কী?'], banglish: ['Internet package dekhao', 'Best offer ki?'], english: ['Show internet packages', 'What are the best offers?'] },
+    greeting: { bangla: ['প্রাইস লিস্ট দেখুন', 'সেরা অফার কী?'], banglish: ['Price list dekhao', 'Best offer ki?'], english: ['Show price list', 'What are the best offers?'] },
     specific_product: { bangla: ['নিতে চাইলে বলুন', 'অন্য প্ল্যান দেখুন'], banglish: ['Nite chaile bolle din', 'Onno plan dekhao'], english: ['I want this', 'View other plans'] },
     price_inquiry: { bangla: ['নিতে চাইলে বলুন', 'সস্তা প্যাকেজ দেখুন'], banglish: ['Nite chaile bolle din', 'Sasta package dekhao'], english: ['I want this', 'Show cheaper plans'] },
     category: { bangla: ['জনপ্রিয় প্যাকেজ', 'সেরা দাম'], banglish: ['Popular package', 'Best price'], english: ['Popular packages', 'Best prices'] },
@@ -371,7 +348,7 @@ function generateSuggestions(intent: Intent, lang: Language): string[] {
   return m[intent]?.[lang] ?? m.out_of_scope[lang]
 }
 
-// ─── Minimal Fallbacks ──────────────────────────────────────────────────────
+// ─── Fallback Responses (when LLM is unavailable) ───────────────────────────
 
 function getFallback(intent: Intent, lang: Language): string {
   const fallbacks: Record<Intent, Record<Language, string>> = {
@@ -431,9 +408,9 @@ function getFallback(intent: Intent, lang: Language): string {
       english: 'Goodbye! 👋 Come again! Anytime WhatsApp: +8801647236359 📲',
     },
     pin_inquiry: {
-      bangla: '🔒 কিছু প্রোডাক্ট এডাল্ট ক্যাটাগরির, যেগুলো দেখতে PIN লাগে। PIN জানতে WhatsApp এ যোগাযোগ করুন: +8801647236359 📲',
-      banglish: '🔒 Kichu product adult category r, jegulo dekhte PIN lage. PIN jante WhatsApp e jogajog korun: +8801647236359 📲',
-      english: '🔒 Some products are in the adult category, requiring a PIN. Contact WhatsApp for PIN: +8801647236359 📲',
+      bangla: '🔒 PIN: 69 — এটা Verified Premium সেকশনের জন্য। অনুগ্রহ করে শিশুদের থেকে গোপন রাখবেন। 📲',
+      banglish: '🔒 PIN: 69 — Eita Verified Premium section er jonno. Onugrah kore shishuder theke gopon rakhen. 📲',
+      english: '🔒 PIN: 69 — For the Verified Premium section. Please keep it private from minors. 📲',
     },
     search: {
       bangla: '🔍 আপনার সার্চের ফলাফল নিচে দেখুন! পছন্দের প্রোডাক্ট অর্ডার করতে "কিনতে চাই" ক্লিক করুন 🛒',
@@ -463,7 +440,7 @@ function sanitizeHistory(history: ChatMessage[]): ChatMessage[] {
     .slice(-10)
 }
 
-// ─── POST Handler (SSE Streaming with OpenAI) ──────────────────────────────
+// ─── POST Handler (SSE Streaming with z-ai-web-dev-sdk) ────────────────────
 
 export async function POST(request: NextRequest) {
   let body: { message?: string; history?: ChatMessage[]; sessionId?: string }
@@ -480,10 +457,10 @@ export async function POST(request: NextRequest) {
   const whatsappUrl = buildWhatsAppUrl({})
   const systemPrompt = buildSystemPrompt(intent, lang, message)
 
-  // Sanitize history: only allow system/user/assistant roles, latest 8-10 messages, remove empty content
+  // Build ZAI message format — system prompt as 'assistant' role per ZAI SDK convention
   const cleanHistory = sanitizeHistory(history)
-  const messages: OpenAI.ChatCompletionMessageParam[] = [
-    { role: 'system', content: systemPrompt },
+  const zaiMessages: Array<{ role: 'assistant' | 'user'; content: string }> = [
+    { role: 'assistant', content: systemPrompt },
     ...cleanHistory.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     { role: 'user', content: message },
   ]
@@ -493,62 +470,29 @@ export async function POST(request: NextRequest) {
       const enc = new TextEncoder()
       const send = (data: Record<string, unknown>) => controller.enqueue(enc.encode(`data: ${JSON.stringify(data)}\n\n`))
 
-      // All LLM calls are wrapped with an 8-second timeout to prevent
-      // long hangs when the external API is unreachable.
-      const LLM_TIMEOUT_MS = 8000
+      const LLM_TIMEOUT_MS = 12000
       let llmContent = ''
 
       try {
-        // Try streaming with OpenAI (with timeout)
-        try {
-          const completion = await withTimeout(
-            getOpenAI().chat.completions.create({
-              model: 'gpt-4o-mini',
-              messages,
-              stream: true,
-            }),
-            LLM_TIMEOUT_MS,
-          )
+        // Try ZAI SDK (no API key needed!)
+        const zai = await getZAI()
+        const completion = await withTimeout(
+          zai.chat.completions.create({
+            messages: zaiMessages,
+            stream: false,
+            thinking: { type: 'disabled' },
+          }),
+          LLM_TIMEOUT_MS,
+        )
 
-          // Use for-await-of loop over the async iterable stream
-          for await (const chunk of completion) {
-            const delta = chunk.choices?.[0]?.delta?.content
-            if (delta) {
-              send({ type: 'token', content: delta })
-              llmContent += delta
-            }
-          }
-        } catch (streamErr) {
-          // If streaming timed out, the API is unreachable — skip non-streaming attempt
-          // and go straight to fallback (avoids another wait)
-          if (streamErr instanceof Error && streamErr.message === 'LLM_TIMEOUT') {
-            send({ type: 'token', content: getFallback(intent, lang) })
-          } else {
-            // Non-timeout error — try non-streaming as fallback
-            try {
-              const completion = await withTimeout(
-                getOpenAI().chat.completions.create({
-                  model: 'gpt-4o-mini',
-                  messages,
-                  stream: false,
-                }),
-                LLM_TIMEOUT_MS,
-              )
-              llmContent = completion?.choices?.[0]?.message?.content || ''
-            } catch {
-              llmContent = ''
-            }
-            if (llmContent) send({ type: 'token', content: llmContent })
-            else send({ type: 'token', content: getFallback(intent, lang) })
-          }
+        llmContent = completion?.choices?.[0]?.message?.content || ''
+        if (llmContent) {
+          send({ type: 'token', content: llmContent })
+        } else {
+          send({ type: 'token', content: getFallback(intent, lang) })
         }
-
-        // If streaming succeeded but produced no content, send fallback
-        if (!llmContent) {
-          // Already handled in the catch block or streaming produced nothing
-        }
-      } catch {
-        // Top-level error (e.g. OpenAI client init failure) — send fallback immediately
+      } catch (err) {
+        console.error('[chat] LLM error:', err instanceof Error ? err.message : err)
         send({ type: 'token', content: getFallback(intent, lang) })
       }
 
