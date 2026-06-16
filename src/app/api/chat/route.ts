@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import ZAI from 'z-ai-web-dev-sdk'
+import OpenAI from 'openai'
 import { searchProducts, searchByCategory, getFeaturedProducts, getCatalogSummary, findSpecificProduct, findRelatedProducts, type Product } from '@/lib/data'
 import { hasRestrictedAccessFromRequest, isRestrictedProduct } from '@/lib/restricted'
 
@@ -17,12 +18,24 @@ interface ProductCard { id: string; name: string; slug: string; image: string | 
 interface ChatMessage { role: 'system' | 'user' | 'assistant'; content: string }
 interface PriceOption { label?: string; priceBDT?: string }
 
-// ─── ZAI Singleton (z-ai-web-dev-sdk — no API key needed!) ──────────────────
+// ─── ZAI Singleton (primary — works in sandbox, no API key needed) ─────────
 
 let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null
 async function getZAI() {
   if (!zaiInstance) zaiInstance = await ZAI.create()
   return zaiInstance
+}
+
+// ─── OpenAI Client (fallback for Vercel production) ──────────────────────────
+
+let openaiClient: OpenAI | null = null
+function getOpenAI(): OpenAI | null {
+  const key = process.env.OPENAI_API_KEY
+  if (!key || key === 'dummy-key-for-build') return null
+  if (!openaiClient) {
+    openaiClient = new OpenAI({ apiKey: key, timeout: 8_000, maxRetries: 1 })
+  }
+  return openaiClient
 }
 
 // ─── Timeout Utility ─────────────────────────────────────────────────────────
@@ -457,10 +470,17 @@ export async function POST(request: NextRequest) {
   const whatsappUrl = buildWhatsAppUrl({})
   const systemPrompt = buildSystemPrompt(intent, lang, message)
 
-  // Build ZAI message format — system prompt as 'assistant' role per ZAI SDK convention
+  // Build message arrays for both SDKs
   const cleanHistory = sanitizeHistory(history)
+  // ZAI uses 'assistant' role for system prompt
   const zaiMessages: Array<{ role: 'assistant' | 'user'; content: string }> = [
     { role: 'assistant', content: systemPrompt },
+    ...cleanHistory.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+    { role: 'user', content: message },
+  ]
+  // OpenAI uses 'system' role
+  const openaiMessages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: 'system', content: systemPrompt },
     ...cleanHistory.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     { role: 'user', content: message },
   ]
@@ -473,8 +493,8 @@ export async function POST(request: NextRequest) {
       const LLM_TIMEOUT_MS = 12000
       let llmContent = ''
 
+      // ── Priority 1: ZAI SDK (works in sandbox, no API key needed) ──
       try {
-        // Try ZAI SDK (no API key needed!)
         const zai = await getZAI()
         const completion = await withTimeout(
           zai.chat.completions.create({
@@ -484,15 +504,40 @@ export async function POST(request: NextRequest) {
           }),
           LLM_TIMEOUT_MS,
         )
-
         llmContent = completion?.choices?.[0]?.message?.content || ''
         if (llmContent) {
           send({ type: 'token', content: llmContent })
-        } else {
-          send({ type: 'token', content: getFallback(intent, lang) })
         }
-      } catch (err) {
-        console.error('[chat] LLM error:', err instanceof Error ? err.message : err)
+      } catch (zaiErr) {
+        console.warn('[chat] ZAI failed:', zaiErr instanceof Error ? zaiErr.message : zaiErr)
+
+        // ── Priority 2: OpenAI (fallback for Vercel production) ──
+        const openai = getOpenAI()
+        if (openai) {
+          try {
+            const completion = await withTimeout(
+              openai.chat.completions.create({
+                model: 'gpt-4o-mini',
+                messages: openaiMessages,
+                stream: true,
+              }),
+              LLM_TIMEOUT_MS,
+            )
+            for await (const chunk of completion) {
+              const delta = chunk.choices?.[0]?.delta?.content
+              if (delta) {
+                send({ type: 'token', content: delta })
+                llmContent += delta
+              }
+            }
+          } catch (oaiErr) {
+            console.warn('[chat] OpenAI failed:', oaiErr instanceof Error ? oaiErr.message : oaiErr)
+          }
+        }
+      }
+
+      // ── Priority 3: Fallback responses ──
+      if (!llmContent) {
         send({ type: 'token', content: getFallback(intent, lang) })
       }
 
