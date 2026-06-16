@@ -20,63 +20,62 @@ interface PriceOption { label?: string; priceBDT?: string }
 
 // ─── ZAI Singleton (primary — uses .z-ai-config or ZAI_CONFIG env) ──────────
 
-import { writeFile } from 'fs/promises'
+import { readFile } from 'fs/promises'
 import { join } from 'path'
 
 let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null
-let zaiConfigWritten = false
+let zaiInitFailed = false
 
-async function ensureZAIConfig(): Promise<boolean> {
-  if (zaiConfigWritten) return true
-  try {
-    // 1. Try ZAI_CONFIG env var first (works on Vercel)
-    let configStr = process.env.ZAI_CONFIG?.trim()
-
-    // 2. If no env var, try reading from /etc/.z-ai-config (sandbox)
-    if (!configStr) {
-      try {
-        const { readFile } = await import('fs/promises')
-        configStr = (await readFile('/etc/.z-ai-config', 'utf-8')).trim()
-      } catch { /* not in sandbox */ }
-    }
-
-    // 3. If no env var, try reading from cwd
-    if (!configStr) {
-      try {
-        const { readFile } = await import('fs/promises')
-        configStr = (await readFile(join(process.cwd(), '.z-ai-config'), 'utf-8')).trim()
-      } catch { /* not in cwd */ }
-    }
-
-    if (!configStr) return false
-
-    // Write .z-ai-config to all locations the SDK checks
-    const paths = [
-      join('/tmp', '.z-ai-config'),
-      join(process.cwd(), '.z-ai-config'),
-    ]
-    const homeDir = process.env.HOME || process.env.USERPROFILE || '/tmp'
-    paths.push(join(homeDir, '.z-ai-config'))
-
-    for (const p of paths) {
-      await writeFile(p, configStr!, 'utf-8').catch(() => {})
-    }
-    zaiConfigWritten = true
-    return true
-  } catch {
-    return false
+async function loadZAIConfig(): Promise<{
+  baseUrl: string
+  apiKey: string
+  chatId?: string
+  userId?: string
+  token?: string
+} | null> {
+  // 1. Try ZAI_CONFIG env var first (works on Vercel — no filesystem needed)
+  const envConfig = process.env.ZAI_CONFIG?.trim()
+  if (envConfig) {
+    try {
+      const parsed = JSON.parse(envConfig)
+      if (parsed.baseUrl && parsed.apiKey) return parsed
+    } catch { /* invalid JSON */ }
   }
+
+  // 2. Try reading from filesystem (works in sandbox)
+  const homeDir = process.env.HOME || process.env.USERPROFILE || '/tmp'
+  const configPaths = [
+    join(process.cwd(), '.z-ai-config'),
+    join(homeDir, '.z-ai-config'),
+    '/etc/.z-ai-config',
+  ]
+  for (const filePath of configPaths) {
+    try {
+      const configStr = await readFile(filePath, 'utf-8')
+      const parsed = JSON.parse(configStr)
+      if (parsed.baseUrl && parsed.apiKey) return parsed
+    } catch { /* try next path */ }
+  }
+
+  return null
 }
 
 async function getZAI(): Promise<Awaited<ReturnType<typeof ZAI.create>> | null> {
+  if (zaiInitFailed) return null
   try {
     if (!zaiInstance) {
-      await ensureZAIConfig()
-      zaiInstance = await ZAI.create()
+      const config = await loadZAIConfig()
+      if (!config) {
+        zaiInitFailed = true
+        return null
+      }
+      // Bypass ZAI.create() (which reads filesystem) and instantiate directly
+      // This works on Vercel where the filesystem is read-only
+      zaiInstance = new ZAI(config)
     }
     return zaiInstance
   } catch {
-    // ZAI.create() fails if .z-ai-config is missing and ZAI_CONFIG env not set
+    zaiInitFailed = true
     return null
   }
 }
