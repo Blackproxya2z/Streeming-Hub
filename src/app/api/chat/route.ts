@@ -41,7 +41,7 @@ async function ensureZAIConfig(): Promise<boolean> {
   }
 }
 
-async function getZAI(): Promise<InstanceType<typeof ZAI> | null> {
+async function getZAI(): Promise<Awaited<ReturnType<typeof ZAI.create>> | null> {
   try {
     if (!zaiInstance) {
       await ensureZAIConfig()
