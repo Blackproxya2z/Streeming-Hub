@@ -71,3 +71,4 @@ generation_*.txt
 exported-data.json
 worklog.md
 upload/
+tool-results/

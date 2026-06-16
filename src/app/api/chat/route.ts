@@ -20,7 +20,7 @@ interface PriceOption { label?: string; priceBDT?: string }
 
 // ─── ZAI Singleton (primary — uses .z-ai-config or ZAI_CONFIG env) ──────────
 
-import { writeFile, mkdir } from 'fs/promises'
+import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
 let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null
@@ -28,19 +28,39 @@ let zaiConfigWritten = false
 
 async function ensureZAIConfig(): Promise<boolean> {
   if (zaiConfigWritten) return true
-  const zaiConfig = process.env.ZAI_CONFIG
-  if (!zaiConfig) return false
   try {
-    // Write .z-ai-config to /tmp (writable on Vercel) and cwd
-    const configStr = zaiConfig.trim()
-    const tmpPath = join('/tmp', '.z-ai-config')
-    const cwdPath = join(process.cwd(), '.z-ai-config')
-    await writeFile(tmpPath, configStr, 'utf-8').catch(() => {})
-    await writeFile(cwdPath, configStr, 'utf-8').catch(() => {})
-    // Also try home dir
+    // 1. Try ZAI_CONFIG env var first (works on Vercel)
+    let configStr = process.env.ZAI_CONFIG?.trim()
+
+    // 2. If no env var, try reading from /etc/.z-ai-config (sandbox)
+    if (!configStr) {
+      try {
+        const { readFile } = await import('fs/promises')
+        configStr = (await readFile('/etc/.z-ai-config', 'utf-8')).trim()
+      } catch { /* not in sandbox */ }
+    }
+
+    // 3. If no env var, try reading from cwd
+    if (!configStr) {
+      try {
+        const { readFile } = await import('fs/promises')
+        configStr = (await readFile(join(process.cwd(), '.z-ai-config'), 'utf-8')).trim()
+      } catch { /* not in cwd */ }
+    }
+
+    if (!configStr) return false
+
+    // Write .z-ai-config to all locations the SDK checks
+    const paths = [
+      join('/tmp', '.z-ai-config'),
+      join(process.cwd(), '.z-ai-config'),
+    ]
     const homeDir = process.env.HOME || process.env.USERPROFILE || '/tmp'
-    const homePath = join(homeDir, '.z-ai-config')
-    await writeFile(homePath, configStr, 'utf-8').catch(() => {})
+    paths.push(join(homeDir, '.z-ai-config'))
+
+    for (const p of paths) {
+      await writeFile(p, configStr!, 'utf-8').catch(() => {})
+    }
     zaiConfigWritten = true
     return true
   } catch {
