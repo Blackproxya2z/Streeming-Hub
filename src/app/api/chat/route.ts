@@ -18,12 +18,40 @@ interface ProductCard { id: string; name: string; slug: string; image: string | 
 interface ChatMessage { role: 'system' | 'user' | 'assistant'; content: string }
 interface PriceOption { label?: string; priceBDT?: string }
 
-// ─── ZAI Singleton (primary — works in sandbox, no API key needed) ─────────
+// ─── ZAI Singleton (primary — uses .z-ai-config or ZAI_CONFIG env) ──────────
+
+import { writeFile, mkdir } from 'fs/promises'
+import { join } from 'path'
 
 let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null
-async function getZAI() {
-  if (!zaiInstance) zaiInstance = await ZAI.create()
-  return zaiInstance
+let zaiConfigWritten = false
+
+async function ensureZAIConfig(): Promise<boolean> {
+  if (zaiConfigWritten) return true
+  const zaiConfig = process.env.ZAI_CONFIG
+  if (!zaiConfig) return false
+  try {
+    // Write .z-ai-config to cwd so ZAI SDK can find it
+    const configPath = join(process.cwd(), '.z-ai-config')
+    await writeFile(configPath, zaiConfig, 'utf-8')
+    zaiConfigWritten = true
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function getZAI(): Promise<InstanceType<typeof ZAI> | null> {
+  try {
+    if (!zaiInstance) {
+      await ensureZAIConfig()
+      zaiInstance = await ZAI.create()
+    }
+    return zaiInstance
+  } catch {
+    // ZAI.create() fails if .z-ai-config is missing and ZAI_CONFIG env not set
+    return null
+  }
 }
 
 // ─── OpenAI Client (fallback for Vercel production) ──────────────────────────
@@ -494,24 +522,28 @@ export async function POST(request: NextRequest) {
       let llmContent = ''
 
       // ── Priority 1: ZAI SDK (works in sandbox, no API key needed) ──
-      try {
-        const zai = await getZAI()
-        const completion = await withTimeout(
-          zai.chat.completions.create({
-            messages: zaiMessages,
-            stream: false,
-            thinking: { type: 'disabled' },
-          }),
-          LLM_TIMEOUT_MS,
-        )
-        llmContent = completion?.choices?.[0]?.message?.content || ''
-        if (llmContent) {
-          send({ type: 'token', content: llmContent })
+      const zai = await getZAI()
+      if (zai) {
+        try {
+          const completion = await withTimeout(
+            zai.chat.completions.create({
+              messages: zaiMessages,
+              stream: false,
+              thinking: { type: 'disabled' },
+            }),
+            LLM_TIMEOUT_MS,
+          )
+          llmContent = completion?.choices?.[0]?.message?.content || ''
+          if (llmContent) {
+            send({ type: 'token', content: llmContent })
+          }
+        } catch (zaiErr) {
+          console.warn('[chat] ZAI failed:', zaiErr instanceof Error ? zaiErr.message : zaiErr)
         }
-      } catch (zaiErr) {
-        console.warn('[chat] ZAI failed:', zaiErr instanceof Error ? zaiErr.message : zaiErr)
+      }
 
-        // ── Priority 2: OpenAI (fallback for Vercel production) ──
+      // ── Priority 2: OpenAI (fallback for Vercel production) ──
+      if (!llmContent) {
         const openai = getOpenAI()
         if (openai) {
           try {

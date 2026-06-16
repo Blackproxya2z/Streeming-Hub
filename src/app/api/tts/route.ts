@@ -7,10 +7,36 @@ export const maxDuration = 15
 
 // ─── ZAI Singleton ──────────────────────────────────────────────────────────
 
+import { writeFile } from 'fs/promises'
+import { join } from 'path'
+
 let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null
+let zaiConfigWritten = false
+
+async function ensureZAIConfig(): Promise<boolean> {
+  if (zaiConfigWritten) return true
+  const zaiConfig = process.env.ZAI_CONFIG
+  if (!zaiConfig) return false
+  try {
+    const configPath = join(process.cwd(), '.z-ai-config')
+    await writeFile(configPath, zaiConfig, 'utf-8')
+    zaiConfigWritten = true
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function getZAI() {
-  if (!zaiInstance) zaiInstance = await ZAI.create()
-  return zaiInstance
+  try {
+    if (!zaiInstance) {
+      await ensureZAIConfig()
+      zaiInstance = await ZAI.create()
+    }
+    return zaiInstance
+  } catch {
+    return null
+  }
 }
 
 // ─── TTS Text Cleanup ────────────────────────────────────────────────────────
@@ -108,6 +134,7 @@ async function synthesizeWithZAI(
 ): Promise<Buffer | null> {
   try {
     const zai = await getZAI()
+    if (!zai) return null
     const response = await zai.audio.tts.create({
       input: text,
       voice: 'tongtong',
