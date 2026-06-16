@@ -71,7 +71,7 @@ function detectIntent(message: string, _history: ChatMessage[]): Intent {
   if (pinKw.some((kw) => kw.length <= 3 ? new RegExp(`\\b${kw}\\b`, 'i').test(lower) : lower.includes(kw))) return 'pin_inquiry'
   // 2. GREETING
   const greetKw = ['hi', 'hello', 'hey', 'assalam', 'সালাম', 'আসসালামু', 'আসসালাম', 'হ্যালো', 'হাই', 'কেমন আছ', 'kemon acho', 'kemn acho', 'good morning', 'good evening', 'good afternoon', 'শুভ সকাল', 'শুভ সন্ধ্যা', 'sup', 'yo']
-  const prodKw = ['product', 'price', 'order', 'buy', 'netflix', 'vpn', 'chatgpt', 'spotify', 'canva', 'adobe', 'midjourney', 'premium', 'subscription', 'plan', 'streaming', 'প্রোডাক্ট', 'দাম', 'অর্ডার', 'কিনতে', 'মূল্য', 'প্ল্যান', 'dekhao', 'koto', 'taka', 'কত টাকা', 'কত দাম', 'কিভাবে', 'কীভাবে', 'kivabe']
+  const prodKw = ['product', 'price', 'order', 'buy', 'netflix', 'vpn', 'chatgpt', 'spotify', 'canva', 'adobe', 'midjourney', 'premium', 'subscription', 'plan', 'streaming', 'pubg', 'uc', 'royale pass', 'free fire', 'topup', 'প্রোডাক্ট', 'দাম', 'অর্ডার', 'কিনতে', 'মূল্য', 'প্ল্যান', 'পাবজি', 'ইউসি', 'dekhao', 'koto', 'taka', 'কত টাকা', 'কত দাম', 'কিভাবে', 'কীভাবে', 'kivabe']
   if (hasKeyword(lower, greetKw) && !hasKeyword(lower, prodKw) && lower.split(/\s+/).length <= 6) return 'greeting'
   // 3. THANKS
   if (hasKeyword(lower, ['thanks', 'thank you', 'thx', 'ty', 'ধন্যবাদ', 'ধন্যবাদী', 'shukriya', 'শুকরিয়া', 'valo hoyeche', 'valo laglo', 'helpful', 'onek valo', 'onek dhonnobad', 'thanks a lot', 'appreciate', 'great help', 'শুকর']) && lower.split(/\s+/).length <= 8) return 'thanks'
@@ -80,9 +80,9 @@ function detectIntent(message: string, _history: ChatMessage[]): Intent {
   // 5. COMPARISON
   if (hasKeyword(lower, ['vs', 'versus', 'compare', 'comparison', 'difference between', 'better', 'which one', 'which is best', 'kon ta valo', 'kon ta better', 'তুলনা', 'কোনটা ভালো', 'কোনটা সেরা', 'mukhyo somoye', 'ami kon ta nibo', 'kon ta nibo'])) return 'comparison'
   // 6. PRICE
-  if (hasKeyword(lower, ['koto taka', 'koto tk', 'dam koto', 'price koto', 'koto dar', 'কত টাকা', 'কত দাম', 'দাম কত', 'মূল্য কত', 'টাকা কত', 'price ki', 'cost koto', 'suto koto', 'কি দাম', 'দাম কি', 'sasta', 'সস্তা', 'discount', 'ছাড়'])) return 'price_inquiry'
+  if (hasKeyword(lower, ['koto taka', 'koto tk', 'dam koto', 'price koto', 'koto dar', 'কত টাকা', 'কত দাম', 'দাম কত', 'মূল্য কত', 'টাকা কত', 'price ki', 'cost koto', 'suto koto', 'কি দাম', 'দাম কি', 'sasta', 'সস্তা', 'discount', 'ছাড়', 'uc price', 'uc koto', 'pubg price', 'pubg er dam', 'ইউসি কত', 'পাবজি দাম', 'royale pass price'])) return 'price_inquiry'
   // 7. ORDER/PAYMENT
-  const orderKw = ['order', 'buy', 'purchase', 'confirm', 'whatsapp', 'payment', 'pay', 'bkash', 'nagad', 'place order', 'i want to buy', 'i want to order', 'how to order', 'how to pay', 'checkout', 'complete order', 'proceed', 'অর্ডার', 'কিনতে চাই', 'নিতে চাই', 'পেমেন্ট', 'বিকাশ', 'নগদ', 'order korbo', 'nite chai', 'kinte chai', 'bkash number', 'payment kivabe', 'নেবো', 'কিনবো', 'অর্ডার করবো', 'trxid', 'transaction', 'send money', 'ট্রানজেকশন', 'বিকাশ নম্বর', 'পেমেন্ট করবো', 'টাকা পাঠাবো', 'order kivabe', 'কীভাবে অর্ডার', 'কিভাবে অর্ডার', 'কীভাবে কিনবো', 'অর্ডার করতে চাই']
+  const orderKw = ['order', 'buy', 'purchase', 'confirm', 'whatsapp', 'payment', 'pay', 'bkash', 'nagad', 'place order', 'i want to buy', 'i want to order', 'how to order', 'how to pay', 'checkout', 'complete order', 'proceed', 'অর্ডার', 'কিনতে চাই', 'নিতে চাই', 'পেমেন্ট', 'বিকাশ', 'নগদ', 'order korbo', 'nite chai', 'kinte chai', 'bkash number', 'payment kivabe', 'নেবো', 'কিনবো', 'অর্ডার করবো', 'trxid', 'transaction', 'send money', 'ট্রানজেকশন', 'বিকাশ নম্বর', 'পেমেন্ট করবো', 'টাকা পাঠাবো', 'order kivabe', 'কীভাবে অর্ডার', 'কিভাবে অর্ডার', 'কীভাবে কিনবো', 'অর্ডার করতে চাই', 'uid', 'character id', 'player id', 'pubg uid', 'ইউআইডি']
   if (hasKeyword(lower, orderKw) || (/\b(lagbe|chai)\b/i.test(lower) && /\b(order|buy|purchase|কিন|অর্ডার|নেব|কিনব|korbo|kinte|nite)\b/i.test(lower))) return 'order_payment'
   // 8. HOW TO USE
   if (hasKeyword(lower, ['how to use', 'kivabe use', 'use kivabe', 'kivabe chalabo', 'কীভাবে ব্যবহার', 'কিভাবে ব্যবহার', 'কীভাবে চালাবো', 'কিভাবে চালাবো', 'কীভাবে কাজ করে', 'কিভাবে কাজ করে', 'how does it work', 'tutorial', 'ব্যবহার করে', 'use kora jay', 'কোথায় ব্যবহার', 'চালানো যায়', 'নিয়ম কি', 'guide'])) return 'how_to_use'
@@ -114,7 +114,7 @@ function detectCategorySlug(message: string): string | null {
     'cloud-storage': ['cloud', 'ক্লাউড', 'storage', 'স্টোরেজ', 'icloud', 'google drive'],
     vpn: ['vpn', 'ভিপিএন', 'nordvpn', 'expressvpn', 'surfshark'],
     'gift-cards': ['gift card', 'গিফট', 'itunes', 'google play card', 'gift', 'apple gift'],
-    'gaming-topup': ['gaming', 'গেমিং', 'game', 'গেম', 'free fire', 'pubg', 'topup', 'gaming topup', 'uc', 'diamond'],
+    'gaming-topup': ['gaming', 'গেমিং', 'game', 'গেম', 'free fire', 'pubg', 'topup', 'gaming topup', 'uc', 'diamond', 'royale pass', 'royal pass', 'pubg uc', 'pubg topup', 'পাবজি', 'পাবজি ইউসি', 'ইউসি', 'pubg mobile', 'bp', 'ব্যাটল গ্রাউন্ড'],
     'multi-collection': ['multi', 'combo', 'bundle', 'কম্বো', 'collection'],
     adult: ['verified premium', 'premium entertainment', 'premium site', 'বিশেষ', 'restricted category'],
   }
@@ -296,6 +296,36 @@ When a customer decides to buy (says "নিব", "অর্ডার করে�
 1. **Ask for Details**: Politely ask for their Name and WhatsApp Number where the subscription login access will be delivered.
 2. **Payment Info**: Inform them about the total price and provide bKash/Nagad payment instructions. Ask them to give the last 3 digits of the Transaction ID or a screenshot once paid.
 3. **Confirmation**: Tell them: "ধন্যবাদ, আপনার পেমেন্টটি পেয়েছি। আগামী ৫ থেকে ২০ মিনিটের মধ্যে আপনার দেওয়া হোয়াটসঅ্যাপ নম্বরে সাবস্ক্রিপশন ডিটেইলস পাঠিয়ে দেওয়া হচ্ছে।"
+
+== 🪂 PUBG MOBILE TOPUP — SPECIAL ORDERING RULES ==
+When a customer asks about PUBG UC topup, Royale Pass, or any PUBG Mobile purchase:
+1. **Show Full Price List**: Always present the PUBG UC price list in a beautiful, gaming-themed format with 🪂🪙🎖️ emojis. Show ALL packs clearly with prices.
+2. **UID Required**: PUBG topup requires the customer's PUBG Player UID (Character ID) — NOT their login/email/password. It's 100% safe in-game UID topup, no account login needed!
+3. **Ordering Steps for PUBG**:
+   - Step 1: Customer selects which UC pack or Royale Pass they want
+   - Step 2: Ask for their PUBG Player UID (Character ID) — explain it's safe, no login needed
+   - Step 3: Confirm the pack name, price, and UID back to the customer
+   - Step 4: Give bKash/Nagad payment number (01647236359) and ask for payment
+   - Step 5: After payment confirmation, tell them UC will be delivered in 5-20 minutes in-game
+4. **Price List Format** (use this when asked about PUBG prices):
+   🪂 PUBG MOBILE UC PRICE LIST 🪂
+   🪙 30 UC — 59 টাকা
+   🪙 60 UC — 119 টাকা
+   🪙 325 UC (300+25 Bonus) — 559 টাকা
+   🪙 660 UC (600+60 Bonus) — 1109 টাকা
+   🪙 1800 UC (1500+300 Bonus) — 2759 টাকা
+   🪙 3850 UC (3000+850 Bonus) — 5509 টাকা
+   🪙 8100 UC (6000+2100 Bonus) — 11009 টাকা
+   🪙 16200 UC (12000+4200 Bonus) — 22009 টাকা
+   🪙 24300 UC (18000+6300 Bonus) — 33009 টাকা
+   🪙 32400 UC (24000+8400 Bonus) — 44009 টাকা
+   🪙 40500 UC (30000+10500 Bonus) — 55009 টাকা
+   🪙 48600 UC (36000+12600 Bonus) — 66009 টাকা
+   🪙 81000 UC (60000+21000 Bonus) — 110009 টাকা
+   🎖️ Royale Pass (Lv.50) — 750 টাকা
+   🎖️ Royale Pass (Lv.100) — 1360 টাকা
+5. **Safety Reassurance**: Always mention "100% Safe & Official In-Game UID TopUp — No Account Login Required!"
+6. **Payment**: bKash/Nagad to 01647236359, then send TrxID on WhatsApp
 
 == RESPONSE GUIDELINES & TONE ==
 1. Language: Always speak in beautiful, standard Bengali (শুদ্ধ বাংলা ভাষা). Use 'টাকা' instead of 'TK' or 'BDT'.

@@ -522,6 +522,17 @@ export function findSpecificProduct(query: string): Product | null {
   const cleanQuery = query.replace(/[^\w\s]/g, ' ').trim()
   const terms = cleanQuery.split(/\s+/).filter((t) => t.length > 2)
 
+  // Special: treat "UC" as a valid search term for PUBG UC topup
+  if (/\buc\b/i.test(query)) {
+    const pubgUC = products.find((p) => p.slug.includes('pubg-mobile-uc') || p.name.toLowerCase().includes('pubg') && p.name.toLowerCase().includes('uc'))
+    if (pubgUC) return pubgUC
+  }
+  // Special: "royale pass" / "royal pass" search
+  if (/royale?\s*pass/i.test(query)) {
+    const rp = products.find((p) => p.slug.includes('royale-pass') || (p.name.toLowerCase().includes('royale') && p.name.toLowerCase().includes('pass')))
+    if (rp) return rp
+  }
+
   if (terms.length === 0) {
     // Fallback to shorter terms
     const shortTerms = cleanQuery.split(/\s+/).filter((t) => t.length > 0)

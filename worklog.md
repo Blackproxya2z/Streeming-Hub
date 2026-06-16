@@ -222,3 +222,33 @@ Stage Summary:
 - ⚠️ OpenAI API key is region-blocked — AI chat uses fallback responses instead of GPT-4o-mini
 - ⚠️ ElevenLabs API key not provided — TTS falls back to browser speechSynthesis
 - 🔑 User needs to: (1) Get a valid OpenAI API key, (2) Get ElevenLabs API key + Voice ID
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Add PUBG Mobile UC & Royale Pass category products with full pricing
+
+Work Log:
+- Read existing products.json, categories.json, and chat/route.ts to understand current structure
+- Updated existing "PUBG TopUp" product → "PUBG Mobile UC TopUp" with all 13 UC pack price tiers (30 UC to 81000 UC)
+- Added new "PUBG Mobile Royale Pass" product with 2 price options (Lv.50: 750 BDT, Lv.100: 1360 BDT)
+- Generated PUBG UC TopUp product image using AI image generation
+- Generated PUBG Royale Pass product image using AI image generation
+- Updated AI chat system prompt with PUBG-specific ordering rules (UID topup, no login required, full price list format)
+- Added PUBG/Bengali keywords to intent detection (পাবজি, ইউসি, royale pass, etc.)
+- Added PUBG-specific price inquiry keywords (uc price, pubg price, etc.)
+- Added UID/Character ID keywords to order intent detection
+- Updated category slug detection with expanded gaming keywords
+- Added special search handling for "UC" and "Royale Pass" queries in findSpecificProduct()
+- Updated Gaming TopUp category product count from 6 to 7
+- Set both PUBG products as Featured, UC TopUp as BestSeller, both as NewArrival
+- Verified all code passes lint check
+- Verified products.json is valid JSON with correct pricing data
+- Added OpenAI API key to .env file
+
+Stage Summary:
+- PUBG Mobile UC TopUp: 13 price options (59-110009 BDT), Featured + BestSeller + NewArrival
+- PUBG Mobile Royale Pass: 2 price options (750/1360 BDT), Featured + NewArrival
+- AI chat will now show full PUBG price list with 🪂🪙🎖️ emojis when asked
+- Special UID-based ordering flow: Select pack → Provide PUBG UID → Pay via bKash/Nagad → 5-20 min delivery
+- Both product images generated and saved to public/images/products/
